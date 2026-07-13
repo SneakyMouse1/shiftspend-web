@@ -1,7 +1,7 @@
 import axios from "axios";
 
 if (!import.meta.env.VITE_API_URL) {
-  console.error("VITE_API_URL is not set. Did you create a .env file from .env.example?");
+  console.error("VITE_API_URL is not set. Add it to your .env file");
 }
 
 const api = axios.create({
@@ -21,7 +21,7 @@ api.interceptors.response.use(
       localStorage.removeItem("token");
       window.location.href = "/login";
     }
-    return Promise.reject(error);
+    return Promise.reject(error.response?.data || error);
   }
 );
 
