@@ -158,6 +158,13 @@
   }
 }
 
+/* STYLE FOR MODAL TO CONTROL THE HEIGHT */
+@layer components {
+  .modal-theme {
+    @apply max-w-[440px] w-[calc(100%-2rem)] max-h-[85vh] overflow-y-auto scrollbar-none flex flex-col p-5 md:p-6 rounded-[2rem] top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%]
+  }
+}
+
 .glow-income {
   filter: drop-shadow(0 0 15px rgba(74, 222, 128, .15));
 }
