@@ -1,9 +1,31 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Film, Car, Globe, Utensils, Lock, Home, Tv, Briefcase, Heart, Shield, BookOpen, Scissors, Coffee, Tag } from "lucide-react";
+import {
+  Plus, Film, Car, Globe, Utensils, Lock, Home, Tv,
+  Briefcase, Heart, Shield, BookOpen, Scissors, Coffee, Tag, Loader2
+} from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 
+import { useCategories } from "@/hooks/useCategories";
+
+
+// to coonect icon name with name in BBDD
+const ICON_MAP = {
+  tag: Tag,
+  utensils: Utensils,
+  car: Car,
+  home: Home,
+  film: Film,
+  tv: Tv,
+  briefcase: Briefcase,
+  globe: Globe,
+  heart: Heart,
+  shield: Shield,
+  book: BookOpen,
+  scissors: Scissors,
+  coffee: Coffee,
+};
 
 // icons to pick in modal
 const AVAILABLE_ICONS = [
@@ -24,72 +46,88 @@ const AVAILABLE_ICONS = [
 
 // colors to pick in modal
 const COLOR_SWATCHES = [
-  { bgClass: "bg-chart-1", textClass: "text-chart-1", bgOpacityClass: "bg-chart-1/10" },
-  { bgClass: "bg-chart-2", textClass: "text-chart-2", bgOpacityClass: "bg-chart-2/10" },
-  { bgClass: "bg-chart-3", textClass: "text-chart-3", bgOpacityClass: "bg-chart-3/10" },
-  { bgClass: "bg-chart-4", textClass: "text-chart-4", bgOpacityClass: "bg-chart-4/10" },
-  { bgClass: "bg-chart-5", textClass: "text-chart-5", bgOpacityClass: "bg-chart-5/10" }
+  { hex: "#ef4444", bgClass: "bg-red-500" },
+  { hex: "#f97316", bgClass: "bg-orange-500" },
+  { hex: "#ec4899", bgClass: "bg-pink-500" },
+  { hex: "#d946ef", bgClass: "bg-fuchsia-500" },
+  { hex: "#8b5cf6", bgClass: "bg-violet-500" },
+  { hex: "#3b82f6", bgClass: "bg-blue-500" },
+  { hex: "#10b981", bgClass: "bg-emerald-500" },
+  { hex: "#f59e0b", bgClass: "bg-amber-500" },
 ];
 
-
-// initial categories - later con fetch
-const INITIAL_EXPENSE_CATEGORIES = [
-  { id: 1, name: "Entertainment", description: "Protected", icon: Film, iconColor: "text-blue-400", iconBg: "bg-blue-400/10", isCustom: false },
-  { id: 2, name: "Transport", description: "Protected", icon: Car, iconColor: "text-red-400", iconBg: "bg-red-400/10", isCustom: false },
-  { id: 3, name: "Internet", description: "Your custom category", icon: Globe, iconColor: "text-amber-500", iconBg: "bg-amber-500/10", isCustom: true },
-  { id: 4, name: "Restaurants", description: "Your custom category", icon: Utensils, iconColor: "text-yellow-500", iconBg: "bg-yellow-500/10", isCustom: true },
-  { id: 5, name: "Healthcare", description: "Protected", icon: Heart, iconColor: "text-income", iconBg: "bg-income/10", isCustom: false },
-  { id: 6, name: "Groceries", description: "Your custom category", icon: Utensils, iconColor: "text-yellow-500", iconBg: "bg-yellow-500/10", isCustom: true }
-];
+// initial info en modal for creating category
+const INITIAL_CREATE_STATE = {
+  name: "",
+  type: "expense",
+  icon: "tag",
+  color: "#ef4444",
+};
 
 export default function Categories() {
 
-  // all of the categories
-  const [categories, setCategories] = useState(INITIAL_EXPENSE_CATEGORIES);
-
-  // category for modal
+  // Get everything from hook
+  const { categories, isLoading, createCategory, updateCategory, deleteCategory } = useCategories();
   const [selectedCategory, setSelectedCategory] = useState(null);
 
-  // to close modal
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [newCategory, setNewCategory] = useState(INITIAL_CREATE_STATE);
+
+
+  const getIconComponent = (iconName) => ICON_MAP[iconName] || Tag;
   const handleClose = () => setSelectedCategory(null);
 
 
-  // Change category name
+  // Change name
   const handleNameChange = (e) => {
-    const newName = e.target.value;
-    setSelectedCategory((prev) => ({
-      ...prev,
-      name: newName,
-    }));
+    setSelectedCategory((prev) => ({ ...prev, name: e.target.value }));
   };
+
 
   // Change icon
-  const handleIconChange = (NewIcon) => {
-    setSelectedCategory((prev) => ({ ...prev, icon: NewIcon }));
+  const handleIconChange = (iconName) => {
+    setSelectedCategory((prev) => ({ ...prev, icon: iconName }));
   };
 
-  // Chahge Color
-  const handleColorChange = (swatch) => {
-    setSelectedCategory((prev) => ({
-      ...prev,
-      iconColor: swatch.textClass,
-      iconBg: swatch.bgOpacityClass,
-    }));
+
+  // Change color
+  const handleColorChange = (hexColor) => {
+    setSelectedCategory((prev) => ({ ...prev, color: hexColor }));
   };
 
-  // Save changes in category
-  const handleSaveChanges = () => {
-    setCategories((prev) =>
-      prev.map((cat) => (cat.id === selectedCategory.id ? selectedCategory : cat))
-    );
-    handleClose();
+  // Save changes
+  const handleSaveChanges = async () => {
+    const success = await updateCategory(selectedCategory.id, selectedCategory);
+    if (success) handleClose();
   };
 
   // Delete category
-  const handleDeleteCategory = (id) => {
-    setCategories((prev) => prev.filter((cat) => cat.id !== id));
-    handleClose();
+  const handleDeleteCategory = async (id) => {
+    const success = await deleteCategory(id);
+    if (success) handleClose();
   };
+
+  // Create category
+  const handleCreateSubmit = async () => {
+    if (!newCategory.name.trim()) {
+      return;
+    }
+    const success = await createCategory(newCategory);
+    if (success) {
+      setIsCreateOpen(false);
+      setNewCategory(INITIAL_CREATE_STATE);
+    }
+  };
+
+  const handleCloseCreate = () => {
+    setIsCreateOpen(false);
+    setNewCategory(INITIAL_CREATE_STATE);
+  };
+
+
+  // Get catecories for expense or income
+  const expenseCategories = categories.filter((cat) => cat.type === "expense");
+  const incomeCategories = categories.filter((cat) => cat.type === "income");
 
 
 
@@ -105,143 +143,291 @@ export default function Categories() {
         </div>
 
         <Button
-          className="bg-income text-primary-foreground hover:bg-income/90 font-semibold shadow-md glow-income rounded-xl"
+          onClick={() => setIsCreateOpen(true)}
+          className="bg-income text-primary-foreground hover:bg-income/90 font-semibold shadow-md glow-income rounded-xl transition-all duration-300 cursor-pointer"
         >
           <Plus className="h-4 w-4" />
           <span>Add Category</span>
         </Button>
       </div>
 
-      <Tabs defaultValue="expenses" className="w-full">
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-20 space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-income" />
+          <p className="text-sm text-muted-foreground">Fetching your categories...</p>
+        </div>
+      ) : (
+        <Tabs defaultValue="expenses" className="w-full">
 
-        {/* Switches - Expense/Income */}
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger
-            value="expenses"
-            className="data-active:text-expense dark:data-active:text-expense"
-          >
-            Expense Categories
-          </TabsTrigger>
-          <TabsTrigger
-            value="income"
-            className="data-active:text-income dark:data-active:text-income"
-          >
-            Income Categories
-          </TabsTrigger>
-        </TabsList>
+          {/* Switch Expenses/Income */}
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="expenses" className="data-active:text-expense dark:data-active:text-expense transition-all duration-300 cursor-pointer">
+              <span>Expense </span>
+              <span className="hidden sm:inline">Categories </span>
+              <span>({expenseCategories.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="income" className="data-active:text-income dark:data-active:text-income transition-all duration-300 cursor-pointer">
+              <span>Income </span>
+              <span className="hidden sm:inline">Categories </span>
+              <span>({incomeCategories.length})</span>
+            </TabsTrigger>
+          </TabsList>
 
-
-        {/* Expense Tab */}
-        <TabsContent value="expenses" className="mt-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-            {categories.map((category) => {
-              const Icon = category.icon;
-
-              // category cards
-              return (
-                <div
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category)} // modal on click
-                  className="flex flex-col justify-between p-5 rounded-2xl bg-card border border-border/40 hover:border-border transition-colors duration-200 cursor-pointer"
-                >
-                  <div className="flex items-start justify-between mb-8">
-                    <div className={`p-3 rounded-xl ${category.iconBg} ${category.iconColor}`}>
-                      <Icon className="h-6 w-6" />
-                    </div>
-
-                    {category.isCustom ? (
-                      <span className="px-2.5 py-1 rounded-md border border-income text-income bg-income/10 text-xs font-medium">
-                        Custom
-                      </span>
-                    ) : (
-                      <div className="p-2 rounded-lg bg-secondary/50 text-muted-foreground">
-                        <Lock className="h-4 w-4" />
+          {/* Expense Tab */}
+          <TabsContent value="expenses" className="mt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+              {expenseCategories.map((category) => {
+                const IconComponent = getIconComponent(category.icon);
+                return (
+                  <div
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category)}
+                    className="flex flex-col justify-between p-5 rounded-2xl bg-card border border-border/40 hover:border-border hover-glow-expense transition-all duration-300 cursor-pointer"
+                  >
+                    <div className="flex items-start justify-between mb-8">
+                      <div
+                        className="p-3 rounded-xl"
+                        style={{ color: category.color, backgroundColor: `${category.color}15` }}
+                      >
+                        <IconComponent className="h-6 w-6" />
                       </div>
-                    )}
+                      {!category.is_default ? (
+                        <span className="px-2.5 py-1 rounded-md border border-income text-income bg-income/10 text-xs font-medium">
+                          Custom
+                        </span>
+                      ) : (
+                        <div className="p-2 rounded-lg bg-secondary/50 text-muted-foreground">
+                          <Lock className="h-4 w-4" />
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">{category.name}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {!category.is_default ? "Your custom category" : "Protected"}
+                      </p>
+                    </div>
                   </div>
+                );
+              })}
+            </div>
+          </TabsContent>
 
-                  <div>
-                    <h3 className="text-lg font-semibold text-foreground">
-                      {category.name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {category.description}
-                    </p>
+          {/* Income Tab */}
+          <TabsContent value="income" className="mt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+              {incomeCategories.map((category) => {
+                const IconComponent = getIconComponent(category.icon);
+                return (
+                  <div
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category)}
+                    className="flex flex-col justify-between p-5 rounded-2xl bg-card border border-border/40 hover:border-border hover-glow-income transition-all duration-200 cursor-pointer"
+                  >
+                    <div className="flex items-start justify-between mb-8">
+                      <div
+                        className="p-3 rounded-xl"
+                        style={{ color: category.color, backgroundColor: `${category.color}15` }}
+                      >
+                        <IconComponent className="h-6 w-6" />
+                      </div>
+                      {!category.is_default ? (
+                        <span className="px-2.5 py-1 rounded-md border border-income text-income bg-income/10 text-xs font-medium">
+                          Custom
+                        </span>
+                      ) : (
+                        <div className="p-2 rounded-lg bg-secondary/50 text-muted-foreground">
+                          <Lock className="h-4 w-4" />
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">{category.name}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {!category.is_default ? "Your custom category" : "Protected"}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        </TabsContent>
+                );
+              })}
+            </div>
+          </TabsContent>
+        </Tabs>
+      )}
 
-
-        {/* Income Tab */}
-        <TabsContent value="income" className="mt-4">
-          <div className="text-muted-foreground text-sm">
-            Income info - esperamos
-          </div>
-        </TabsContent>
-      </Tabs>
-
-      {/* ─── MODAL (DIALOG) ─── */}
-      <Dialog open={selectedCategory !== null} onOpenChange={(open) => !open && handleClose()}>
-
+      {/* MODAL - ADD CATEGORY */}
+      <Dialog open={isCreateOpen} onOpenChange={(open) => { if (!open) { handleCloseCreate(); } }}>
         <DialogContent className="modal-theme">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold tracking-tight">Create New Category</DialogTitle>
+            <DialogDescription className="hidden">Create custom category helper</DialogDescription>
+          </DialogHeader>
 
-          {/* modal title */}
+          <div className="space-y-5 my-2">
+            {/* Live Preview */}
+            <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-secondary/20 border border-border/10">
+              <div
+                className="p-4 rounded-2xl mb-3 animate-pulse"
+                style={{ color: newCategory.color, backgroundColor: `${newCategory.color}15` }}
+              >
+                {(() => {
+                  const PreviewIcon = getIconComponent(newCategory.icon);
+                  return <PreviewIcon className="h-8 w-8" />;
+                })()}
+              </div>
+              <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Visual Preview</span>
+              <span className="text-2xl font-bold text-foreground mt-1">
+                {newCategory.name || "Unnamed Category"}
+              </span>
+            </div>
+
+            {/* Choosing type of category - Expense / Income */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Category Type</label>
+              <div className="grid grid-cols-2 gap-2 p-1.5 rounded-xl bg-secondary/30 border border-border/40">
+                <button
+                  type="button"
+                  onClick={() => setNewCategory(prev => ({ ...prev, type: "expense" }))}
+                  className={`py-2 text-sm font-semibold rounded-lg transition-all duration-300 cursor-pointer ${newCategory.type === "expense"
+                    ? "bg-expense/10 border border-expense text-expense"
+                    : "text-muted-foreground/60 hover:text-foreground"
+                    }`}
+                >
+                  Expense
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setNewCategory(prev => ({ ...prev, type: "income" }))}
+                  className={`py-2 text-sm font-semibold rounded-lg transition-all cursor-pointer ${newCategory.type === "income"
+                    ? "bg-income/10 border border-income text-income"
+                    : "text-muted-foreground/60 hover:text-foreground"
+                    }`}
+                >
+                  Income
+                </button>
+              </div>
+            </div>
+
+            {/* Name of category*/}
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Category Name</label>
+              <input
+                type="text"
+                placeholder="e.g. Subscriptions, Freelance..."
+                value={newCategory.name}
+                onChange={(e) => setNewCategory(prev => ({ ...prev, name: e.target.value }))}
+                className="w-full px-4 py-3 rounded-xl bg-secondary/30 border border-border/40 text-foreground text-sm focus:outline-none focus:border-income focus:ring-1 focus:ring-income"
+              />
+            </div>
+
+            {/* Chosing icon */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Select Icon</label>
+              <div className="grid grid-cols-8 gap-2 p-3 rounded-xl bg-secondary/30 border border-border/40">
+                {AVAILABLE_ICONS.map((item) => {
+                  const CurrentIconComponent = item.icon;
+                  const isActive = newCategory.icon === item.name;
+
+                  return (
+                    <button
+                      key={item.name}
+                      type="button"
+                      onClick={() => setNewCategory(prev => ({ ...prev, icon: item.name }))}
+                      className={`flex items-center justify-center h-8 w-8 rounded-lg transition-all duration-300 cursor-pointer ${isActive
+                        ? "bg-income text-primary-foreground scale-110"
+                        : "text-muted-foreground/60 hover:text-foreground hover:bg-secondary/50"
+                        }`}
+                    >
+                      <CurrentIconComponent className="h-4 w-4" />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Choosing color */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Color Theme Swatch</label>
+              <div className="flex flex-wrap gap-2.5 p-3 rounded-xl bg-secondary/30 border border-border/40">
+                {COLOR_SWATCHES.map((swatch, idx) => {
+                  const isActive = newCategory.color === swatch.hex;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setNewCategory(prev => ({ ...prev, color: swatch.hex }))}
+                      className={`h-7 w-7 rounded-full ${swatch.bgClass} transition-all duration-300 cursor-pointer hover:scale-110 active:scale-95 ${isActive
+                        ? "ring-2 ring-white ring-offset-2 ring-offset-popover scale-110"
+                        : ""
+                        }`}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <Button
+                onClick={handleCreateSubmit}
+                disabled={!newCategory.name.trim()}
+                className="w-full h-11 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-semibold glow-income disabled:opacity-50 transition-all duration-300 cursor-pointer"
+              >
+                Create Category
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL UPDATE CATEGORY */}
+      <Dialog open={selectedCategory !== null} onOpenChange={(open) => !open && handleClose()}>
+        <DialogContent className="modal-theme">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold tracking-tight">
-              {selectedCategory?.isCustom ? "Modify Custom Category" : "View System Category"}
+              {!selectedCategory?.is_default ? "Modify Custom Category" : "View System Category"}
             </DialogTitle>
             <DialogDescription className="hidden">Category details editor</DialogDescription>
           </DialogHeader>
 
-          {/* modal form */}
           {selectedCategory && (
             <div className="space-y-5 my-2">
-
-              {/* Icon / Visual Preview / Category Name */}
+              {/* Icon Preview */}
               <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-secondary/20 border border-border/10">
-                <div className={`p-4 rounded-2xl mb-3 ${selectedCategory.iconBg} ${selectedCategory.iconColor}`}>
-
+                <div
+                  className="p-4 rounded-2xl mb-3"
+                  style={{ color: selectedCategory.color, backgroundColor: `${selectedCategory.color}15` }}
+                >
                   {(() => {
-                    const PreviewIcon = selectedCategory.icon;
+                    const PreviewIcon = getIconComponent(selectedCategory.icon);
                     return <PreviewIcon className="h-8 w-8" />;
                   })()}
-
                 </div>
-                <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
-                  Visual Preview
-                </span>
-                <span className="text-2xl font-bold text-foreground mt-1">
-                  {selectedCategory.name}
-                </span>
+                <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Visual Preview</span>
+                <span className="text-2xl font-bold text-foreground mt-1">{selectedCategory.name}</span>
               </div>
 
-              {/* Warning for locked categories*/}
-              {!selectedCategory.isCustom && (
+              {/* Warning */}
+              {selectedCategory.is_default && (
                 <div className="flex gap-3 p-4 rounded-xl border border-expense/20 bg-expense/5 text-expense">
                   <Lock className="h-5 w-5 shrink-0 mt-0.5" />
                   <div className="text-xs space-y-1">
                     <p className="font-bold">System Default Category</p>
                     <p className="text-expense/50">
-                      This category is system-protected to ensure past logs remain correct. Names, icons, and colors are locked.
+                      This category is system-protected to ensure past logs remain correct.
                     </p>
                   </div>
                 </div>
               )}
 
-              {/* Input for name */}
+              {/* Input name */}
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Category Name
-                </label>
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Category Name</label>
                 <input
                   type="text"
                   value={selectedCategory.name}
                   onChange={handleNameChange}
-                  disabled={!selectedCategory.isCustom}
-                  className={`w-full px-4 py-3 rounded-xl bg-secondary/30 border text-foreground text-sm focus:outline-none disabled:opacity-50 ${selectedCategory.isCustom
+                  disabled={selectedCategory.is_default}
+                  className={`w-full px-4 py-3 rounded-xl bg-secondary/30 border text-foreground text-sm focus:outline-none disabled:opacity-50 ${!selectedCategory.is_default
                     ? "border-border/40 focus:border-income focus:ring-1 focus:ring-income"
                     : "border-border/40"
                     }`}
@@ -250,26 +436,24 @@ export default function Categories() {
 
               {/* Select Icon */}
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Select Icon
-                </label>
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Select Icon</label>
                 <div className="grid grid-cols-8 gap-2 p-3 rounded-xl bg-secondary/30 border border-border/40">
                   {AVAILABLE_ICONS.map((item) => {
-                    const CurrentIcon = item.icon;
-                    const isActive = selectedCategory.icon === CurrentIcon; // checking if the icon is active
+                    const CurrentIconComponent = item.icon;
+                    const isActive = selectedCategory.icon === item.name;
 
                     return (
                       <button
                         key={item.name}
                         type="button"
-                        disabled={!selectedCategory.isCustom}
-                        onClick={() => handleIconChange(CurrentIcon)}
-                        className={`flex items-center justify-center h-8 w-8 rounded-lg transition-all ${isActive
+                        disabled={selectedCategory.is_default}
+                        onClick={() => handleIconChange(item.name)}
+                        className={`flex items-center justify-center h-8 w-8 rounded-lg transition-all duration-300 cursor-pointer ${isActive
                           ? "bg-income text-primary-foreground scale-110 shadow-sm"
                           : "text-muted-foreground/60 hover:text-foreground hover:bg-secondary/50"
                           } disabled:pointer-events-none`}
                       >
-                        <CurrentIcon className="h-4 w-4" />
+                        <CurrentIconComponent className="h-4 w-4" />
                       </button>
                     );
                   })}
@@ -278,19 +462,17 @@ export default function Categories() {
 
               {/* Color Theme */}
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Color Theme Swatch
-                </label>
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Color Theme Swatch</label>
                 <div className="flex flex-wrap gap-2.5 p-3 rounded-xl bg-secondary/30 border border-border/40">
                   {COLOR_SWATCHES.map((swatch, idx) => {
-                    const isActive = selectedCategory.iconColor === swatch.textClass;
+                    const isActive = selectedCategory.color === swatch.hex;
                     return (
                       <button
                         key={idx}
                         type="button"
-                        disabled={!selectedCategory.isCustom}
-                        onClick={() => handleColorChange(swatch)}
-                        className={`h-7 w-7 rounded-full ${swatch.bgClass} transition-all hover:scale-110 disabled:pointer-events-none active:scale-95 ${isActive
+                        disabled={selectedCategory.is_default}
+                        onClick={() => handleColorChange(swatch.hex)}
+                        className={`h-7 w-7 rounded-full ${swatch.bgClass} transition-all duration-300 cursor-pointer hover:scale-110 disabled:pointer-events-none active:scale-95 ${isActive
                           ? "ring-2 ring-white ring-offset-2 ring-offset-popover scale-110"
                           : ""
                           }`}
@@ -300,40 +482,34 @@ export default function Categories() {
                 </div>
               </div>
 
-              {/* Buttons for Locked/Custom Category */}
-              {selectedCategory.isCustom ? (
+              {/* Buttons */}
+              {!selectedCategory.is_default ? (
                 <div className="space-y-3 mt-4">
-                  {/* Save Button for Custom Category */}
-                  <DialogClose asChild className="w-full">
-                    <Button
-                      onClick={handleSaveChanges}
-                      className="w-full h-11 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-semibold shadow-md glow-income block sm:inline-flex"
-                    >
-                      Save Changes
-                    </Button>
-                  </DialogClose>
+                  <Button
+                    onClick={handleSaveChanges}
+                    className="w-full h-11 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-semibold shadow-md glow-income block sm:inline-flex transition-all duration-300 cursor-pointer"
+                  >
+                    Save Changes
+                  </Button>
 
-                  {/* Delete Button for Custom Category */}
                   <button
                     type="button"
                     onClick={() => handleDeleteCategory(selectedCategory.id)}
-                    className="w-full text-center text-rose-500 hover:text-rose-400 text-sm font-semibold transition-colors py-1 block"
+                    className="w-full text-center text-destructive hover:destructive/50 text-sm font-semibold py-1 block transition-all duration-300 cursor-pointer"
                   >
                     Delete This Category
                   </button>
                 </div>
               ) : (
-                /* Close Button for Locked Category */
-                <DialogClose asChild className="w-full">
-                  <Button
-                    onClick={handleClose}
-                    className="w-full h-11 bg-secondary text-foreground hover:bg-secondary/80 rounded-xl font-semibold mt-2 block sm:inline-flex"
-                  >
-                    Close
-                  </Button>
-                </DialogClose>
-              )}
 
+                <Button
+                  onClick={handleClose}
+                  className="w-full h-11 bg-secondary text-foreground hover:bg-secondary/80 rounded-xl font-semibold mt-2 block sm:inline-flex transition-all duration-300 cursor-pointer"
+                >
+                  Close
+                </Button>
+
+              )}
             </div>
           )}
         </DialogContent>
