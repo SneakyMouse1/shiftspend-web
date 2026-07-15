@@ -1,13 +1,20 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
-import { Sun, Moon, TrendingUp, Menu, X } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { Sun, Moon, TrendingUp, Menu, X, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { navItems } from "@/lib/navigation";
 
+import { useAuth } from "@/contexts/AuthContext";
+
 export function Header({ theme, toggleTheme }) {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+  const { logout } = useAuth();
 
-
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
 
   return (
     <header className="md:hidden sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md transition-all duration-300">
@@ -52,6 +59,17 @@ export function Header({ theme, toggleTheme }) {
                 }`}
               />
             </div>
+          </Button>
+
+          {/* Logout button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLogout}
+            className="h-9 w-9 rounded-xl border border-border/20 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all duration-300"
+            aria-label="Log out"
+          >
+            <LogOut className="h-[1.1rem] w-[1.1rem]" />
           </Button>
 
           {/* Hamburger Menu Toggle */}
