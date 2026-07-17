@@ -1,90 +1,63 @@
-import { useState, useEffect } from "react";
-import { getCategoriesApi, updateCategoryApi, deleteCategoryApi, createCategoryApi } from "@/api/categories";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getCategoriesApi, createCategoryApi, updateCategoryApi, deleteCategoryApi } from "@/api/categories";
 import { toast } from "sonner";
 
+// reading all the categories from back - the info is fresh during 5 minutes
 export function useCategories() {
-    const [categories, setCategories] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
+  return useQuery({
+    queryKey: ["categories"],
+    queryFn: getCategoriesApi,
+    staleTime: 5 * 60 * 1000,
+  });
+}
 
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                setIsLoading(true);
-                const data = await getCategoriesApi();
-                setCategories(data);
-            } catch (error) {
-                console.error("Error fetching categories:", error);
-                toast.error("Failed to load categories");
-            } finally {
-                setIsLoading(false);
-            }
-        };
+// to create new category
+export function useCreateCategory() {
+  const queryClient = useQueryClient();
 
-        fetchCategories();
-    }, []);
+  return useMutation({
+    mutationFn: createCategoryApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      toast.success("Category created successfully!");
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error(error?.response?.data?.message || "Failed to create category");
+    },
+  });
+}
 
-    // Create category
-    const createCategory = async (newCategoryData) => {
-        try {
-            const data = await createCategoryApi({
-                name: newCategoryData.name,
-                icon: newCategoryData.icon,
-                color: newCategoryData.color,
-                type: newCategoryData.type, // 'expense' или 'income'
-            });
+// to update category
+export function useUpdateCategory() {
+  const queryClient = useQueryClient();
 
-            // Добавляем новую категорию в локальное состояние
-            setCategories((prev) => [...prev, data]);
-            toast.success("Category created successfully!");
-            return true;
-        } catch (error) {
-            console.error("Error creating category:", error);
-            toast.error("Failed to create category");
-            return false;
-        }
-    };
+  return useMutation({
+    mutationFn: ({ id, updatedData }) => updateCategoryApi(id, updatedData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      toast.success("Category updated successfully!");
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error(error?.response?.data?.message || "Failed to save changes");
+    },
+  });
+}
 
-    // Update category  
-    const updateCategory = async (id, updatedData) => {
-        try {
-            const data = await updateCategoryApi(id, {
-                name: updatedData.name,
-                icon: updatedData.icon,
-                color: updatedData.color,
-                type: updatedData.type,
-            });
+// to delete category
+export function useDeleteCategory() {
+  const queryClient = useQueryClient();
 
-            setCategories((prev) =>
-                prev.map((cat) => (cat.id === id ? data : cat))
-            );
-            toast.success("Category updated successfully!");
-            return true;
-        } catch (error) {
-            console.error("Error updating category:", error);
-            toast.error("Failed to save changes");
-            return false;
-        }
-    };
-
-    // Delete category
-    const deleteCategory = async (id) => {
-        try {
-            await deleteCategoryApi(id);
-            setCategories((prev) => prev.filter((cat) => cat.id !== id));
-            toast.success("Category deleted");
-            return true;
-        } catch (error) {
-            console.error("Error deleting category:", error);
-            toast.error("Failed to delete category");
-            return false;
-        }
-    };
-
-    return {
-        categories,
-        isLoading,
-        createCategory,
-        updateCategory,
-        deleteCategory
-    };
+  return useMutation({
+    mutationFn: deleteCategoryApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      toast.success("Category deleted");
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error(error?.response?.data?.message || "Failed to delete category");
+    },
+  });
 }

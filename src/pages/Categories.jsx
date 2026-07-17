@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from "@/hooks/useCategories";
+
 import { Button } from "@/components/ui/button";
 import {
   Plus, Film, Car, Globe, Utensils, Lock, Home, Tv,
@@ -6,8 +8,6 @@ import {
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
-
-import { useCategories } from "@/hooks/useCategories";
 
 
 // to coonect icon name with name in BBDD
@@ -66,62 +66,57 @@ const INITIAL_CREATE_STATE = {
 
 export default function Categories() {
 
-  // Get everything from hook
-  const { categories, isLoading, createCategory, updateCategory, deleteCategory } = useCategories();
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const { data: categories = [], isLoading } = useCategories();
 
+  // to initialize mutation
+  const createMutation = useCreateCategory();
+  const updateMutation = useUpdateCategory();
+  const deleteMutation = useDeleteCategory();
+
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newCategory, setNewCategory] = useState(INITIAL_CREATE_STATE);
 
-
   const getIconComponent = (iconName) => ICON_MAP[iconName] || Tag;
+  
   const handleClose = () => setSelectedCategory(null);
-
-
-  // Change name
-  const handleNameChange = (e) => {
-    setSelectedCategory((prev) => ({ ...prev, name: e.target.value }));
-  };
-
-
-  // Change icon
-  const handleIconChange = (iconName) => {
-    setSelectedCategory((prev) => ({ ...prev, icon: iconName }));
-  };
-
-
-  // Change color
-  const handleColorChange = (hexColor) => {
-    setSelectedCategory((prev) => ({ ...prev, color: hexColor }));
-  };
-
-  // Save changes
-  const handleSaveChanges = async () => {
-    const success = await updateCategory(selectedCategory.id, selectedCategory);
-    if (success) handleClose();
-  };
-
-  // Delete category
-  const handleDeleteCategory = async (id) => {
-    const success = await deleteCategory(id);
-    if (success) handleClose();
-  };
-
-  // Create category
-  const handleCreateSubmit = async () => {
-    if (!newCategory.name.trim()) {
-      return;
-    }
-    const success = await createCategory(newCategory);
-    if (success) {
-      setIsCreateOpen(false);
-      setNewCategory(INITIAL_CREATE_STATE);
-    }
-  };
-
   const handleCloseCreate = () => {
     setIsCreateOpen(false);
     setNewCategory(INITIAL_CREATE_STATE);
+  };
+
+  // info to update category
+  const handleNameChange = (e) => setSelectedCategory((prev) => ({ ...prev, name: e.target.value }));
+  const handleIconChange = (iconName) => setSelectedCategory((prev) => ({ ...prev, icon: iconName }));
+  const handleColorChange = (hexColor) => setSelectedCategory((prev) => ({ ...prev, color: hexColor }));
+
+
+  // creation of category
+  const handleCreateSubmit = () => {
+    if (!newCategory.name.trim()) return;
+
+    createMutation.mutate(newCategory, {
+      onSuccess: () => {
+        handleCloseCreate();
+      }
+    });
+  };
+
+  // to update category
+  const handleSaveChanges = () => {
+    updateMutation.mutate(
+      { id: selectedCategory.id, updatedData: selectedCategory },
+      {
+        onSuccess: () => handleClose()
+      }
+    );
+  };
+
+  // to delete category
+  const handleDeleteCategory = (id) => {
+    deleteMutation.mutate(id, {
+      onSuccess: () => handleClose()
+    });
   };
 
 
@@ -161,12 +156,12 @@ export default function Categories() {
 
           {/* Switch Expenses/Income */}
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="expenses" className="data-active:text-expense dark:data-active:text-expense transition-all duration-300 cursor-pointer">
+            <TabsTrigger value="expenses" className="border data-active:border-expense! dark:data-active:border-expense! data-active:text-expense dark:data-active:text-expense transition-colors duration-200 cursor-pointer">
               <span>Expense </span>
               <span className="hidden sm:inline">Categories </span>
               <span>({expenseCategories.length})</span>
             </TabsTrigger>
-            <TabsTrigger value="income" className="data-active:text-income dark:data-active:text-income transition-all duration-300 cursor-pointer">
+            <TabsTrigger value="income" className="border data-active:border-income! dark:data-active:border-income! data-active:text-income dark:data-active:text-income transition-colors duration-200 cursor-pointer">
               <span>Income </span>
               <span className="hidden sm:inline">Categories </span>
               <span>({incomeCategories.length})</span>
