@@ -166,7 +166,7 @@
 }
 
 .glow-income {
-  filter: drop-shadow(0 0 15px rgba(74, 222, 128, .15));
+  filter: drop-shadow(0 0 15px rgba(28, 155, 75, 0.15));
 }
 
 .glow-expense {
@@ -175,6 +175,16 @@
 
 .glow-balance {
   filter: drop-shadow(0 0 25px rgba(255, 255, 255, .1));
+}
+
+
+/* WITHOUT THIS HOVER DOESN'T WORK - NEED TO INVESTIGATE */
+.hover-glow-income:hover {
+  filter: drop-shadow(0 0 15px rgba(74, 222, 128, 0.15));
+}
+
+.hover-glow-expense:hover {
+  filter: drop-shadow(0 0 15px rgba(251, 146, 60, .15));
 }
 
 ::-webkit-scrollbar {
