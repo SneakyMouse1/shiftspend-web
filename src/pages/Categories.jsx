@@ -1,49 +1,12 @@
-import { useState } from "react";
+import { useState, createElement } from "react";
 import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from "@/hooks/useCategories";
 
-import {
-  Plus, Film, Car, Globe, Utensils, Lock, Home, Tv,
-  Briefcase, Heart, Shield, BookOpen, Scissors, Coffee, Tag, Loader2
-} from "lucide-react";
-
 import { Button } from "@/components/ui/button";
+import { Plus, Lock, Loader2 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { getIconComponent, AVAILABLE_ICONS } from "@/config/categoryIcons";
 
-
-// to coonect icon name with name in BBDD
-const ICON_MAP = {
-  tag: Tag,
-  utensils: Utensils,
-  car: Car,
-  home: Home,
-  film: Film,
-  tv: Tv,
-  briefcase: Briefcase,
-  globe: Globe,
-  heart: Heart,
-  shield: Shield,
-  book: BookOpen,
-  scissors: Scissors,
-  coffee: Coffee,
-};
-
-// icons to pick in modal
-const AVAILABLE_ICONS = [
-  { name: "tag", icon: Tag },
-  { name: "utensils", icon: Utensils },
-  { name: "car", icon: Car },
-  { name: "home", icon: Home },
-  { name: "film", icon: Film },
-  { name: "tv", icon: Tv },
-  { name: "briefcase", icon: Briefcase },
-  { name: "globe", icon: Globe },
-  { name: "heart", icon: Heart },
-  { name: "shield", icon: Shield },
-  { name: "book", icon: BookOpen },
-  { name: "scissors", icon: Scissors },
-  { name: "coffee", icon: Coffee },
-];
 
 // colors to pick in modal
 const COLOR_SWATCHES = [
@@ -65,6 +28,12 @@ const INITIAL_CREATE_STATE = {
   color: "#ef4444",
 };
 
+// Renders the correct lucide icon for a category — declared at module level
+// so React treats it as a stable component, not something created on each render
+function CategoryPreviewIcon({ iconName, className }) {
+  return createElement(getIconComponent(iconName), { className });
+}
+
 export default function Categories() {
 
   const { data: categories = [], isLoading } = useCategories();
@@ -78,8 +47,6 @@ export default function Categories() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newCategory, setNewCategory] = useState(INITIAL_CREATE_STATE);
 
-  const getIconComponent = (iconName) => ICON_MAP[iconName] || Tag;
-  
   const handleClose = () => setSelectedCategory(null);
   const handleCloseCreate = () => {
     setIsCreateOpen(false);
@@ -266,10 +233,7 @@ export default function Categories() {
                 className="p-4 rounded-2xl mb-3 animate-pulse"
                 style={{ color: newCategory.color, backgroundColor: `${newCategory.color}15` }}
               >
-                {(() => {
-                  const PreviewIcon = getIconComponent(newCategory.icon);
-                  return <PreviewIcon className="h-8 w-8" />;
-                })()}
+                <CategoryPreviewIcon iconName={newCategory.icon} className="h-8 w-8" />
               </div>
               <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Visual Preview</span>
               <span className="text-2xl font-bold text-foreground mt-1">

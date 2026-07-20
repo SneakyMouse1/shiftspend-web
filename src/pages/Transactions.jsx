@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { format, isToday, parseISO } from "date-fns";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -11,18 +11,6 @@ import {
   ArrowLeftRight,
   X,
   Tag,
-  Briefcase,
-  Car,
-  Coffee,
-  Film,
-  Globe,
-  Heart,
-  Home,
-  Scissors,
-  Shield,
-  Tv,
-  Utensils,
-  BookOpen,
   ChevronLeft,
   ChevronRight,
   ArrowDownLeft,
@@ -72,24 +60,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-const ICON_MAP = {
-  tag: Tag,
-  utensils: Utensils,
-  car: Car,
-  home: Home,
-  film: Film,
-  tv: Tv,
-  briefcase: Briefcase,
-  globe: Globe,
-  heart: Heart,
-  shield: Shield,
-  book: BookOpen,
-  scissors: Scissors,
-  coffee: Coffee,
-};
-
-const getIconComponent = (iconName) => ICON_MAP[iconName] || Tag;
+import { getIconComponent } from "@/config/categoryIcons";
+import { formatCurrency, getCurrencySymbol } from "@/config/currencies";
 
 const formatGroupDate = (dateStr) => {
   try {
@@ -103,24 +75,52 @@ const formatGroupDate = (dateStr) => {
   }
 };
 
-const formatCurrency = (amount, currencyCode) => {
-  return new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: currencyCode,
-  }).format(amount);
-};
+// Function with no component deps, there is no need to re-declare it on every render inside the component
+const processAndGroupTransactions = (rawList) => {
+  const mergedList = [];
+  const seenTransfers = new Set();
 
+  for (const item of rawList) {
+    if (item.transfer_id) {
+      if (seenTransfers.has(item.transfer_id)) {
+        const existing = mergedList.find((r) => r.transfer_id === item.transfer_id);
+        if (existing) {
+          if (item.type === "expense") {
+            existing.source_account = item.account;
+          } else if (item.type === "income") {
+            existing.destination_account = item.account;
+          }
+        }
+        continue;
+      }
 
-const getCurrencySymbol = (code) => {
-  switch (code?.toUpperCase()) {
-    case "USD": return "$";
-    case "EUR": return "€";
-    case "GBP": return "£";
-    case "CNY": return "¥";
-    case "JPY": return "¥";
-    case "RUB": return "₽";
-    default: return "€";
+      seenTransfers.add(item.transfer_id);
+      const merged = {
+        ...item,
+        type: "transfer",
+        source_account: item.type === "expense" ? item.account : (item.related_transaction?.account || null),
+        destination_account: item.type === "income" ? item.account : (item.related_transaction?.account || null),
+      };
+      mergedList.push(merged);
+    } else {
+      mergedList.push(item);
+    }
   }
+
+  // Function to group transactions by date (no need to re-declare on every render)
+  const grouped = mergedList.reduce((acc, item) => {
+    const dateKey = item.date;
+    if (!acc[dateKey]) acc[dateKey] = [];
+    acc[dateKey].push(item);
+    return acc;
+  }, {});
+
+  return Object.keys(grouped)
+    .sort((a, b) => b.localeCompare(a))
+    .map((date) => ({
+      date,
+      items: grouped[date],
+    }));
 };
 
 export default function Transactions() {
@@ -143,9 +143,12 @@ export default function Transactions() {
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [editingTransaction, setEditingTransaction] = useState(null);
 
-  const [formType, setFormType] = useState("expense");  const [formAmount, setFormAmount] = useState("");
+  const [formType, setFormType] = useState("expense"); 
+  const [formAmount, setFormAmount] = useState("");
   const [formAccountId, setFormAccountId] = useState("");
-  const [formToAccountId, setFormToAccountId] = useState("");  const [formCategoryId, setFormCategoryId] = useState("");  const [formDate, setFormDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
+  const [formToAccountId, setFormToAccountId] = useState(""); 
+  const [formCategoryId, setFormCategoryId] = useState(""); 
+  const [formDate, setFormDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
   const [formComment, setFormComment] = useState("");
   const [formSelectedTags, setFormSelectedTags] = useState([]);
   const [newTagName, setNewTagName] = useState("");
@@ -155,76 +158,48 @@ export default function Transactions() {
   const deleteMutation = useDeleteTransaction();
   const createTagMutation = useCreateTag();
 
-  const activeFilters = {
-    page,
-    per_page: perPage,
-    sort: "-date",
-  };
-
-  if (search.trim()) activeFilters.search = search.trim();
-  if (selectedType !== "all") activeFilters.type = selectedType;
-  if (selectedAccount !== "all") activeFilters.account_id = selectedAccount;
-  if (selectedCategory !== "all") activeFilters.category_id = selectedCategory;
-  if (selectedTag !== "all") activeFilters.tag = selectedTag;
-  if (dateFrom) activeFilters.date_from = dateFrom;
-  if (dateTo) activeFilters.date_to = dateTo;
+  // useMemo: activeFilters object is the queryKey for TanStack Query.
+  // Without memoization a new object is created every render, which could
+  // cause unnecessary refetches if the hook compares by reference
+  const activeFilters = useMemo(() => {
+    const f = { page, per_page: perPage, sort: "-date" };
+    if (search.trim()) f.search = search.trim();
+    if (selectedType !== "all") f.type = selectedType;
+    if (selectedAccount !== "all") f.account_id = selectedAccount;
+    if (selectedCategory !== "all") f.category_id = selectedCategory;
+    if (selectedTag !== "all") f.tag = selectedTag;
+    if (dateFrom) f.date_from = dateFrom;
+    if (dateTo) f.date_to = dateTo;
+    return f;
+  }, [page, perPage, search, selectedType, selectedAccount, selectedCategory, selectedTag, dateFrom, dateTo]);
 
   const { data: transactionsData, isLoading, isError } = useTransactions(activeFilters);
-  const transactions = transactionsData?.data || [];
+  
+  // Wrap in useMemo to prevent "?? []" from creating a new array reference on every render,
+  // which causes downstream useMemo calls depending on [transactions] to rerun needlessly.
+  const transactions = useMemo(() => transactionsData?.data ?? [], [transactionsData]);
   const meta = transactionsData?.meta || {};
 
-  const processAndGroupTransactions = (rawList) => {
-    const mergedList = [];
-    const seenTransfers = new Set();
+  // useMemo: processAndGroupTransactions iterates the full transaction list—
+  // memoize so it only reruns when the server data actually changes,
+  // not when filter dropdowns open or form fields are typed into
+  const groupedTransactions = useMemo(
+    () => processAndGroupTransactions(transactions),
+    [transactions]
+  );
 
-    for (const item of rawList) {
-      if (item.transfer_id) {
-        if (seenTransfers.has(item.transfer_id)) {
-          const existing = mergedList.find((r) => r.transfer_id === item.transfer_id);
-          if (existing) {
-            if (item.type === "expense") {
-              existing.source_account = item.account;
-            } else if (item.type === "income") {
-              existing.destination_account = item.account;
-            }
-          }
-          continue;
-        }
+  // useMemo: stable account lookup—avoids .find() on every render
+  const activeAccountObj = useMemo(
+    () => accounts.find((a) => String(a.id) === String(formAccountId)),
+    [accounts, formAccountId]
+  );
+  const activeCurrencySymbol = activeAccountObj?.currency_code ?? "USD";
 
-        seenTransfers.add(item.transfer_id);
-        const merged = {
-          ...item,
-          type: "transfer",
-          source_account: item.type === "expense" ? item.account : (item.related_transaction?.account || null),
-          destination_account: item.type === "income" ? item.account : (item.related_transaction?.account || null),
-        };
-        mergedList.push(merged);
-      } else {
-        mergedList.push(item);
-      }
-    }
-
-    const grouped = mergedList.reduce((acc, item) => {
-      const dateKey = item.date;
-      if (!acc[dateKey]) acc[dateKey] = [];
-      acc[dateKey].push(item);
-      return acc;
-    }, {});
-
-    return Object.keys(grouped)
-      .sort((a, b) => b.localeCompare(a))
-      .map((date) => ({
-        date,
-        items: grouped[date],
-      }));
-  };
-
-  const groupedTransactions = processAndGroupTransactions(transactions);
-
-  const activeAccountObj = accounts.find((a) => String(a.id) === String(formAccountId));
-  const activeCurrencySymbol = activeAccountObj ? activeAccountObj.currency_code : "USD";
-
-  const filteredCategories = categories.filter((cat) => cat.type === formType);
+  // useMemo: filtered categories change only when the source list or selected type changes
+  const filteredCategories = useMemo(
+    () => categories.filter((cat) => cat.type === formType),
+    [categories, formType]
+  );
 
   const resetCreateForm = () => {
     setEditingTransaction(null);
@@ -342,13 +317,15 @@ export default function Transactions() {
     });
   };
 
-  const handleFilterChange = (setter) => (val) => {
+  // Callback that resets the pagination page to 1 whenever any filter changes.
+  const handleFilterChange = useCallback((setter, val) => {
     setter(val);
     setPage(1);
-  };
+  }, []);
 
   return (
     <div className="space-y-6 relative pb-20 md:pb-0">
+      {/* Page Header: Title and main action buttons */}
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">Ledger Transactions</h1>
@@ -382,18 +359,19 @@ export default function Transactions() {
         </div>
       </div>
 
+      {/* Search Input Bar */}
       <div className="relative w-full">
         <Search className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
         <input
           type="text"
           placeholder="Search descriptions, hash tags..."
           value={search}
-          onChange={(e) => handleFilterChange(setSearch)(e.target.value)}
+          onChange={(e) => handleFilterChange(setSearch, e.target.value)}
           className="w-full pl-11 pr-4 py-3.5 bg-card border border-border/40 hover:border-border/60 focus:border-ring rounded-3xl text-sm focus:outline-none transition-all duration-300 shadow-inner"
         />
         {search && (
           <button
-            onClick={() => handleFilterChange(setSearch)("")}
+            onClick={() => handleFilterChange(setSearch, "")}
             className="absolute right-4 top-3.5 text-muted-foreground hover:text-foreground"
           >
             <X className="h-5 w-5" />
@@ -401,6 +379,7 @@ export default function Transactions() {
         )}
       </div>
 
+      {/* Expandable Filter Grid Options */}
       <AnimatePresence>
         {isFiltersOpen && (
           <motion.div
@@ -412,7 +391,7 @@ export default function Transactions() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Type</label>
-                <Select value={selectedType} onValueChange={handleFilterChange(setSelectedType)}>
+                <Select value={selectedType} onValueChange={(val) => handleFilterChange(setSelectedType, val)}>
                   <SelectTrigger className="w-full bg-secondary/40 border-border/40 rounded-xl h-10">
                     <SelectValue placeholder="All types">
                       {selectedType === "all" ? "All Types" : selectedType === "expense" ? "Expense" : selectedType === "income" ? "Income" : selectedType === "transfer" ? "Transfer" : "All Types"}
@@ -429,7 +408,7 @@ export default function Transactions() {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Account</label>
-                <Select value={selectedAccount} onValueChange={handleFilterChange(setSelectedAccount)}>
+                <Select value={selectedAccount} onValueChange={(val) => handleFilterChange(setSelectedAccount, val)}>
                   <SelectTrigger className="w-full bg-secondary/40 border-border/40 rounded-xl h-10">
                     <SelectValue placeholder="All accounts">
                       {selectedAccount === "all" ? "All Accounts" : accounts.find(a => String(a.id) === String(selectedAccount))?.name || "All Accounts"}
@@ -448,7 +427,7 @@ export default function Transactions() {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Category</label>
-                <Select value={selectedCategory} onValueChange={handleFilterChange(setSelectedCategory)}>
+                <Select value={selectedCategory} onValueChange={(val) => handleFilterChange(setSelectedCategory, val)}>
                   <SelectTrigger className="w-full bg-secondary/40 border-border/40 rounded-xl h-10">
                     <SelectValue placeholder="All categories">
                       {selectedCategory === "all" ? "All Categories" : categories.find(c => String(c.id) === String(selectedCategory))?.name || "All Categories"}
@@ -467,7 +446,7 @@ export default function Transactions() {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tag</label>
-                <Select value={selectedTag} onValueChange={handleFilterChange(setSelectedTag)}>
+                <Select value={selectedTag} onValueChange={(val) => handleFilterChange(setSelectedTag, val)}>
                   <SelectTrigger className="w-full bg-secondary/40 border-border/40 rounded-xl h-10">
                     <SelectValue placeholder="All tags">
                       {selectedTag === "all" ? "All Tags" : `#${selectedTag}`}
@@ -489,7 +468,7 @@ export default function Transactions() {
                 <Input
                   type="date"
                   value={dateFrom}
-                  onChange={(e) => handleFilterChange(setDateFrom)(e.target.value)}
+                  onChange={(e) => handleFilterChange(setDateFrom, e.target.value)}
                   className="bg-secondary/40 border-border/40 rounded-xl h-10 text-sm focus-visible:ring-0"
                 />
               </div>
@@ -499,7 +478,7 @@ export default function Transactions() {
                 <Input
                   type="date"
                   value={dateTo}
-                  onChange={(e) => handleFilterChange(setDateTo)(e.target.value)}
+                  onChange={(e) => handleFilterChange(setDateTo, e.target.value)}
                   className="bg-secondary/40 border-border/40 rounded-xl h-10 text-sm focus-visible:ring-0"
                 />
               </div>
@@ -517,12 +496,15 @@ export default function Transactions() {
         )}
       </AnimatePresence>
 
+      {/* Conditional UI States Rendering */}
       {isLoading ? (
+        /* Loading Spinner State */
         <div className="flex flex-col items-center justify-center py-24 space-y-4">
           <Loader2 className="h-8 w-8 animate-spin text-income" />
           <p className="text-sm text-muted-foreground">Gathering financial flows...</p>
         </div>
       ) : isError ? (
+        /* Error Fallback UI */
         <div className="flex flex-col items-center justify-center py-24 space-y-4 text-center">
           <p className="text-destructive font-medium">Failed to load transactions.</p>
           <Button variant="outline" onClick={() => setPage(1)} className="rounded-xl">
@@ -530,6 +512,7 @@ export default function Transactions() {
           </Button>
         </div>
       ) : groupedTransactions.length === 0 ? (
+        /* Empty Matching Results State */
         <div className="text-center py-24 border border-dashed border-border/40 rounded-3xl bg-card/20 space-y-3">
           <p className="text-muted-foreground text-sm font-medium">No transactions matched your query.</p>
           <Button
@@ -541,6 +524,7 @@ export default function Transactions() {
           </Button>
         </div>
       ) : (
+        /* Transactions Feed Grouped By Day */
         <div className="space-y-8">
           {groupedTransactions.map((group) => (
             <div key={group.date} className="space-y-3">
@@ -550,6 +534,7 @@ export default function Transactions() {
               </div>
 
               <div className="space-y-3">
+                {/* Transaction Items List */}
                 {group.items.map((transaction) => {
                   const isTransfer = transaction.type === "transfer";
                   const isExpense = transaction.type === "expense";
@@ -559,6 +544,7 @@ export default function Transactions() {
                   const Icon = isTransfer ? ArrowLeftRight : getIconComponent(transaction.category?.icon);
 
                   return (
+                    /* Individual Transaction Entry card */
                     <div
                       key={transaction.id}
                       className="group flex items-center justify-between p-4 rounded-2xl bg-card border border-border/30 hover:border-border/60 hover:shadow-sm transition-all duration-300"
@@ -616,7 +602,7 @@ export default function Transactions() {
                               {transaction.tags.map((tag) => (
                                 <span
                                   key={tag.id}
-                                  onClick={() => handleFilterChange(setSelectedTag)(tag.name)}
+                                  onClick={() => handleFilterChange(setSelectedTag, tag.name)}
                                   className="px-1.5 py-0.5 border border-border bg-secondary/35 rounded text-[10px] text-muted-foreground font-mono cursor-pointer hover:border-foreground/30 hover:text-foreground transition-all select-none"
                                 >
                                   {tag.name}
@@ -659,6 +645,7 @@ export default function Transactions() {
             </div>
           ))}
 
+          {/* Pagination Navigation Footer */}
           {meta.last_page > 1 && (
             <div className="flex items-center justify-between border-t border-border/40 pt-4">
               <span className="text-xs text-muted-foreground">
@@ -690,6 +677,7 @@ export default function Transactions() {
         </div>
       )}
 
+      {/* Transaction creation / editing modal dialog */}
       <Dialog open={isCreateOpen} onOpenChange={(open) => !open && setIsCreateOpen(false)}>
         <DialogContent className="modal-theme md:max-w-135">
           <DialogHeader>
@@ -1001,6 +989,7 @@ export default function Transactions() {
         </DialogContent>
       </Dialog>
 
+      {/* Floating Action Button (FAB) for mobile viewports */}
       <button
         onClick={() => {
           resetCreateForm();
@@ -1012,6 +1001,7 @@ export default function Transactions() {
         <Plus className="h-7 w-7" />
       </button>
 
+      {/* Confirmation dialog for deleting transaction entries */}
       <AlertDialog open={deleteConfirmId !== null} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
         <AlertDialogContent className="rounded-3xl border border-border/40 bg-popover max-w-100">
           <AlertDialogHeader>
@@ -1028,6 +1018,7 @@ export default function Transactions() {
               onClick={handleDeleteConfirm}
               className="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-xl cursor-pointer"
             >
+              {/* Delete Confirmation Action */}
               {deleteMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
