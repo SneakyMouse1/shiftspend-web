@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { format, isToday, parseISO } from "date-fns";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -75,6 +75,54 @@ const formatGroupDate = (dateStr) => {
   }
 };
 
+// Moved to module level: pure function with no component deps,
+// no reason to re-declare it on every render inside the component
+const processAndGroupTransactions = (rawList) => {
+  const mergedList = [];
+  const seenTransfers = new Set();
+
+  for (const item of rawList) {
+    if (item.transfer_id) {
+      if (seenTransfers.has(item.transfer_id)) {
+        const existing = mergedList.find((r) => r.transfer_id === item.transfer_id);
+        if (existing) {
+          if (item.type === "expense") {
+            existing.source_account = item.account;
+          } else if (item.type === "income") {
+            existing.destination_account = item.account;
+          }
+        }
+        continue;
+      }
+
+      seenTransfers.add(item.transfer_id);
+      const merged = {
+        ...item,
+        type: "transfer",
+        source_account: item.type === "expense" ? item.account : (item.related_transaction?.account || null),
+        destination_account: item.type === "income" ? item.account : (item.related_transaction?.account || null),
+      };
+      mergedList.push(merged);
+    } else {
+      mergedList.push(item);
+    }
+  }
+
+  const grouped = mergedList.reduce((acc, item) => {
+    const dateKey = item.date;
+    if (!acc[dateKey]) acc[dateKey] = [];
+    acc[dateKey].push(item);
+    return acc;
+  }, {});
+
+  return Object.keys(grouped)
+    .sort((a, b) => b.localeCompare(a))
+    .map((date) => ({
+      date,
+      items: grouped[date],
+    }));
+};
+
 export default function Transactions() {
   const { data: accounts = [] } = useAccounts();
   const { data: categories = [] } = useCategories();
@@ -107,76 +155,48 @@ export default function Transactions() {
   const deleteMutation = useDeleteTransaction();
   const createTagMutation = useCreateTag();
 
-  const activeFilters = {
-    page,
-    per_page: perPage,
-    sort: "-date",
-  };
-
-  if (search.trim()) activeFilters.search = search.trim();
-  if (selectedType !== "all") activeFilters.type = selectedType;
-  if (selectedAccount !== "all") activeFilters.account_id = selectedAccount;
-  if (selectedCategory !== "all") activeFilters.category_id = selectedCategory;
-  if (selectedTag !== "all") activeFilters.tag = selectedTag;
-  if (dateFrom) activeFilters.date_from = dateFrom;
-  if (dateTo) activeFilters.date_to = dateTo;
+  // useMemo: activeFilters object is the queryKey for TanStack Query.
+  // Without memoization a new object is created every render, which could
+  // cause unnecessary refetches if the hook compares by reference
+  const activeFilters = useMemo(() => {
+    const f = { page, per_page: perPage, sort: "-date" };
+    if (search.trim()) f.search = search.trim();
+    if (selectedType !== "all") f.type = selectedType;
+    if (selectedAccount !== "all") f.account_id = selectedAccount;
+    if (selectedCategory !== "all") f.category_id = selectedCategory;
+    if (selectedTag !== "all") f.tag = selectedTag;
+    if (dateFrom) f.date_from = dateFrom;
+    if (dateTo) f.date_to = dateTo;
+    return f;
+  }, [page, perPage, search, selectedType, selectedAccount, selectedCategory, selectedTag, dateFrom, dateTo]);
 
   const { data: transactionsData, isLoading, isError } = useTransactions(activeFilters);
-  const transactions = transactionsData?.data || [];
+  
+  // Wrap in useMemo to prevent "?? []" from creating a new array reference on every render,
+  // which causes downstream useMemo calls depending on [transactions] to rerun needlessly.
+  const transactions = useMemo(() => transactionsData?.data ?? [], [transactionsData]);
   const meta = transactionsData?.meta || {};
 
-  const processAndGroupTransactions = (rawList) => {
-    const mergedList = [];
-    const seenTransfers = new Set();
+  // useMemo: processAndGroupTransactions iterates the full transaction list—
+  // memoize so it only reruns when the server data actually changes,
+  // not when filter dropdowns open or form fields are typed into
+  const groupedTransactions = useMemo(
+    () => processAndGroupTransactions(transactions),
+    [transactions]
+  );
 
-    for (const item of rawList) {
-      if (item.transfer_id) {
-        if (seenTransfers.has(item.transfer_id)) {
-          const existing = mergedList.find((r) => r.transfer_id === item.transfer_id);
-          if (existing) {
-            if (item.type === "expense") {
-              existing.source_account = item.account;
-            } else if (item.type === "income") {
-              existing.destination_account = item.account;
-            }
-          }
-          continue;
-        }
+  // useMemo: stable account lookup—avoids .find() on every render
+  const activeAccountObj = useMemo(
+    () => accounts.find((a) => String(a.id) === String(formAccountId)),
+    [accounts, formAccountId]
+  );
+  const activeCurrencySymbol = activeAccountObj?.currency_code ?? "USD";
 
-        seenTransfers.add(item.transfer_id);
-        const merged = {
-          ...item,
-          type: "transfer",
-          source_account: item.type === "expense" ? item.account : (item.related_transaction?.account || null),
-          destination_account: item.type === "income" ? item.account : (item.related_transaction?.account || null),
-        };
-        mergedList.push(merged);
-      } else {
-        mergedList.push(item);
-      }
-    }
-
-    const grouped = mergedList.reduce((acc, item) => {
-      const dateKey = item.date;
-      if (!acc[dateKey]) acc[dateKey] = [];
-      acc[dateKey].push(item);
-      return acc;
-    }, {});
-
-    return Object.keys(grouped)
-      .sort((a, b) => b.localeCompare(a))
-      .map((date) => ({
-        date,
-        items: grouped[date],
-      }));
-  };
-
-  const groupedTransactions = processAndGroupTransactions(transactions);
-
-  const activeAccountObj = accounts.find((a) => String(a.id) === String(formAccountId));
-  const activeCurrencySymbol = activeAccountObj ? activeAccountObj.currency_code : "USD";
-
-  const filteredCategories = categories.filter((cat) => cat.type === formType);
+  // useMemo: filtered categories change only when the source list or selected type changes
+  const filteredCategories = useMemo(
+    () => categories.filter((cat) => cat.type === formType),
+    [categories, formType]
+  );
 
   const resetCreateForm = () => {
     setEditingTransaction(null);
@@ -294,10 +314,13 @@ export default function Transactions() {
     });
   };
 
-  const handleFilterChange = (setter) => (val) => {
+  // useCallback: handleFilterChange was a curried factory that created
+  // a new closure on every render for every filter. Replaced with
+  // a single stable callback that takes both setter and value
+  const handleFilterChange = useCallback((setter, val) => {
     setter(val);
     setPage(1);
-  };
+  }, []);
 
   return (
     <div className="space-y-6 relative pb-20 md:pb-0">
@@ -340,12 +363,12 @@ export default function Transactions() {
           type="text"
           placeholder="Search descriptions, hash tags..."
           value={search}
-          onChange={(e) => handleFilterChange(setSearch)(e.target.value)}
+          onChange={(e) => handleFilterChange(setSearch, e.target.value)}
           className="w-full pl-11 pr-4 py-3.5 bg-card border border-border/40 hover:border-border/60 focus:border-ring rounded-3xl text-sm focus:outline-none transition-all duration-300 shadow-inner"
         />
         {search && (
           <button
-            onClick={() => handleFilterChange(setSearch)("")}
+            onClick={() => handleFilterChange(setSearch, "")}
             className="absolute right-4 top-3.5 text-muted-foreground hover:text-foreground"
           >
             <X className="h-5 w-5" />
@@ -364,7 +387,7 @@ export default function Transactions() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Type</label>
-                <Select value={selectedType} onValueChange={handleFilterChange(setSelectedType)}>
+                <Select value={selectedType} onValueChange={(val) => handleFilterChange(setSelectedType, val)}>
                   <SelectTrigger className="w-full bg-secondary/40 border-border/40 rounded-xl h-10">
                     <SelectValue placeholder="All types">
                       {selectedType === "all" ? "All Types" : selectedType === "expense" ? "Expense" : selectedType === "income" ? "Income" : selectedType === "transfer" ? "Transfer" : "All Types"}
@@ -381,7 +404,7 @@ export default function Transactions() {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Account</label>
-                <Select value={selectedAccount} onValueChange={handleFilterChange(setSelectedAccount)}>
+                <Select value={selectedAccount} onValueChange={(val) => handleFilterChange(setSelectedAccount, val)}>
                   <SelectTrigger className="w-full bg-secondary/40 border-border/40 rounded-xl h-10">
                     <SelectValue placeholder="All accounts">
                       {selectedAccount === "all" ? "All Accounts" : accounts.find(a => String(a.id) === String(selectedAccount))?.name || "All Accounts"}
@@ -400,7 +423,7 @@ export default function Transactions() {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Category</label>
-                <Select value={selectedCategory} onValueChange={handleFilterChange(setSelectedCategory)}>
+                <Select value={selectedCategory} onValueChange={(val) => handleFilterChange(setSelectedCategory, val)}>
                   <SelectTrigger className="w-full bg-secondary/40 border-border/40 rounded-xl h-10">
                     <SelectValue placeholder="All categories">
                       {selectedCategory === "all" ? "All Categories" : categories.find(c => String(c.id) === String(selectedCategory))?.name || "All Categories"}
@@ -419,7 +442,7 @@ export default function Transactions() {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tag</label>
-                <Select value={selectedTag} onValueChange={handleFilterChange(setSelectedTag)}>
+                <Select value={selectedTag} onValueChange={(val) => handleFilterChange(setSelectedTag, val)}>
                   <SelectTrigger className="w-full bg-secondary/40 border-border/40 rounded-xl h-10">
                     <SelectValue placeholder="All tags">
                       {selectedTag === "all" ? "All Tags" : `#${selectedTag}`}
@@ -441,7 +464,7 @@ export default function Transactions() {
                 <Input
                   type="date"
                   value={dateFrom}
-                  onChange={(e) => handleFilterChange(setDateFrom)(e.target.value)}
+                  onChange={(e) => handleFilterChange(setDateFrom, e.target.value)}
                   className="bg-secondary/40 border-border/40 rounded-xl h-10 text-sm focus-visible:ring-0"
                 />
               </div>
@@ -451,7 +474,7 @@ export default function Transactions() {
                 <Input
                   type="date"
                   value={dateTo}
-                  onChange={(e) => handleFilterChange(setDateTo)(e.target.value)}
+                  onChange={(e) => handleFilterChange(setDateTo, e.target.value)}
                   className="bg-secondary/40 border-border/40 rounded-xl h-10 text-sm focus-visible:ring-0"
                 />
               </div>
@@ -568,7 +591,7 @@ export default function Transactions() {
                               {transaction.tags.map((tag) => (
                                 <span
                                   key={tag.id}
-                                  onClick={() => handleFilterChange(setSelectedTag)(tag.name)}
+                                  onClick={() => handleFilterChange(setSelectedTag, tag.name)}
                                   className="px-1.5 py-0.5 border border-border bg-secondary/35 rounded text-[10px] text-muted-foreground font-mono cursor-pointer hover:border-foreground/30 hover:text-foreground transition-all select-none"
                                 >
                                   {tag.name}
