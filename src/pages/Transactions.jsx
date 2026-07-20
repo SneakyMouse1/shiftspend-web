@@ -75,8 +75,7 @@ const formatGroupDate = (dateStr) => {
   }
 };
 
-// Moved to module level: pure function with no component deps,
-// no reason to re-declare it on every render inside the component
+// Function with no component deps, there is no need to re-declare it on every render inside the component
 const processAndGroupTransactions = (rawList) => {
   const mergedList = [];
   const seenTransfers = new Set();
@@ -314,9 +313,7 @@ export default function Transactions() {
     });
   };
 
-  // useCallback: handleFilterChange was a curried factory that created
-  // a new closure on every render for every filter. Replaced with
-  // a single stable callback that takes both setter and value
+  // Callback that resets the pagination page to 1 whenever any filter changes.
   const handleFilterChange = useCallback((setter, val) => {
     setter(val);
     setPage(1);
@@ -324,6 +321,7 @@ export default function Transactions() {
 
   return (
     <div className="space-y-6 relative pb-20 md:pb-0">
+      {/* Page Header: Title and main action buttons */}
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">Ledger Transactions</h1>
@@ -357,6 +355,7 @@ export default function Transactions() {
         </div>
       </div>
 
+      {/* Search Input Bar */}
       <div className="relative w-full">
         <Search className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
         <input
@@ -376,6 +375,7 @@ export default function Transactions() {
         )}
       </div>
 
+      {/* Expandable Filter Grid Options */}
       <AnimatePresence>
         {isFiltersOpen && (
           <motion.div
@@ -492,12 +492,15 @@ export default function Transactions() {
         )}
       </AnimatePresence>
 
+      {/* Conditional UI States Rendering */}
       {isLoading ? (
+        /* Loading Spinner State */
         <div className="flex flex-col items-center justify-center py-24 space-y-4">
           <Loader2 className="h-8 w-8 animate-spin text-income" />
           <p className="text-sm text-muted-foreground">Gathering financial flows...</p>
         </div>
       ) : isError ? (
+        /* Error Fallback UI */
         <div className="flex flex-col items-center justify-center py-24 space-y-4 text-center">
           <p className="text-destructive font-medium">Failed to load transactions.</p>
           <Button variant="outline" onClick={() => setPage(1)} className="rounded-xl">
@@ -505,6 +508,7 @@ export default function Transactions() {
           </Button>
         </div>
       ) : groupedTransactions.length === 0 ? (
+        /* Empty Matching Results State */
         <div className="text-center py-24 border border-dashed border-border/40 rounded-3xl bg-card/20 space-y-3">
           <p className="text-muted-foreground text-sm font-medium">No transactions matched your query.</p>
           <Button
@@ -516,6 +520,7 @@ export default function Transactions() {
           </Button>
         </div>
       ) : (
+        /* Transactions Feed Grouped By Day */
         <div className="space-y-8">
           {groupedTransactions.map((group) => (
             <div key={group.date} className="space-y-3">
@@ -534,6 +539,7 @@ export default function Transactions() {
                   const Icon = isTransfer ? ArrowLeftRight : getIconComponent(transaction.category?.icon);
 
                   return (
+                    /* Individual Transaction Entry card */
                     <div
                       key={transaction.id}
                       className="group flex items-center justify-between p-4 rounded-2xl bg-card border border-border/30 hover:border-border/60 hover:shadow-sm transition-all duration-300"
@@ -634,6 +640,7 @@ export default function Transactions() {
             </div>
           ))}
 
+          {/* Pagination Navigation Footer */}
           {meta.last_page > 1 && (
             <div className="flex items-center justify-between border-t border-border/40 pt-4">
               <span className="text-xs text-muted-foreground">
@@ -665,6 +672,7 @@ export default function Transactions() {
         </div>
       )}
 
+      {/* Transaction creation / editing modal dialog */}
       <Dialog open={isCreateOpen} onOpenChange={(open) => !open && setIsCreateOpen(false)}>
         <DialogContent className="modal-theme md:max-w-135">
           <DialogHeader>
@@ -976,6 +984,7 @@ export default function Transactions() {
         </DialogContent>
       </Dialog>
 
+      {/* Floating Action Button (FAB) for mobile viewports */}
       <button
         onClick={() => {
           resetCreateForm();
@@ -987,6 +996,7 @@ export default function Transactions() {
         <Plus className="h-7 w-7" />
       </button>
 
+      {/* Confirmation dialog for deleting transaction entries */}
       <AlertDialog open={deleteConfirmId !== null} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
         <AlertDialogContent className="rounded-3xl border border-border/40 bg-popover max-w-100">
           <AlertDialogHeader>
