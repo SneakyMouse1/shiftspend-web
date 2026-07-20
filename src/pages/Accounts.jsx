@@ -26,45 +26,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  CreditCard,
-  Wallet,
-  Coins,
-  ShieldCheck,
-  TrendingUp,
   Plus,
   Check,
   Loader2,
   AlertCircle,
-  HelpCircle,
+  Wallet,
 } from "lucide-react";
+import { ACCOUNT_TYPES, getAccountType } from "@/config/accountTypes";
+import { CURRENCIES, getCurrencySymbol } from "@/config/currencies";
 
-// Types mapping matching mock and DB
-const ACCOUNT_TYPES = [
-  { value: "card", label: "Checking / Card", icon: CreditCard },
-  { value: "cash", label: "Cash / Wallet", icon: Wallet },
-  { value: "crypto", label: "Crypto Wallet", icon: Coins },
-  { value: "deposit", label: "Savings Deposit", icon: ShieldCheck },
-  { value: "investment", label: "Brokerage / Asset", icon: TrendingUp },
-];
 
-// Currencies options
-const CURRENCIES = [
-  { code: "USD", label: "USD ($)" },
-  { code: "EUR", label: "EUR (€)" },
-  { code: "GBP", label: "GBP (£)" },
-  { code: "CNY", label: "CNY (¥)" },
-  { code: "JPY", label: "JPY (¥)" },
-  { code: "RUB", label: "RUB (₽)" },
-];
-
-// Color swatches from mockup
 const ACCENT_COLORS = [
-  { value: "#06b6d4", bg: "bg-cyan-500" },      // Cyan
-  { value: "#10b981", bg: "bg-emerald-500" },   // Green
-  { value: "#8b5cf6", bg: "bg-purple-500" },    // Purple
-  { value: "#f97316", bg: "bg-orange-500" },    // Orange
-  { value: "#eab308", bg: "bg-yellow-500" },    // Yellow
-  { value: "#ec4899", bg: "bg-pink-500" },      // Pink
+  { value: "#06b6d4", bg: "bg-cyan-500" },
+  { value: "#10b981", bg: "bg-emerald-500" },
+  { value: "#8b5cf6", bg: "bg-purple-500" },
+  { value: "#f97316", bg: "bg-orange-500" },
+  { value: "#eab308", bg: "bg-yellow-500" },
+  { value: "#ec4899", bg: "bg-pink-500" },
 ];
 
 export default function Accounts() {
@@ -86,31 +64,12 @@ export default function Accounts() {
   const [formName, setFormName] = useState("");
   const [formBalance, setFormBalance] = useState("0.00");
   const [formType, setFormType] = useState("card");
-  const [formCurrency, setFormCurrency] = useState("USD");
+  const [formCurrency, setFormCurrency] = useState("EUR");
   const [formColor, setFormColor] = useState("#06b6d4");
 
   // Helpers
-  const getCurrencySymbol = (code) => {
-    switch (code?.toUpperCase()) {
-      case "USD": return "$";
-      case "EUR": return "€";
-      case "GBP": return "£";
-      case "CNY": return "¥";
-      case "JPY": return "¥";
-      case "RUB": return "₽";
-      default: return "$";
-    }
-  };
-
-  const getIconForType = (type) => {
-    const matched = ACCOUNT_TYPES.find((t) => t.value === type);
-    return matched ? matched.icon : HelpCircle;
-  };
-
-  const getLabelForType = (type) => {
-    const matched = ACCOUNT_TYPES.find((t) => t.value === type);
-    return matched ? matched.label : "Other";
-  };
+  const getIconForType = (type) => getAccountType(type).icon;
+  const getLabelForType = (type) => getAccountType(type).label;
 
   const handleOpenCreate = () => {
     setIsEditMode(false);
@@ -118,7 +77,7 @@ export default function Accounts() {
     setFormName("");
     setFormBalance("0.00");
     setFormType("card");
-    setFormCurrency("USD");
+    setFormCurrency("EUR");
     setFormColor("#06b6d4");
     setModalOpen(true);
   };
@@ -171,7 +130,7 @@ export default function Accounts() {
   // Rendering logic
   if (isError) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 border border-border/40 bg-card rounded-3xl min-h-[300px] text-center space-y-4">
+      <div className="flex flex-col items-center justify-center p-8 border border-border/40 bg-card rounded-3xl min-h-75 text-center space-y-4">
         <AlertCircle className="h-12 w-12 text-destructive" />
         <div className="space-y-1">
           <h3 className="text-lg font-bold">Failed to load accounts</h3>
@@ -207,7 +166,7 @@ export default function Accounts() {
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="rounded-2xl border border-border/30 bg-card p-5 h-[140px] flex flex-col justify-between animate-pulse"
+              className="rounded-2xl border border-border/30 bg-card p-5 h-35 flex flex-col justify-between animate-pulse"
             >
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-xl bg-muted" />
@@ -224,7 +183,7 @@ export default function Accounts() {
           ))}
         </div>
       ) : accounts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-8 border border-dashed border-border rounded-3xl min-h-[250px] text-center space-y-4">
+        <div className="flex flex-col items-center justify-center p-8 border border-dashed border-border rounded-3xl min-h-62.5 text-center space-y-4">
           <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center text-muted-foreground">
             <Wallet className="h-6 w-6" />
           </div>
@@ -245,7 +204,7 @@ export default function Accounts() {
               <div
                 key={account.id}
                 onClick={() => handleOpenEdit(account)}
-                className="rounded-2xl border border-border/40 bg-card p-5 hover:shadow-md transition-all duration-300 flex flex-col justify-between h-[140px] cursor-pointer hover:border-border/80 group"
+                className="rounded-2xl border border-border/40 bg-card p-5 hover:shadow-md transition-all duration-300 flex flex-col justify-between h-35 cursor-pointer hover:border-border/80 group"
                 style={{ borderLeft: `4px solid ${account.color || "var(--border)"}` }}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -254,7 +213,7 @@ export default function Accounts() {
                       <TypeIcon className="h-5 w-5" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-sm leading-tight text-foreground truncate max-w-[120px]">
+                      <h3 className="font-bold text-sm leading-tight text-foreground truncate max-w-30">
                         {account.name}
                       </h3>
                       <span className="text-[11px] text-muted-foreground block mt-0.5">
@@ -286,7 +245,7 @@ export default function Accounts() {
 
       {/* Centered Dialog Modal for Create/Edit */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-[420px] p-6 rounded-3xl bg-card border border-border/40 shadow-2xl">
+        <DialogContent className="max-w-105 p-6 rounded-3xl bg-card border border-border/40 shadow-2xl">
           <DialogHeader className="flex flex-row items-center justify-between">
             <DialogTitle className="text-lg font-bold">
               {isEditMode ? "Modify Financial Account" : "Setup New Account"}
@@ -442,7 +401,7 @@ export default function Accounts() {
 
       {/* Delete Confirmation Alert Dialog */}
       <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
-        <AlertDialogContent className="max-w-[400px]">
+        <AlertDialogContent className="max-w-100">
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
