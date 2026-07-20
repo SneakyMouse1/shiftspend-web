@@ -11,18 +11,6 @@ import {
   ArrowLeftRight,
   X,
   Tag,
-  Briefcase,
-  Car,
-  Coffee,
-  Film,
-  Globe,
-  Heart,
-  Home,
-  Scissors,
-  Shield,
-  Tv,
-  Utensils,
-  BookOpen,
   ChevronLeft,
   ChevronRight,
   ArrowDownLeft,
@@ -72,24 +60,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-const ICON_MAP = {
-  tag: Tag,
-  utensils: Utensils,
-  car: Car,
-  home: Home,
-  film: Film,
-  tv: Tv,
-  briefcase: Briefcase,
-  globe: Globe,
-  heart: Heart,
-  shield: Shield,
-  book: BookOpen,
-  scissors: Scissors,
-  coffee: Coffee,
-};
-
-const getIconComponent = (iconName) => ICON_MAP[iconName] || Tag;
+import { getIconComponent } from "@/config/categoryIcons";
+import { formatCurrency, getCurrencySymbol } from "@/config/currencies";
 
 const formatGroupDate = (dateStr) => {
   try {
@@ -100,26 +72,6 @@ const formatGroupDate = (dateStr) => {
     return format(date, "EEE, MMM d, yyyy").toUpperCase();
   } catch {
     return dateStr.toUpperCase();
-  }
-};
-
-const formatCurrency = (amount, currencyCode) => {
-  return new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: currencyCode,
-  }).format(amount);
-};
-
-
-const getCurrencySymbol = (code) => {
-  switch (code?.toUpperCase()) {
-    case "USD": return "$";
-    case "EUR": return "€";
-    case "GBP": return "£";
-    case "CNY": return "¥";
-    case "JPY": return "¥";
-    case "RUB": return "₽";
-    default: return "€";
   }
 };
 

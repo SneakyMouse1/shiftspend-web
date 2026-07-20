@@ -33,15 +33,8 @@ import {
   Wallet,
 } from "lucide-react";
 import { ACCOUNT_TYPES, getAccountType } from "@/config/accountTypes";
+import { CURRENCIES, getCurrencySymbol } from "@/config/currencies";
 
-const CURRENCIES = [
-  { code: "USD", label: "USD ($)" },
-  { code: "EUR", label: "EUR (€)" },
-  { code: "GBP", label: "GBP (£)" },
-  { code: "CNY", label: "CNY (¥)" },
-  { code: "JPY", label: "JPY (¥)" },
-  { code: "RUB", label: "RUB (₽)" },
-];
 
 const ACCENT_COLORS = [
   { value: "#06b6d4", bg: "bg-cyan-500" },
@@ -71,22 +64,10 @@ export default function Accounts() {
   const [formName, setFormName] = useState("");
   const [formBalance, setFormBalance] = useState("0.00");
   const [formType, setFormType] = useState("card");
-  const [formCurrency, setFormCurrency] = useState("USD");
+  const [formCurrency, setFormCurrency] = useState("EUR");
   const [formColor, setFormColor] = useState("#06b6d4");
 
   // Helpers
-  const getCurrencySymbol = (code) => {
-    switch (code?.toUpperCase()) {
-      case "USD": return "$";
-      case "EUR": return "€";
-      case "GBP": return "£";
-      case "CNY": return "¥";
-      case "JPY": return "¥";
-      case "RUB": return "₽";
-      default: return "$";
-    }
-  };
-
   const getIconForType = (type) => getAccountType(type).icon;
   const getLabelForType = (type) => getAccountType(type).label;
 
@@ -96,7 +77,7 @@ export default function Accounts() {
     setFormName("");
     setFormBalance("0.00");
     setFormType("card");
-    setFormCurrency("USD");
+    setFormCurrency("EUR");
     setFormColor("#06b6d4");
     setModalOpen(true);
   };
