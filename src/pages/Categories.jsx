@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from "@/hooks/useCategories";
 
-import { Button } from "@/components/ui/button";
 import {
   Plus, Film, Car, Globe, Utensils, Lock, Home, Tv,
   Briefcase, Heart, Shield, BookOpen, Scissors, Coffee, Tag, Loader2
 } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 
