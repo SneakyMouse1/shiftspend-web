@@ -107,6 +107,7 @@ const processAndGroupTransactions = (rawList) => {
     }
   }
 
+  // Function to group transactions by date (no need to re-declare on every render)
   const grouped = mergedList.reduce((acc, item) => {
     const dateKey = item.date;
     if (!acc[dateKey]) acc[dateKey] = [];
@@ -142,9 +143,12 @@ export default function Transactions() {
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
   const [editingTransaction, setEditingTransaction] = useState(null);
 
-  const [formType, setFormType] = useState("expense");  const [formAmount, setFormAmount] = useState("");
+  const [formType, setFormType] = useState("expense"); 
+  const [formAmount, setFormAmount] = useState("");
   const [formAccountId, setFormAccountId] = useState("");
-  const [formToAccountId, setFormToAccountId] = useState("");  const [formCategoryId, setFormCategoryId] = useState("");  const [formDate, setFormDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
+  const [formToAccountId, setFormToAccountId] = useState(""); 
+  const [formCategoryId, setFormCategoryId] = useState(""); 
+  const [formDate, setFormDate] = useState(() => format(new Date(), "yyyy-MM-dd"));
   const [formComment, setFormComment] = useState("");
   const [formSelectedTags, setFormSelectedTags] = useState([]);
   const [newTagName, setNewTagName] = useState("");
@@ -530,6 +534,7 @@ export default function Transactions() {
               </div>
 
               <div className="space-y-3">
+                {/* Transaction Items List */}
                 {group.items.map((transaction) => {
                   const isTransfer = transaction.type === "transfer";
                   const isExpense = transaction.type === "expense";
@@ -1013,6 +1018,7 @@ export default function Transactions() {
               onClick={handleDeleteConfirm}
               className="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-xl cursor-pointer"
             >
+              {/* Delete Confirmation Action */}
               {deleteMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
