@@ -1,20 +1,17 @@
 import { useState } from "react";
 import { useBudgets, useCreateBudget, useUpdateBudget, useDeleteBudget } from "@/hooks/useBudgets";
 import { useCategories } from "@/hooks/useCategories";
+import { useAccounts } from "@/hooks/useAccounts";
+import { useCreateTransaction } from "@/hooks/useTransactions";
 
-import { Plus, CheckCircle2, ShoppingCart, Utensils, Gamepad2, Pencil, Trash2, Calendar, Loader2, Wallet } from "lucide-react";
+import { Plus, Loader2, CheckCircle2, Calendar, MoreVertical, Pencil, Trash2, Wallet } from "lucide-react";
+import { getIconComponent } from "@/config/categoryIcons";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-
-const ICON_MAP = {
-  "shopping-cart": ShoppingCart,
-  "utensils": Utensils,
-  "gamepad": Gamepad2,
-};
 
 const INITIAL_CREATE_STATE = {
   amount: "",
@@ -27,7 +24,9 @@ export default function Budgets() {
 
   const { data: budgets = [], isLoading } = useBudgets();
   const { data: categories = [] } = useCategories();
+  const { data: accounts = [] } = useAccounts();
 
+  const createTransactionMutation = useCreateTransaction();
 
   // to initialize mutation
   const createMutation = useCreateBudget();
@@ -39,13 +38,68 @@ export default function Budgets() {
 
   const [newBudget, setNewBudget] = useState(INITIAL_CREATE_STATE);
 
-  const getIconComponent = (iconName) => ICON_MAP[iconName] || Wallet;
+  const INITIAL_EXPENSE_STATE = {
+    account_id: "",
+    amount: "",
+    date: new Date().toISOString().slice(0, 10),
+    comment: "",
+  };
+
+  const [expenseBudget, setExpenseBudget] = useState(null); // бюджет, для которого добавляем трату
+  const [newExpense, setNewExpense] = useState(INITIAL_EXPENSE_STATE);
+
+  const handleCloseExpense = () => {
+    setExpenseBudget(null);
+    setNewExpense(INITIAL_EXPENSE_STATE);
+  };
+
+  const handleCreateExpenseSubmit = (e) => {
+    e.preventDefault();
+    if (!newExpense.amount || !newExpense.account_id || !expenseBudget) return;
+
+    const payload = {
+      account_id: Number(newExpense.account_id),
+      category_id: expenseBudget.category.id,
+      type: "expense",
+      amount: Number(newExpense.amount),
+      currency_code: expenseBudget.currency_code,
+      date: newExpense.date,
+      comment: newExpense.comment || undefined,
+    };
+
+    createTransactionMutation.mutate(payload, {
+      onSuccess: () => handleCloseExpense(),
+    });
+  };
 
   const handleClose = () => setSelectedBudget(null);
   const handleCloseCreate = () => {
     setIsCreateOpen(false);
     setNewBudget(INITIAL_CREATE_STATE);
   };
+
+  const handleEditFieldChange = (field, value) => {
+    setSelectedBudget((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleUpdateSubmit = (e) => {
+    e.preventDefault();
+    if (!selectedBudget) return;
+
+    updateMutation.mutate(
+      {
+        id: selectedBudget.id,
+        updatedData: {
+          amount: Number(selectedBudget.amount) || 0,
+          period: selectedBudget.period,
+        }
+      },
+      {
+        onSuccess: () => handleClose()
+      }
+    );
+  };
+
 
   const expenseCategories = categories.filter((cat) => cat.type === "expense");
 
@@ -180,10 +234,13 @@ export default function Budgets() {
                     className="rounded-xl border border-secondary bg-secondary/40 p-5 flex flex-col justify-between space-y-6 transition-all duration-200 hover:border-muted"
                   >
                     <div>
+                      {/* Header: Icon, Info & Dropdown Action */}
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
-
-                          <div className="p-2.5 rounded-xl" style={{ backgroundColor: `color-mix(in srgb, ${status.iconColor} 15%, transparent)`, color: status.iconColor }}>
+                          <div
+                            className="p-2.5 rounded-xl"
+                            style={{ backgroundColor: `color-mix(in srgb, ${status.iconColor} 15%, transparent)`, color: status.iconColor }}
+                          >
                             <IconComponent className="h-5 w-5" />
                           </div>
 
@@ -194,14 +251,46 @@ export default function Budgets() {
                               <span className="capitalize">{budget.period} Restriction</span>
                             </div>
                           </div>
-
                         </div>
 
-                        <div className="text-right">
-                          <span className={`text-xs font-bold tracking-wider uppercase ${status.textColor}`}>
-                            {status.text}
-                          </span>
-                          <p className="text-xs text-muted-foreground mt-1">{exhausted}% exhausted</p>
+                        {/* Status Badge & Actions Menu */}
+                        <div className="flex items-center gap-2">
+                          <div className="text-right">
+                            <span className={`text-xs font-bold tracking-wider uppercase ${status.textColor}`}>
+                              {status.text}
+                            </span>
+                            <p className="text-xs text-muted-foreground mt-0.5">{exhausted}% exhausted</p>
+                          </div>
+
+                          {/* DROPDOWN MENU */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-secondary/80 transition-colors focus:outline-none cursor-pointer">
+                              <MoreVertical className="h-4 w-4" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-popover border-border/40 text-foreground w-36">
+                              <DropdownMenuItem
+                                onClick={() => setExpenseBudget(budget)}
+                                className="cursor-pointer text-xs font-medium focus:bg-secondary"
+                              >
+                                <Plus className="h-3.5 w-3.5 mr-2" />
+                                Add Expense
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => setSelectedBudget(budget)}
+                                className="cursor-pointer text-xs font-medium focus:bg-secondary"
+                              >
+                                <Pencil className="h-3.5 w-3.5 mr-2" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => deleteMutation.mutate(budget.id)}
+                                className="cursor-pointer text-xs font-medium text-destructive focus:bg-destructive/10 focus:text-destructive"
+                              >
+                                <Trash2 className="h-3.5 w-3.5 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </div>
 
@@ -231,25 +320,11 @@ export default function Budgets() {
                         <p className="text-sm font-semibold text-cyan-400 mt-1">€{remaining.toFixed(2)}</p>
                       </div>
                     </div>
-
-                    {/* Card Actions Footer */}
-                    <div className="flex items-center justify-between pt-2 text-muted-foreground">
-                      <button className="flex items-center gap-2 text-xs font-medium cursor-pointer hover:text-primary transition-colors">
-                        <Pencil className="h-3.5 w-3.5" />
-                        Edit & Delete Settings
-                      </button>
-                      <button
-                        onClick={() => deleteMutation.mutate(budget.id)}
-                        className="cursor-pointer p-1 rounded hover:bg-secondary hover:text-destructive transition-all"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-
                   </div>
                 );
               })}
             </div>
+
           )}
         </>
       )
@@ -338,6 +413,242 @@ export default function Budgets() {
           </form>
         </DialogContent>
       </Dialog>
+
+
+      {/* MODAL - EDIT BUDGET */}
+
+      <Dialog open={selectedBudget !== null} onOpenChange={(open) => { if (!open) { handleClose(); } }}>
+        <DialogContent className="modal-theme">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold tracking-tight">Edit Budget Limit</DialogTitle>
+            <DialogDescription className="hidden">Edit budget amount and period</DialogDescription>
+          </DialogHeader>
+
+          {selectedBudget && (() => {
+            const limit = Number(selectedBudget.amount) || 0;
+            const spentValue = Number(selectedBudget.spent) || 0;
+            const remaining = limit - spentValue;
+            const exhausted = getExhaustedPercentage(spentValue, limit);
+            const status = getBudgetStatus(exhausted);
+
+            return (
+              <form onSubmit={handleUpdateSubmit} className="space-y-5 my-2">
+
+                {/* Category info (read-only) */}
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-secondary/20 border border-border/10">
+                  <div
+                    className="p-2.5 rounded-xl"
+                    style={{ backgroundColor: `color-mix(in srgb, ${status.iconColor} 15%, transparent)`, color: status.iconColor }}
+                  >
+                    {(() => {
+                      const IconComponent = getIconComponent(selectedBudget.category?.icon);
+                      return <IconComponent className="h-5 w-5" />;
+                    })()}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-primary leading-tight">{selectedBudget.category?.name}</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Currently spent: €{spentValue.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* AMOUNT INPUT (the editable limit) */}
+                <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-secondary/20 border border-border/10 text-center">
+                  <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-1">
+                    Budget Spending Limit
+                  </span>
+                  <div className="flex items-center justify-center text-4xl font-bold tracking-tight text-foreground w-full">
+                    <span className="text-muted-foreground/60 mr-1">€</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      placeholder="0.00"
+                      value={selectedBudget.amount}
+                      onChange={(e) => handleEditFieldChange("amount", e.target.value)}
+                      className="bg-transparent text-center focus:outline-none placeholder-muted-foreground/20 w-full max-w-45 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      required
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                {/* PERIOD SELECT */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Restricted Period</label>
+                  <Select
+                    value={selectedBudget.period}
+                    onValueChange={(value) => handleEditFieldChange("period", value)}
+                  >
+                    <SelectTrigger className="w-full h-11 rounded-xl bg-secondary/30 border-border/40 text-foreground focus:ring-income text-left capitalize">
+                      <SelectValue placeholder="Select Period" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border-border/40 text-foreground">
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="yearly">Yearly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* LIVE PROGRESS PREVIEW — based on new limit vs already-spent */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className={`font-bold tracking-wider uppercase ${status.textColor}`}>{status.text}</span>
+                    <span className="text-muted-foreground">{exhausted}% exhausted</span>
+                  </div>
+                  <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${status.barColor}`}
+                      style={{ width: `${exhausted}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground text-right">
+                    Remaining: <span className="text-cyan-400 font-semibold">€{remaining.toFixed(2)}</span>
+                  </p>
+                </div>
+
+                <div className="pt-2">
+                  <Button
+                    type="submit"
+                    disabled={updateMutation.isPending || !selectedBudget.amount}
+                    className="w-full h-11 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-semibold glow-income disabled:opacity-50 transition-all duration-300 cursor-pointer"
+                  >
+                    {updateMutation.isPending ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
+              </form>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL - ADD EXPENSE TO BUDGET */}
+      <Dialog open={expenseBudget !== null} onOpenChange={(open) => { if (!open) handleCloseExpense(); }}>
+        <DialogContent className="modal-theme">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold tracking-tight">Add Expense</DialogTitle>
+            <DialogDescription className="hidden">Record a new expense for this budget</DialogDescription>
+          </DialogHeader>
+
+          {expenseBudget && (() => {
+            const limit = Number(expenseBudget.amount) || 0;
+            const currentSpent = Number(expenseBudget.spent) || 0;
+            const previewSpent = currentSpent + (Number(newExpense.amount) || 0);
+            const remaining = limit - previewSpent;
+            const exhausted = getExhaustedPercentage(previewSpent, limit);
+            const status = getBudgetStatus(exhausted);
+
+            return (
+              <form onSubmit={handleCreateExpenseSubmit} className="space-y-5 my-2">
+
+                {/* Category info */}
+                <div className="flex items-center gap-3 p-4 rounded-xl bg-secondary/20 border border-border/10">
+                  <div
+                    className="p-2.5 rounded-xl"
+                    style={{ backgroundColor: `color-mix(in srgb, ${status.iconColor} 15%, transparent)`, color: status.iconColor }}
+                  >
+                    {(() => {
+                      const IconComponent = getIconComponent(expenseBudget.category?.icon);
+                      return <IconComponent className="h-5 w-5" />;
+                    })()}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-primary leading-tight">{expenseBudget.category?.name}</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Currently spent: €{currentSpent.toFixed(2)} / €{limit.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* AMOUNT INPUT */}
+                <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-secondary/20 border border-border/10 text-center">
+                  <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-1">
+                    Expense Amount
+                  </span>
+                  <div className="flex items-center justify-center text-4xl font-bold tracking-tight text-foreground w-full">
+                    <span className="text-muted-foreground/60 mr-1">€</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      placeholder="0.00"
+                      value={newExpense.amount}
+                      onChange={(e) => setNewExpense(prev => ({ ...prev, amount: e.target.value }))}
+                      className="bg-transparent text-center focus:outline-none placeholder-muted-foreground/20 w-full max-w-45 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      required
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                {/* ACCOUNT SELECT */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Account</label>
+                  <Select
+                    value={newExpense.account_id?.toString()}
+                    onValueChange={(value) => setNewExpense(prev => ({ ...prev, account_id: value }))}
+                  >
+                    <SelectTrigger className="w-full h-11 rounded-xl bg-secondary/30 border-border/40 text-foreground focus:ring-income text-left">
+                      <SelectValue placeholder="Select Account">
+                        {accounts.find(acc => acc.id.toString() === newExpense.account_id?.toString())?.name || "Select Account"}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border-border/40 text-foreground">
+                      {accounts.map((acc) => (
+                        <SelectItem key={acc.id} value={acc.id.toString()}>
+                          {acc.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* DATE */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Date</label>
+                  <input
+                    type="date"
+                    value={newExpense.date}
+                    onChange={(e) => setNewExpense(prev => ({ ...prev, date: e.target.value }))}
+                    className="w-full px-4 py-3 rounded-xl bg-secondary/30 border border-border/40 text-foreground text-sm focus:outline-none focus:border-income focus:ring-1 focus:ring-income"
+                    required
+                  />
+                </div>
+
+                {/* LIVE PROGRESS PREVIEW */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className={`font-bold tracking-wider uppercase ${status.textColor}`}>{status.text}</span>
+                    <span className="text-muted-foreground">{exhausted}% exhausted</span>
+                  </div>
+                  <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${status.barColor}`}
+                      style={{ width: `${exhausted}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground text-right">
+                    Remaining: <span className="text-cyan-400 font-semibold">€{remaining.toFixed(2)}</span>
+                  </p>
+                </div>
+
+                <div className="pt-2">
+                  <Button
+                    type="submit"
+                    disabled={createTransactionMutation.isPending || !newExpense.amount || !newExpense.account_id}
+                    className="w-full h-11 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-semibold glow-income disabled:opacity-50 transition-all duration-300 cursor-pointer"
+                  >
+                    {createTransactionMutation.isPending ? "Recording..." : "Record Expense"}
+                  </Button>
+                </div>
+              </form>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
+
     </div >
   );
 }

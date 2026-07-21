@@ -19,6 +19,7 @@ export function useCreateTransaction() {
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["reports"] });
+      queryClient.invalidateQueries({ queryKey: ["budgets"] }); // added for changes in budget
       toast.success("Transaction recorded successfully!");
     },
     onError: (error) => {
