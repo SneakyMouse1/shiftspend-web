@@ -177,8 +177,16 @@
   filter: drop-shadow(0 0 25px rgba(255, 255, 255, .1));
 }
 
+/* GLOW EFFECT FOR INPUT */
+.focus-glow-income:focus {
+  filter: drop-shadow(0 0 15px rgba(74, 222, 128, 0.4));
+}
 
-/* WITHOUT THIS HOVER DOESN'T WORK - NEED TO INVESTIGATE */
+.focus-glow-expense:focus {
+  filter: drop-shadow(0 0 15px rgba(251, 146, 60, 0.4));
+}
+
+/* GLOW EFFECT FOR HOVER */
 .hover-glow-income:hover {
   filter: drop-shadow(0 0 15px rgba(74, 222, 128, 0.15));
 }
@@ -186,6 +194,19 @@
 .hover-glow-expense:hover {
   filter: drop-shadow(0 0 15px rgba(251, 146, 60, .15));
 }
+
+/* GLOW EFFECT FOR TABS*/
+[data-active].glow-income-active {
+  background-color: var(--secondary) !important;
+  filter: drop-shadow(0 0 12px rgba(28, 155, 75, 0.4)) !important;
+}
+
+[data-active].glow-expense-active {
+  background-color: var(--secondary) !important;
+  filter: drop-shadow(0 0 12px rgba(251, 146, 60, 0.4)) !important;
+}
+
+
 
 ::-webkit-scrollbar {
   width: 6px;

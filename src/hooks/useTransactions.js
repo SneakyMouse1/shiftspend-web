@@ -39,6 +39,7 @@ export function useUpdateTransaction() {
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["reports"] });
+      queryClient.invalidateQueries({ queryKey: ["budgets"] });
       toast.success("Transaction updated successfully!");
     },
     onError: (error) => {
@@ -58,6 +59,7 @@ export function useDeleteTransaction() {
       queryClient.invalidateQueries({ queryKey: ["accounts"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["reports"] });
+      queryClient.invalidateQueries({ queryKey: ["budgets"] });
       toast.success("Transaction deleted successfully");
     },
     onError: (error) => {

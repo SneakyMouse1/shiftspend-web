@@ -4,7 +4,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useCreateTransaction } from "@/hooks/useTransactions";
 
-import { Plus, Loader2, CheckCircle2, Calendar, MoreVertical, Pencil, Trash2, Wallet, DollarSign, Settings } from "lucide-react";
+import { Plus, Loader2, CheckCircle2, AlertTriangle, Calendar, MoreVertical, Pencil, Trash2, Wallet, DollarSign, Settings } from "lucide-react";
 import { getIconComponent } from "@/config/categoryIcons";
 
 import { Button } from "@/components/ui/button";
@@ -156,7 +156,7 @@ export default function Budgets() {
         iconColor: "var(--destructive)"
       };
     }
-    if (percent >= 70) {
+    if (percent >= 80) {
       return {
         text: "NEARING LIMIT",
         textColor: "text-expense",
@@ -171,6 +171,20 @@ export default function Budgets() {
       iconColor: "var(--income)"
     };
   };
+
+
+  // to find budgets with spent over 100%
+  const exceededBudgets = budgets.filter((budget) => {
+    const spent = Number(budget.spent) || 0;
+    const limit = Number(budget.amount) || 0;
+    const exhausted =
+      typeof budget.progress_percentage !== "undefined" ? Number(budget.progress_percentage) : getExhaustedPercentage(spent, limit);
+
+    return exhausted >= 100;
+  });
+
+  const hasExceeded = exceededBudgets.length > 0;
+
 
   return (
     <div className="space-y-6">
@@ -196,20 +210,63 @@ export default function Budgets() {
         </div>
       ) : (
         <>
-          <div className="flex items-start gap-4 p-4 rounded-xl border border-income/20 bg-income/5 text-income">
-            <CheckCircle2 className="h-5 w-5 mt-0.5 shrink-0" />
-            <div>
-              <h5 className="font-semibold leading-none tracking-tight text-primary">All Budgets Fully Secure</h5>
-              <p className="text-sm text-muted-foreground mt-1.5">
-                Excellent financial discipline! Every configured budget threshold is currently on track and fully secure.
-              </p>
+          {hasExceeded ? (
+            /* If we went over budget */
+            <div className="flex items-start gap-4 p-4 rounded-xl border border-destructive/20 bg-destructive/5 text-destructive">
+              <AlertTriangle className="h-5 w-5 mt-0.5 shrink-0 text-destructive" />
+              <div className="w-full">
+                <h5 className="font-semibold leading-none tracking-tight text-primary">Budget Limit Exceeded!</h5>
+                <p className="text-sm text-muted-foreground mt-1.5">
+                  You have surpassed the allocated limits in {exceededBudgets.length} spending {exceededBudgets.length === 1 ? "category" : "categories"}. Action recommended to avoid further auxiliary drain.
+                </p>
+
+                {/* List of the categories with exceeded budget */}
+                <div className="flex flex-wrap gap-3 my-4">
+                  {exceededBudgets.map((b) => {
+                    const spent = Number(b.spent) || 0;
+                    const limit = Number(b.amount) || 0;
+                    const overAmount = spent - limit;
+                    const iconName = b.category?.icon || "tag";
+                    const IconComponent = getIconComponent(iconName);
+
+                    return (
+                      <div key={b.id} className="w-fit flex items-center gap-3 p-3 rounded-xl bg-secondary border border-border/10">
+                        <div>
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <IconComponent className="h-4 w-4 text-destructive" />
+                            <span className="font-medium text-primary capitalize">{b.category?.name || "Unnamed"}</span>
+                          </div>
+                        </div>
+                        <div className="bg-destructive/20 py-1 px-2.5 rounded-lg">
+                          <p className="text-xs font-semibold text-destructive">
+                            Over by €{overAmount > 0 ? overAmount.toFixed(2) : "0.00"}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
-          </div>
+          ) : (
+            /* If budgets are within limits */
+            <div className="flex items-start gap-4 p-4 rounded-xl border border-income/20 bg-income/5 text-income">
+              <CheckCircle2 className="h-5 w-5 mt-0.5 shrink-0" />
+              <div>
+                <h5 className="font-semibold leading-none tracking-tight text-primary">All Budgets Fully Secure</h5>
+                <p className="text-sm text-muted-foreground mt-1.5">
+                  Excellent financial discipline! Every configured budget threshold is currently on track and fully secure.
+                </p>
+              </div>
+            </div>
+          )}
+
+
 
           {/* BUDGETS GRID */}
           {budgets.length === 0 ? (
             <div className="rounded-xl border border-dashed border-secondary p-12 text-center max-w-md mx-auto mt-6">
-              <div className="p-3 bg-secondary w-fit rounded-xl mx-auto text-muted mb-4">
+              <div className="p-3 bg-secondary w-fit rounded-xl mx-auto text-income mb-4">
                 <Wallet className="h-6 w-6" />
               </div>
               <h3 className="font-semibold text-primary">No active budgets</h3>
@@ -232,7 +289,7 @@ export default function Budgets() {
 
                 const spent = Number(budget.spent) || 0;
                 const limit = Number(budget.amount) || 0;
-                const remaining = Number(budget.remaining) || 0;
+                const remaining = limit - spent || 0;
 
                 const exhausted =
                   typeof budget.progress_percentage !== "undefined"
@@ -281,7 +338,7 @@ export default function Budgets() {
 
                           {/* DROPDOWN MENU */}
                           <DropdownMenu>
-                            <DropdownMenuTrigger className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-secondary/80 transition-colors focus:outline-none cursor-pointer">
+                            <DropdownMenuTrigger className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-secondary/80 hover-glow-income transition-colors focus:outline-none cursor-pointer">
                               <MoreVertical className="h-4 w-4" />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="bg-popover border-border/40 text-foreground w-36">
@@ -318,16 +375,16 @@ export default function Budgets() {
                     {/* Budget Stats Metrics */}
                     <div className="grid grid-cols-3 gap-2 pt-2 border-t border-secondary text-center">
                       <div>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Budget Spent</p>
-                        <p className="text-sm font-semibold text-primary mt-1">€{spent.toFixed(2)}</p>
-                      </div>
-                      <div>
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Limit</p>
                         <p className="text-sm font-semibold text-primary mt-1">€{limit.toFixed(2)}</p>
                       </div>
                       <div>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Budget Spent</p>
+                        <p className="text-sm font-semibold text-primary mt-1">€{spent.toFixed(2)}</p>
+                      </div>
+                      <div>
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Remaining</p>
-                        <p className="text-sm font-semibold text-cyan-400 mt-1">€{remaining.toFixed(2)}</p>
+                        <p className={`text-sm font-semibold ${remaining >= 0 ? "text-cyan-400 mt-1" : "text-destructive"}`}>€ {remaining.toFixed(2)}</p>
                       </div>
                     </div>
                   </div>
@@ -435,11 +492,12 @@ export default function Budgets() {
 
                   {/* tab switch */}
                   <TabsList className="grid w-full grid-cols-2 mt-3 bg-secondary/50 rounded-xl p-1">
-                    <TabsTrigger value="edit" className="rounded-lg text-xs font-semibold">
+                    <TabsTrigger value="edit" className="rounded-lg font-semibold glow-income-active">
                       <Settings className="h-3.5 w-3.5 mr-1" />
                       Edit Limit
                     </TabsTrigger>
-                    <TabsTrigger value="expense" className="rounded-lg text-xs font-semibold">
+
+                    <TabsTrigger value="expense" className="rounded-lg font-semibold glow-expense-active">
                       <DollarSign className="h-3.5 w-3.5 mr-1" />
                       Add Expense
                     </TabsTrigger>
@@ -482,7 +540,7 @@ export default function Budgets() {
                               placeholder="0.00"
                               value={editAmount}
                               onChange={(e) => setEditAmount(e.target.value)}
-                              className="bg-transparent text-center focus:outline-none placeholder-muted-foreground/20 w-full max-w-45 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              className="bg-transparent text-center focus-glow-income focus:outline-none placeholder-muted-foreground/20 w-full max-w-45 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                               required
                               autoFocus
                             />
@@ -558,7 +616,7 @@ export default function Budgets() {
                               placeholder="0.00"
                               value={newExpense.amount}
                               onChange={(e) => setNewExpense((prev) => ({ ...prev, amount: e.target.value }))}
-                              className="bg-transparent text-center focus:outline-none placeholder-muted-foreground/20 w-full max-w-45 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              className="bg-transparent text-center focus-glow-expense focus:outline-none placeholder-muted-foreground/20 w-full max-w-45 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                               required
                               autoFocus
                             />
