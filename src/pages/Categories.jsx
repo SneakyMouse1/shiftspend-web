@@ -124,12 +124,12 @@ export default function Categories() {
 
           {/* Switch Expenses/Income */}
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="expenses" className="border data-active:border-expense! dark:data-active:border-expense! data-active:text-expense dark:data-active:text-expense transition-colors duration-200 cursor-pointer">
+            <TabsTrigger value="expenses" className="data-active:text-expense dark:data-active:text-expense glow-expense-active transition-colors duration-200 cursor-pointer">
               <span>Expense </span>
               <span className="hidden sm:inline">Categories </span>
               <span>({expenseCategories.length})</span>
             </TabsTrigger>
-            <TabsTrigger value="income" className="border data-active:border-income! dark:data-active:border-income! data-active:text-income dark:data-active:text-income transition-colors duration-200 cursor-pointer">
+            <TabsTrigger value="income" className="data-active:text-income dark:data-active:text-income glow-income-active transition-colors duration-200 cursor-pointer">
               <span>Income </span>
               <span className="hidden sm:inline">Categories </span>
               <span>({incomeCategories.length})</span>
