@@ -4,8 +4,9 @@ import { useCategories } from "@/hooks/useCategories";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useCreateTransaction } from "@/hooks/useTransactions";
 
-import { Plus, Loader2, CheckCircle2, AlertTriangle, Calendar, MoreVertical, Pencil, Trash2, Wallet, DollarSign, Settings } from "lucide-react";
+import { Plus, Loader2, CheckCircle2, AlertTriangle, Calendar, MoreVertical, Pencil, Trash2, Wallet } from "lucide-react";
 import { getIconComponent } from "@/config/categoryIcons";
+import { CURRENCIES, getCurrencySymbol } from "@/config/currencies";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -18,6 +19,7 @@ const INITIAL_CREATE_STATE = {
   amount: "",
   category_id: "",
   period: "monthly",
+  currency_code: "EUR"
 };
 
 const INITIAL_EXPENSE_STATE = {
@@ -77,6 +79,18 @@ export default function Budgets() {
     setNewBudget(INITIAL_CREATE_STATE);
   };
 
+  // Derive the unique currencies actually used across the user's accounts
+  const accountCurrencies = [...new Set(accounts.map((acc) => acc.currency_code).filter(Boolean))];
+
+  // Opening create modal — default currency comes from the user's primary (first) account
+  const handleOpenCreate = () => {
+    setNewBudget({
+      ...INITIAL_CREATE_STATE,
+      currency_code: accounts[0]?.currency_code || "EUR",
+    });
+    setIsCreateOpen(true);
+  };
+
 
   // Update limit
   const handleUpdateSubmit = (e) => {
@@ -130,7 +144,7 @@ export default function Budgets() {
       amount: Number(newBudget.amount),
       category_id: Number(newBudget.category_id),
       period: newBudget.period,
-      currency_code: "EUR",
+      currency_code: newBudget.currency_code
     };
 
     createMutation.mutate(payload, {
@@ -195,7 +209,7 @@ export default function Budgets() {
           <p className="text-sm text-muted-foreground mt-1">Set limits to curb auxiliary expenses.</p>
         </div>
         <Button
-          onClick={() => setIsCreateOpen(true)}
+          onClick={handleOpenCreate}
           className="bg-muted text-primary hover:bg-muted/90 font-semibold shadow-md glow-income rounded-xl"
         >
           <Plus className="h-4 w-4 mr-1" />
@@ -239,7 +253,7 @@ export default function Budgets() {
                         </div>
                         <div className="bg-destructive/20 py-1 px-2.5 rounded-lg">
                           <p className="text-xs font-semibold text-destructive">
-                            Over by €{overAmount > 0 ? overAmount.toFixed(2) : "0.00"}
+                            Over by {getCurrencySymbol(b.currency_code)}{overAmount > 0 ? overAmount.toFixed(2) : "0.00"}
                           </p>
                         </div>
                       </div>
@@ -274,7 +288,7 @@ export default function Budgets() {
                 You haven't set up any budget limits yet. Create your first budget limit to keep track of your spending.
               </p>
               <Button
-                onClick={() => setIsCreateOpen(true)}
+                onClick={handleOpenCreate}
                 className="cursor-pointer bg-income text-secondary hover:bg-income/50 font-medium"
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -376,15 +390,15 @@ export default function Budgets() {
                     <div className="grid grid-cols-3 gap-2 pt-2 border-t border-secondary text-center">
                       <div>
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Limit</p>
-                        <p className="text-sm font-semibold text-primary mt-1">€{limit.toFixed(2)}</p>
+                        <p className="text-sm font-semibold text-primary mt-1">{getCurrencySymbol(budget.currency_code)} {limit.toFixed(2)}</p>
                       </div>
                       <div>
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Budget Spent</p>
-                        <p className="text-sm font-semibold text-primary mt-1">€{spent.toFixed(2)}</p>
+                        <p className="text-sm font-semibold text-primary mt-1">{getCurrencySymbol(budget.currency_code)} {spent.toFixed(2)}</p>
                       </div>
                       <div>
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Remaining</p>
-                        <p className={`text-sm font-semibold ${remaining >= 0 ? "text-cyan-400 mt-1" : "text-destructive"}`}>€ {remaining.toFixed(2)}</p>
+                        <p className={`text-sm font-semibold mt-1 ${status.textColor}`}>{getCurrencySymbol(budget.currency_code)} {remaining.toFixed(2)}</p>
                       </div>
                     </div>
                   </div>
@@ -409,7 +423,7 @@ export default function Budgets() {
                 Budget Spending Limit
               </span>
               <div className="flex items-center justify-center text-4xl font-bold tracking-tight text-foreground w-full">
-                <span className="text-muted-foreground/60 mr-1">€</span>
+                <span className="text-muted-foreground/60 mr-1">{getCurrencySymbol(newBudget.currency_code)}</span>
                 <input
                   type="number"
                   step="0.01"
@@ -461,6 +475,32 @@ export default function Budgets() {
               </Select>
             </div>
 
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Currency</label>
+              <Select
+                value={newBudget.currency_code}
+                onValueChange={(value) => setNewBudget((prev) => ({ ...prev, currency_code: value }))}
+              >
+                <SelectTrigger className="w-full h-11 rounded-xl bg-secondary/30 border-border/40 text-foreground focus:ring-income text-left">
+                  <SelectValue placeholder="Select Currency" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border/40 text-foreground">
+                  {accountCurrencies.length > 0 ? (
+                    accountCurrencies.map((code) => (
+                      <SelectItem key={code} value={code}>
+                        {CURRENCIES.find((c) => c.code === code)?.label || code}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="EUR">EUR (€)</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-muted-foreground">
+                Matched to the currencies used across your accounts.
+              </p>
+            </div>
+
             <div className="pt-2">
               <Button
                 type="submit"
@@ -493,12 +533,10 @@ export default function Budgets() {
                   {/* tab switch */}
                   <TabsList className="grid w-full grid-cols-2 mt-3 bg-secondary/50 rounded-xl p-1">
                     <TabsTrigger value="edit" className="rounded-lg font-semibold glow-income-active">
-                      <Settings className="h-3.5 w-3.5 mr-1" />
                       Edit Limit
                     </TabsTrigger>
 
                     <TabsTrigger value="expense" className="rounded-lg font-semibold glow-expense-active">
-                      <DollarSign className="h-3.5 w-3.5 mr-1" />
                       Add Expense
                     </TabsTrigger>
                   </TabsList>
@@ -512,7 +550,7 @@ export default function Budgets() {
                   <div>
                     <h3 className="font-semibold text-primary leading-tight">{selectedBudget.category?.name}</h3>
                     <p className="text-xs text-muted-foreground">
-                      Spent: €{currentSpent.toFixed(2)} / €{Number(selectedBudget.amount).toFixed(2)}
+                      Spent: {getCurrencySymbol(selectedBudget.currency_code)} {currentSpent.toFixed(2)} / {getCurrencySymbol(selectedBudget.currency_code)} {Number(selectedBudget.amount).toFixed(2)}
                     </p>
                   </div>
                 </div>
@@ -532,7 +570,7 @@ export default function Budgets() {
                             Budget Spending Limit
                           </span>
                           <div className="flex items-center justify-center text-4xl font-bold tracking-tight text-foreground w-full">
-                            <span className="text-muted-foreground/60 mr-1">€</span>
+                            <span className="text-muted-foreground/60 mr-1">{getCurrencySymbol(selectedBudget.currency_code)}</span>
                             <input
                               type="number"
                               step="0.01"
@@ -576,7 +614,7 @@ export default function Budgets() {
                             />
                           </div>
                           <p className="text-xs text-muted-foreground text-right">
-                            Remaining: <span className="text-cyan-400 font-semibold">€{remaining.toFixed(2)}</span>
+                            Remaining: <span className={`font-semibold ${status.textColor}`}>{getCurrencySymbol(selectedBudget.currency_code)} {remaining.toFixed(2)}</span>
                           </p>
                         </div>
 
@@ -600,6 +638,13 @@ export default function Budgets() {
                     const exhausted = getExhaustedPercentage(previewSpent, Number(selectedBudget.amount));
                     const status = getBudgetStatus(exhausted);
 
+                    // check if selected account's currency matches the budget's currency
+                    const selectedAccount = accounts.find(
+                      (acc) => acc.id.toString() === newExpense.account_id?.toString()
+                    );
+                    const currencyMismatch =
+                      selectedAccount && selectedAccount.currency_code !== selectedBudget.currency_code;
+
                     return (
                       <form onSubmit={handleCreateExpenseSubmit} className="space-y-4">
                         {/* EXPENSE AMOUNT */}
@@ -608,7 +653,7 @@ export default function Budgets() {
                             Expense Amount
                           </span>
                           <div className="flex items-center justify-center text-4xl font-bold tracking-tight text-foreground w-full">
-                            <span className="text-muted-foreground/60 mr-1">€</span>
+                            <span className="text-muted-foreground/60 mr-1">{getCurrencySymbol(selectedBudget.currency_code)}</span>
                             <input
                               type="number"
                               step="0.01"
@@ -644,6 +689,17 @@ export default function Budgets() {
                               ))}
                             </SelectContent>
                           </Select>
+                          
+                          {/* CURRENCY MISMATCH WARNING*/}
+                          {currencyMismatch && (
+                            <div className="flex items-start gap-2 p-2.5 rounded-lg bg-expense/10 border border-expense/20 text-expense">
+                              <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                              <p className="text-[11px] leading-snug">
+                                This budget tracks {selectedBudget.currency_code} only. An expense from a{" "}
+                                {selectedAccount.currency_code} account won't count toward this budget's progress.
+                              </p>
+                            </div>
+                          )}
                         </div>
 
                         {/* DATE */}
@@ -671,7 +727,7 @@ export default function Budgets() {
                             />
                           </div>
                           <p className="text-xs text-muted-foreground text-right">
-                            Remaining: <span className="text-cyan-400 font-semibold">€{remaining.toFixed(2)}</span>
+                            Remaining: <span className={`font-semibold ${status.textColor}`}>{getCurrencySymbol(selectedBudget.currency_code)} {remaining.toFixed(2)}</span>
                           </p>
                         </div>
 
