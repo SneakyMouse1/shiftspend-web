@@ -1,16 +1,52 @@
-# React + Vite
+# ShiftSpend Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern personal finance web application built with React, Vite, and TailwindCSS.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Interactive Dashboard:** Real-time net worth summary, income/expense area charts, category spending breakdown, and weekly pulse.
+- **Account Management:** Track card, cash, crypto, deposit, and investment accounts.
+- **Transaction Manager:** Complete income, expense, and account transfer tracking with search, filters, and tags.
+- **Budgets & Savings Goals:** Category budget limits with progress tracking and savings targets.
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **React + Vite** (SPA)
+- **TailwindCSS v4** + shadcn/ui
+- **TanStack Query** (React Query)
+- **React Hook Form + Zod**
+- **Recharts** for financial analytics
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/SneakyMouse1/shiftspend-web.git
+   cd shiftspend-web
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Set up environment variables:
+   ```bash
+   cp .env.example .env
+   ```
+   Set `VITE_API_URL=http://localhost:8000/api/v1`
+
+4. Start development server:
+   ```bash
+   npm run dev
+   ```
+
+## Authors & Contributors
+
+Developed jointly by:
+- **Tati** ([@Teana-san](https://github.com/Teana-san)) — Full-stack Developer & Co-creator
+- **Sam** ([@SneakyMouse1](https://github.com/SneakyMouse1)) — Full-stack Developer & Co-creator
+
+## License
+
+This project is open-sourced software licensed under the MIT license.
