@@ -444,21 +444,21 @@ export default function Categories() {
 
               {/* Buttons */}
               {!selectedCategory.is_default ? (
-                <div className="space-y-3 mt-4">
+                <div className="mt-4">
                   <Button
                     onClick={handleSaveChanges}
-                    className="w-full h-11 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-semibold shadow-md glow-income block sm:inline-flex transition-all duration-300 cursor-pointer"
+                    className="w-full h-11 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-semibold hover-glow-income disabled:opacity-50 transition-all duration-300 cursor-pointer"
                   >
                     Save Changes
                   </Button>
 
-                  <button
+                  <Button
                     type="button"
                     onClick={() => handleDeleteCategory(selectedCategory.id)}
-                    className="w-full text-center text-destructive hover:destructive/50 text-sm font-semibold py-1 block transition-all duration-300 cursor-pointer"
+                    className="mt-2 w-full text-center bg-transparent rounded-xl text-destructive hover:bg-transparent hover:border-destructive hover:destructive/50 text-sm font-semibold py-1 block transition-all duration-300 cursor-pointer"
                   >
                     Delete This Category
-                  </button>
+                  </Button>
                 </div>
               ) : (
 

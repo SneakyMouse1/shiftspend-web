@@ -210,7 +210,7 @@ export default function Budgets() {
         </div>
         <Button
           onClick={handleOpenCreate}
-          className="bg-muted text-primary hover:bg-muted/90 font-semibold shadow-md glow-income rounded-xl"
+          className="bg-muted text-primary hover:bg-muted/90 font-semibold shadow-md hover-glow-income rounded-xl cursor-pointer"
         >
           <Plus className="h-4 w-4 mr-1" />
           <span>New Limit</span>
