@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { loginSchema } from "@/lib/validations/auth";
 import { mapServerErrors } from "@/lib/mapServerErrors";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -33,7 +33,7 @@ export default function Login() {
     try {
       const { user } = await login(values);
       toast.success(`Welcome back, ${user.name}`);
-      navigate("/dashboard");
+      navigate("/dashboard", { state: { showLoader: true } });
     } catch (error) {
       const handled = mapServerErrors(error, form.setError);
       if (!handled) {
