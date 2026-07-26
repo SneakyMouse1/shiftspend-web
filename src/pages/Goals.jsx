@@ -2,12 +2,14 @@ import { useState } from "react";
 import { useGoals, useCreateGoal, useUpdateGoal, useDeleteGoal, useDepositGoal } from "@/hooks/useGoals";
 import { useAccounts } from "@/hooks/useAccounts";
 
-import { Plus, Loader2, Wallet, PiggyBank, Trophy, Calendar, CheckCircle, ArrowUpRight, AlertTriangle } from "lucide-react";
+import { Plus, Loader2, Wallet, PiggyBank, Trophy, Calendar, CheckCircle, ArrowUpRight, AlertTriangle, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { CURRENCIES, getCurrencySymbol } from "@/config/currencies";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 const INITIAL_CREATE_STATE = {
@@ -42,6 +44,12 @@ export default function Goals() {
   const [deposit, setDeposit] = useState(INITIAL_DEPOSIT_STATE);
 
 
+  const [selectedEditGoal, setSelectedEditGoal] = useState(null);
+  const [editName, setEditName] = useState("");
+  const [editDeadline, setEditDeadline] = useState("");
+  const [editStatus, setEditStatus] = useState("active");
+
+
   // Getting currency of all accounts
   const accountCurrencies = [...new Set(accounts.map((acc) => acc.currency_code).filter(Boolean))];
 
@@ -73,6 +81,35 @@ export default function Goals() {
   const handleCloseDeposit = () => {
     setSelectedGoal(null);
     setDeposit(INITIAL_DEPOSIT_STATE);
+  };
+
+
+  const handleOpenEdit = (goal) => {
+    setSelectedEditGoal(goal);
+    setEditName(goal.name || "");
+    setEditDeadline(goal.deadline || "");
+    setEditStatus(goal.status || "active");
+  };
+
+  const handleCloseEdit = () => {
+    setSelectedEditGoal(null);
+  };
+
+  const handleUpdateSubmit = (e) => {
+    e.preventDefault();
+    if (!selectedEditGoal || !editName.trim()) return;
+
+    updateMutation.mutate(
+      {
+        id: selectedEditGoal.id,
+        updatedData: {
+          name: editName.trim(),
+          deadline: editDeadline || undefined,
+          status: editStatus,
+        },
+      },
+      { onSuccess: () => handleCloseEdit() }
+    );
   };
 
   // Submit deposit
@@ -113,9 +150,7 @@ export default function Goals() {
 
   // to delete goal
   const handleDeleteGoal = (id) => {
-    deleteMutation.mutate(id, {
-      onSuccess: () => handleCloseDeposit(),
-    });
+    deleteMutation.mutate(id);
   };
 
 
@@ -237,22 +272,45 @@ export default function Goals() {
                         </div>
                       </div>
 
-                      {/* Right Action / Status Badge */}
-                      {isAchieved ? (
-                        <div className="flex items-center gap-1.5 bg-income/10 border border-income/30 text-income text-[11px] font-bold px-3 py-1.5 rounded-full tracking-wider uppercase">
-                          <CheckCircle className="h-3.5 w-3.5" />
-                          <span>Target Achieved</span>
-                        </div>
-                      ) : (
-                        <Button
-                          size="sm"
-                          onClick={() => handleOpenDeposit(goal)}
-                          className="h-8 bg-chart-3/20 hover:bg-chart-3/50 text-chart-3 hover:text-primary border border-chart-3/30 rounded-lg text-xs font-semibold px-3 transition-all duration-200 cursor-pointer"
-                        >
-                          <ArrowUpRight className="h-3.5 w-3.5 mr-1" />
-                          Add Deposit
-                        </Button>
-                      )}
+                      {/* Right Action / Status Badge & Actions Menu */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        {isAchieved ? (
+                          <div className="flex items-center gap-1.5 bg-income/10 border border-income/30 text-income text-[11px] font-bold px-3 py-1.5 rounded-full tracking-wider uppercase">
+                            <CheckCircle className="h-3.5 w-3.5" />
+                            <span>Target Achieved</span>
+                          </div>
+                        ) : (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-secondary/80 transition-colors focus:outline-none cursor-pointer">
+                              <MoreVertical className="h-4 w-4" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-popover border-border/40 text-foreground w-36">
+                              <DropdownMenuItem
+                                onClick={() => handleOpenEdit(goal)}
+                                className="cursor-pointer text-xs font-medium focus:bg-secondary"
+                              >
+                                <Pencil className="h-3.5 w-3.5 mr-2" />
+                                Edit Goal
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleOpenDeposit(goal)}
+                                className="cursor-pointer text-xs font-medium focus:bg-secondary"
+                              >
+                                <ArrowUpRight className="h-3.5 w-3.5 mr-2" />
+                                Add Deposit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleDeleteGoal(goal.id)}
+                                className="cursor-pointer text-xs font-medium text-destructive focus:bg-destructive/10 focus:text-destructive"
+                              >
+                                <Trash2 className="h-3.5 w-3.5 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                        
+                      </div>
                     </div>
 
                     {/* Progress & Amounts Section */}
@@ -525,18 +583,89 @@ export default function Goals() {
                   >
                     {depositMutation.isPending ? "Recording..." : "Record Deposit"}
                   </Button>
-
-                  <Button
-                    type="button"
-                    onClick={() => handleDeleteGoal(selectedGoal.id)}
-                    className="mt-2 w-full text-center bg-transparent rounded-xl text-destructive hover:bg-transparent hover:border-destructive hover:destructive/50 text-sm font-semibold py-1 block transition-all duration-300 cursor-pointer"
-                  >
-                    Delete This Goal
-                  </Button>
                 </div>
               </form>
             );
           })()}
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL - EDIT GOAL */}
+      <Dialog open={selectedEditGoal !== null} onOpenChange={(open) => !open && handleCloseEdit()}>
+        <DialogContent className="modal-theme">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold tracking-tight">Edit Goal</DialogTitle>
+            <DialogDescription className="hidden">Edit goal name, deadline, or status</DialogDescription>
+          </DialogHeader>
+
+          {selectedEditGoal && (
+            <form onSubmit={handleUpdateSubmit} className="space-y-5 my-2">
+
+              {/* Goal info (read-only target amount / currency) */}
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-secondary/20 border border-border/10">
+                <div className="p-2.5 rounded-xl bg-income/10 text-income">
+                  <PiggyBank className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-primary leading-tight">
+                    {getCurrencySymbol(selectedEditGoal.currency_code)}{Number(selectedEditGoal.target_amount).toFixed(2)} target
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Saved so far: {getCurrencySymbol(selectedEditGoal.currency_code)}{Number(selectedEditGoal.current_amount).toFixed(2)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Name */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Goal Name</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-secondary/30 border border-border/40 text-foreground text-sm focus:outline-none focus:border-income focus:ring-1 focus:ring-income"
+                  required
+                  autoFocus
+                />
+              </div>
+
+              {/* Deadline */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Target Date</label>
+                <input
+                  type="date"
+                  value={editDeadline}
+                  onChange={(e) => setEditDeadline(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl bg-secondary/30 border border-border/40 text-foreground text-sm focus:outline-none focus:border-income focus:ring-1 focus:ring-income"
+                />
+              </div>
+
+              {/* Status */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Status</label>
+                <Select value={editStatus} onValueChange={setEditStatus}>
+                  <SelectTrigger className="w-full data-[size=default]:h-11 rounded-xl bg-secondary/30 border-border/40 text-foreground focus:ring-income text-left capitalize">
+                    <SelectValue placeholder="Select Status" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border-border/40 text-foreground">
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="paused">Paused</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="pt-2">
+                <Button
+                  type="submit"
+                  disabled={updateMutation.isPending || !editName.trim()}
+                  className="w-full h-11 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-semibold hover-glow-income disabled:opacity-50 transition-all duration-300 cursor-pointer"
+                >
+                  {updateMutation.isPending ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            </form>
+          )}
         </DialogContent>
       </Dialog>
 
