@@ -1,9 +1,10 @@
-import { createContext, useContext, useState } from "react";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { login as apiLogin, register as apiRegister, logout as apiLogout } from "@/api/auth";
-
-const AuthContext = createContext(null);
+import { AuthContext } from "./auth-context-definition";
 
 export function AuthProvider({ children }) {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem("user");
     try {
@@ -15,15 +16,20 @@ export function AuthProvider({ children }) {
 
   const [token, setToken] = useState(() => localStorage.getItem("token"));
   const [loading, setLoading] = useState(false);
+  const [justLoggedIn, setJustLoggedIn] = useState(false);
+
+  const clearJustLoggedIn = () => setJustLoggedIn(false);
 
   const login = async (credentials) => {
     setLoading(true);
     try {
+      queryClient.clear();
       const data = await apiLogin(credentials);
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       setToken(data.token);
       setUser(data.user);
+      setJustLoggedIn(true);
       return data;
     } finally {
       setLoading(false);
@@ -33,11 +39,13 @@ export function AuthProvider({ children }) {
   const register = async (payload) => {
     setLoading(true);
     try {
+      queryClient.clear();
       const data = await apiRegister(payload);
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       setToken(data.token);
       setUser(data.user);
+      setJustLoggedIn(true);
       return data;
     } finally {
       setLoading(false);
@@ -56,6 +64,7 @@ export function AuthProvider({ children }) {
       setToken(null);
       setUser(null);
       setLoading(false);
+      queryClient.clear();
     }
   };
 
@@ -69,6 +78,8 @@ export function AuthProvider({ children }) {
         register,
         logout,
         loading,
+        justLoggedIn,
+        clearJustLoggedIn,
       }}
     >
       {children}
@@ -76,10 +87,3 @@ export function AuthProvider({ children }) {
   );
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-}

@@ -1,9 +1,10 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { Sun, Moon, TrendingUp, LogOut } from "lucide-react";
+import { Sun, Moon, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { navItems } from "@/lib/navigation";
+import { Logo } from "@/components/shared/Logo";
 
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 export function Sidebar({ theme, toggleTheme }) {
   const navigate = useNavigate();
@@ -20,13 +21,8 @@ export function Sidebar({ theme, toggleTheme }) {
   return (
     <aside className="hidden md:flex flex-col fixed left-0 top-0 h-screen w-64 border-r border-border/40 bg-card p-6 transition-all duration-300 z-40">
       {/* Logo */}
-      <NavLink to="/" className="flex items-center gap-2 font-bold text-xl tracking-tight mb-8 hover:opacity-90 transition-opacity">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-income to-chart-3 text-primary-foreground shadow-md glow-income">
-          <TrendingUp className="h-5 w-5" />
-        </div>
-        <span className="bg-gradient-to-r from-foreground via-foreground to-income bg-clip-text text-transparent font-extrabold">
-          Finance<span className="text-income">Flow</span>
-        </span>
+      <NavLink to="/" className="group logo-container flex items-center gap-2 mb-8 hover:opacity-90 transition-opacity">
+        <Logo className="h-20 w-auto text-income" />
       </NavLink>
 
       {/* Navigation links */}

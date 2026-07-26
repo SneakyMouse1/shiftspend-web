@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { registerSchema } from "@/lib/validations/auth";
 import { mapServerErrors } from "@/lib/mapServerErrors";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -38,7 +38,7 @@ export default function Register() {
     try {
       const { user } = await register(values);
       toast.success(`Welcome to Shift Spend, ${user.name}`);
-      navigate("/dashboard");
+      navigate("/dashboard", { state: { showLoader: true } });
     } catch (error) {
       const handled = mapServerErrors(error, form.setError);
       if (!handled) {

@@ -226,3 +226,50 @@
   filter: invert(1) brightness(0.9);
   cursor: pointer;
 }
+
+/* Animated SVG Logo */
+.logo-svg {
+  overflow: visible;
+}
+
+.logo-bill {
+  opacity: 0;
+  transform-box: view-box;
+  transform-origin: 148px 20px;
+  will-change: transform, opacity;
+  animation: logo-deal 0.85s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation-delay: var(--delay, 0s);
+}
+
+.logo-bill-2 { --delay: 0s; }
+.logo-bill-3 { --delay: 0.12s; }
+.logo-bill-1 { --delay: 0.24s; }
+
+/* Re-trigger animation on hover smoothly */
+.logo-container:hover .logo-bill,
+.group:hover .logo-bill {
+  animation: logo-deal-hover 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes logo-deal {
+  0% {
+    opacity: 0;
+    transform: translate(6px, 6px) rotate(6deg) scale(0.85);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+}
+
+@keyframes logo-deal-hover {
+  0% {
+    opacity: 0.4;
+    transform: translate(5px, 5px) rotate(5deg) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+}

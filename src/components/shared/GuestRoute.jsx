@@ -1,10 +1,12 @@
-import { Navigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 export function GuestRoute({ children }) {
   const { isAuthenticated } = useAuth();
+  const location = useLocation();
+
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/dashboard" replace state={location.state || { showLoader: true }} />;
   }
   return children;
 }
