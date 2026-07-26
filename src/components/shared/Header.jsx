@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Sun, Moon, TrendingUp, Menu, X, LogOut } from "lucide-react";
+import { Sun, Moon, Menu, X, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { navItems } from "@/lib/navigation";
+import { Logo } from "@/components/shared/Logo";
 
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 
 export function Header({ theme, toggleTheme }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -22,15 +23,10 @@ export function Header({ theme, toggleTheme }) {
         {/* Logo */}
         <NavLink
           to="/"
-          className="flex items-center gap-2 font-bold text-xl tracking-tight hover:opacity-90 transition-opacity"
+          className="group logo-container flex items-center gap-2 hover:opacity-90 transition-opacity"
           onClick={() => setIsOpen(false)}
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-income to-chart-3 text-primary-foreground shadow-sm">
-            <TrendingUp className="h-4.5 w-4.5" />
-          </div>
-          <span className="bg-gradient-to-r from-foreground via-foreground to-income bg-clip-text text-transparent font-extrabold text-lg">
-            Finance<span className="text-income">Flow</span>
-          </span>
+          <Logo className="h-14 w-auto text-income" />
         </NavLink>
 
         {/* Actions */}
