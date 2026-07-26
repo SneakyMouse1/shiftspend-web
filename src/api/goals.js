@@ -19,3 +19,8 @@ export const createGoalApi = async (goalData) => {
   const response = await api.post("/goals", goalData);
   return response.data.data;
 };
+
+export const depositGoalApi = async (id, depositData) => {
+  const response = await api.post(`/goals/${id}/deposit`, depositData);
+  return response.data.data;
+};

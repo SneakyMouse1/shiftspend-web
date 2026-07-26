@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getGoalApi, createGoalApi, updateGoalApi, deleteGoalApi } from "@/api/goals";
+import { getGoalApi, createGoalApi, updateGoalApi, deleteGoalApi, depositGoalApi } from "@/api/goals";
 import { toast } from "sonner";
 
 // reading all the goals from back - the info is fresh during 5 minutes
@@ -58,6 +58,24 @@ export function useDeleteGoal() {
     onError: (error) => {
       console.error(error);
       toast.error(error?.response?.data?.message || "Failed to delete goal");
+    },
+  });
+}
+
+
+// to add a deposit to a goal
+export function useDepositGoal() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, payload }) => depositGoalApi(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["goals"] });
+      toast.success("Deposit added successfully!");
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error(error?.response?.data?.message || "Failed to add deposit");
     },
   });
 }
