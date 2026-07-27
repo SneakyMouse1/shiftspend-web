@@ -161,7 +161,7 @@
 /* STYLE FOR MODAL TO CONTROL THE HEIGHT */
 @layer components {
   .modal-theme {
-    @apply max-w-[440px] w-[calc(100%-2rem)] max-h-[85vh] overflow-y-auto scrollbar-none flex flex-col p-5 md:p-6 rounded-[2rem] top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%]
+    @apply w-full max-h-[85vh] overflow-y-auto scrollbar-none flex flex-col p-5 md:p-6 rounded-[2rem] top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%]
   }
 }
 
@@ -197,13 +197,13 @@
 
 /* GLOW EFFECT FOR TABS*/
 [data-active].glow-income-active {
-  background-color: var(--secondary) !important;
-  filter: drop-shadow(0 0 12px rgba(28, 155, 75, 0.4)) !important;
+  background-color: var(--card) !important;
+  filter: drop-shadow(0 0 15px rgba(28, 155, 75, 0.35)) !important;
 }
 
 [data-active].glow-expense-active {
-  background-color: var(--secondary) !important;
-  filter: drop-shadow(0 0 12px rgba(251, 146, 60, 0.4)) !important;
+  background-color: var(--card) !important;
+  filter: drop-shadow(0 0 15px rgba(251, 146, 60, 0.35)) !important;
 }
 
 

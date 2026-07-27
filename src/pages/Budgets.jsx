@@ -1,15 +1,16 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useBudgets, useCreateBudget, useUpdateBudget, useDeleteBudget } from "@/hooks/useBudgets";
 import { useCategories } from "@/hooks/useCategories";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useCreateTransaction } from "@/hooks/useTransactions";
 
-import { Plus, Loader2, CheckCircle2, AlertTriangle, Calendar, MoreVertical, Pencil, Trash2, Wallet } from "lucide-react";
+import { Plus, Loader2, CheckCircle2, AlertTriangle, Calendar, FolderOpen, MoreVertical, Pencil, Trash2, Wallet } from "lucide-react";
 import { getIconComponent } from "@/config/categoryIcons";
 import { CURRENCIES, getCurrencySymbol } from "@/config/currencies";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,7 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const INITIAL_CREATE_STATE = {
   amount: "",
-  category_id: "",
+  category_id: 1,
   period: "monthly",
   currency_code: "EUR"
 };
@@ -44,9 +45,10 @@ export default function Budgets() {
   const deleteMutation = useDeleteBudget();
 
 
-  // State for Create Modal
+  // State for Create or Delete Budget
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newBudget, setNewBudget] = useState(INITIAL_CREATE_STATE);
+  const [budgetToDeleteId, setBudgetToDeleteId] = useState(null);
 
 
   // Unified State for Manage Modal (Edit Limit and Add Expense)
@@ -77,6 +79,16 @@ export default function Budgets() {
   const handleCloseCreate = () => {
     setIsCreateOpen(false);
     setNewBudget(INITIAL_CREATE_STATE);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!budgetToDeleteId) return;
+
+    deleteMutation.mutate(budgetToDeleteId, {
+      onSuccess: () => {
+        setBudgetToDeleteId(null);
+      },
+    });
   };
 
   // Derive the unique currencies actually used across the user's accounts
@@ -205,8 +217,8 @@ export default function Budgets() {
       {/* Headline */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Active Budgets</h1>
-          <p className="text-sm text-muted-foreground mt-1">Set limits to curb auxiliary expenses.</p>
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Active Budgets</h1>
+          <p className="text-sm text-muted-foreground">Set limits to curb auxiliary expenses.</p>
         </div>
         <Button
           onClick={handleOpenCreate}
@@ -364,7 +376,7 @@ export default function Budgets() {
                                 Edit
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                onClick={() => deleteMutation.mutate(budget.id)}
+                                onClick={() => setBudgetToDeleteId(budget.id)}
                                 className="cursor-pointer text-xs font-medium text-destructive focus:bg-destructive/10 focus:text-destructive"
                               >
                                 <Trash2 className="h-3.5 w-3.5 mr-2" />
@@ -411,53 +423,71 @@ export default function Budgets() {
 
       {/* MODAL - CREATE BUDGET */}
       <Dialog open={isCreateOpen} onOpenChange={(open) => !open && handleCloseCreate()}>
-        <DialogContent className="modal-theme">
+        <DialogContent className="modal-theme md:max-w-135">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold tracking-tight">Configure New Budget</DialogTitle>
+            <DialogTitle className="text-xl font-bold tracking-tight text-center md:text-left">Configure New Budget</DialogTitle>
             <DialogDescription className="hidden">Create custom budget</DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleCreateSubmit} className="space-y-5 my-2">
-            <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-secondary/20 border border-border/10 text-center">
-              <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-1">
-                Budget Spending Limit
-              </span>
-              <div className="flex items-center justify-center text-4xl font-bold tracking-tight text-foreground w-full">
-                <span className="text-muted-foreground/60 mr-1">{getCurrencySymbol(newBudget.currency_code)}</span>
+            <div className="bg-[#131316]/50 border border-border/20 rounded-2xl p-5 flex flex-col items-center justify-center relative">
+              <span className="text-[10px] font-bold tracking-wider text-muted-foreground/50 mb-2">BUDGET SPENDING LIMIT</span>
+              <div className="flex items-center justify-center font-mono">
+                <span className="text-muted-foreground/35 text-3xl font-semibold select-none mr-2">
+                  {getCurrencySymbol(newBudget.currency_code)}
+                </span>
                 <input
                   type="number"
                   step="0.01"
                   placeholder="0.00"
                   value={newBudget.amount}
                   onChange={(e) => setNewBudget((prev) => ({ ...prev, amount: e.target.value }))}
-                  className="bg-transparent text-center focus:outline-none placeholder-muted-foreground/20 w-full max-w-45 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-44 text-4xl font-extrabold text-center text-income drop-shadow-[0_0_15px_rgba(74,222,128,0.35)] transition-all"
                   required
                   autoFocus
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Expense Category</label>
-              <Select
-                value={newBudget.category_id?.toString()}
-                onValueChange={(value) => setNewBudget((prev) => ({ ...prev, category_id: value }))}
-              >
-                <SelectTrigger className="w-full h-11 rounded-xl bg-secondary/30 border-border/40 text-foreground focus:ring-income text-left">
-                  <SelectValue placeholder="Select Expense Category">
-                    {expenseCategories.find((cat) => cat.id.toString() === newBudget.category_id?.toString())?.name ||
-                      "Select Expense Category"}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="bg-popover border-border/40 text-foreground">
-                  {expenseCategories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id.toString()}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
+            {/* Categories Icons */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <FolderOpen className="h-3.5 w-3.5 text-muted-foreground/80" />
+                <span>Expense Category</span>
+              </label>
+              <div className="bg-secondary/20 border border-border/30 rounded-2xl p-3">
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 max-h-48 overflow-y-auto pr-1">
+                  {expenseCategories.map((cat) => {
+                    const IconComponent = getIconComponent(cat.icon);
+                    const isSelected = String(newBudget.category_id) === String(cat.id);
+
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => setNewBudget((prev) => ({ ...prev, category_id: String(cat.id) }))}
+                        style={{
+                          borderColor: isSelected ? cat.color : "transparent",
+                          color: isSelected ? cat.color : "var(--muted-foreground)",
+                          backgroundColor: isSelected ? `${cat.color}15` : "var(--secondary)/25",
+                          boxShadow: isSelected ? `0 0 10px ${cat.color}25` : "none",
+                        }}
+                        className={`flex flex-col items-center justify-center p-3.5 rounded-xl border transition-all duration-300 cursor-pointer ${isSelected
+                          ? ""
+                          : "border-border/30 bg-[#1c1c1f]/40 hover:border-border/50 hover:text-foreground"
+                          }`}
+                      >
+                        <IconComponent className="h-5 w-5 mb-1.5 shrink-0" />
+                        <span className="text-xs font-bold truncate max-w-full">{cat.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
+
+
 
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Restricted Period</label>
@@ -465,7 +495,7 @@ export default function Budgets() {
                 value={newBudget.period}
                 onValueChange={(value) => setNewBudget((prev) => ({ ...prev, period: value }))}
               >
-                <SelectTrigger className="w-full h-11 rounded-xl bg-secondary/30 border-border/40 text-foreground focus:ring-income text-left capitalize">
+                <SelectTrigger className="w-full bg-secondary/30 border-border/40 rounded-xl data-[size=default]:h-11">
                   <SelectValue placeholder="Select Period" />
                 </SelectTrigger>
                 <SelectContent className="bg-popover border-border/40 text-foreground">
@@ -481,7 +511,7 @@ export default function Budgets() {
                 value={newBudget.currency_code}
                 onValueChange={(value) => setNewBudget((prev) => ({ ...prev, currency_code: value }))}
               >
-                <SelectTrigger className="w-full h-11 rounded-xl bg-secondary/30 border-border/40 text-foreground focus:ring-income text-left">
+                <SelectTrigger className="w-full bg-secondary/30 border-border/40 rounded-xl data-[size=default]:h-11">
                   <SelectValue placeholder="Select Currency" />
                 </SelectTrigger>
                 <SelectContent className="bg-popover border-border/40 text-foreground">
@@ -505,9 +535,13 @@ export default function Budgets() {
               <Button
                 type="submit"
                 disabled={createMutation.isPending || !newBudget.amount || !newBudget.category_id}
-                className="w-full h-11 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-semibold glow-income disabled:opacity-50 transition-all duration-300 cursor-pointer"
+                className="w-full h-12 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-bold shadow-md glow-income disabled:opacity-50 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
               >
-                {createMutation.isPending ? "Activating..." : "Activate Budget Limit"}
+                {createMutation.isPending ? (
+                  <Loader2 className="h-5 w-5 animate-spin mx-auto" />
+                ) : (
+                  <span>Activate Budget Limit</span>
+                )}
               </Button>
             </div>
           </form>
@@ -516,7 +550,7 @@ export default function Budgets() {
 
       {/* COMBINED MODAL — MANAGE BUDGET (EDIT LIMIT & ADD EXPENSE) */}
       <Dialog open={selectedBudget !== null} onOpenChange={(open) => !open && handleCloseManageModal()}>
-        <DialogContent className="modal-theme">
+        <DialogContent className="modal-theme md:max-w-135">
           {selectedBudget && (() => {
             const currentSpent = Number(selectedBudget.spent) || 0;
             const currentLimit = Number(editAmount) || Number(selectedBudget.amount) || 0;
@@ -526,17 +560,17 @@ export default function Budgets() {
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <DialogHeader>
                   <div className="flex items-center justify-between pr-6">
-                    <DialogTitle className="text-xl font-bold tracking-tight">Manage Budget</DialogTitle>
+                    <DialogTitle className="text-xl font-bold tracking-tight text-center md:text-left">Manage Budget</DialogTitle>
                   </div>
                   <DialogDescription className="hidden">Manage budget limits and expenses</DialogDescription>
 
                   {/* tab switch */}
-                  <TabsList className="grid w-full grid-cols-2 mt-3 bg-secondary/50 rounded-xl p-1">
-                    <TabsTrigger value="edit" className="rounded-lg font-semibold glow-income-active">
+                  <TabsList className="grid w-full grid-cols-2 mt-3 bg-secondary/50 rounded-xl">
+                    <TabsTrigger value="edit" className="rounded-lg font-semibold glow-income-active cursor-pointer">
                       Edit Limit
                     </TabsTrigger>
 
-                    <TabsTrigger value="expense" className="rounded-lg font-semibold glow-expense-active">
+                    <TabsTrigger value="expense" className="rounded-lg font-semibold glow-expense-active cursor-pointer">
                       Add Expense
                     </TabsTrigger>
                   </TabsList>
@@ -565,20 +599,19 @@ export default function Budgets() {
                     return (
                       <form onSubmit={handleUpdateSubmit} className="space-y-4">
                         {/* EDIT AMOUNT */}
-                        <div className="flex flex-col items-center justify-center p-5 rounded-2xl bg-secondary/20 border border-border/10 text-center">
-                          <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-1">
-                            Budget Spending Limit
-                          </span>
-                          <div className="flex items-center justify-center text-4xl font-bold tracking-tight text-foreground w-full">
-                            <span className="text-muted-foreground/60 mr-1">{getCurrencySymbol(selectedBudget.currency_code)}</span>
+                        <div className="bg-[#131316]/50 border border-border/20 rounded-2xl p-5 flex flex-col items-center justify-center relative">
+                          <span className="text-[10px] font-bold tracking-wider text-muted-foreground/50 mb-2">BUDGET SPENDING LIMIT</span>
+                          <div className="flex items-center justify-center font-mono">
+                            <span className="text-muted-foreground/35 text-3xl font-semibold select-none mr-2">
+                              {getCurrencySymbol(selectedBudget.currency_code)}
+                            </span>
                             <input
                               type="number"
                               step="0.01"
-                              min="0.01"
                               placeholder="0.00"
                               value={editAmount}
                               onChange={(e) => setEditAmount(e.target.value)}
-                              className="bg-transparent text-center focus-glow-income focus:outline-none placeholder-muted-foreground/20 w-full max-w-45 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-44 text-4xl font-extrabold text-center text-income drop-shadow-[0_0_15px_rgba(74,222,128,0.35)] transition-all"
                               required
                               autoFocus
                             />
@@ -591,7 +624,7 @@ export default function Budgets() {
                             Restricted Period
                           </label>
                           <Select value={editPeriod} onValueChange={setEditPeriod}>
-                            <SelectTrigger className="w-full h-10 rounded-xl bg-secondary/30 border-border/40 text-foreground focus:ring-income text-left capitalize">
+                            <SelectTrigger className="w-full bg-secondary/30 border-border/40 rounded-xl data-[size=default]:h-11">
                               <SelectValue placeholder="Select Period" />
                             </SelectTrigger>
                             <SelectContent className="bg-popover border-border/40 text-foreground">
@@ -617,13 +650,16 @@ export default function Budgets() {
                             Remaining: <span className={`font-semibold ${status.textColor}`}>{getCurrencySymbol(selectedBudget.currency_code)} {remaining.toFixed(2)}</span>
                           </p>
                         </div>
-
                         <Button
                           type="submit"
                           disabled={updateMutation.isPending || !editAmount}
-                          className="w-full h-11 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-semibold glow-income disabled:opacity-50 transition-all duration-300 cursor-pointer"
+                          className="w-full h-12 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-bold shadow-md glow-income disabled:opacity-50 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
                         >
-                          {updateMutation.isPending ? "Saving..." : "Save Changes"}
+                          {updateMutation.isPending ? (
+                            <Loader2 className="h-5 w-5 animate-spin mx-auto" />
+                          ) : (
+                            <span>Save Changes</span>
+                          )}
                         </Button>
                       </form>
                     );
@@ -648,20 +684,19 @@ export default function Budgets() {
                     return (
                       <form onSubmit={handleCreateExpenseSubmit} className="space-y-4">
                         {/* EXPENSE AMOUNT */}
-                        <div className="flex flex-col items-center justify-center p-5 rounded-2xl bg-secondary/20 border border-border/10 text-center">
-                          <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-1">
-                            Expense Amount
-                          </span>
-                          <div className="flex items-center justify-center text-4xl font-bold tracking-tight text-foreground w-full">
-                            <span className="text-muted-foreground/60 mr-1">{getCurrencySymbol(selectedBudget.currency_code)}</span>
+                        <div className="bg-[#131316]/50 border border-border/20 rounded-2xl p-5 flex flex-col items-center justify-center relative">
+                          <span className="text-[10px] font-bold tracking-wider text-muted-foreground/50 mb-2">EXPENSE AMOUNT</span>
+                          <div className="flex items-center justify-center font-mono">
+                            <span className="text-muted-foreground/35 text-3xl font-semibold select-none mr-2">
+                              {getCurrencySymbol(selectedBudget.currency_code)}
+                            </span>
                             <input
                               type="number"
                               step="0.01"
-                              min="0.01"
                               placeholder="0.00"
                               value={newExpense.amount}
                               onChange={(e) => setNewExpense((prev) => ({ ...prev, amount: e.target.value }))}
-                              className="bg-transparent text-center focus-glow-expense focus:outline-none placeholder-muted-foreground/20 w-full max-w-45 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-44 text-4xl font-extrabold text-center text-expense drop-shadow-[0_0_15px_rgba(251,146,60,0.35)] transition-all"
                               required
                               autoFocus
                             />
@@ -675,12 +710,13 @@ export default function Budgets() {
                             value={newExpense.account_id?.toString()}
                             onValueChange={(value) => setNewExpense((prev) => ({ ...prev, account_id: value }))}
                           >
-                            <SelectTrigger className="w-full h-10 rounded-xl bg-secondary/30 border-border/40 text-foreground focus:ring-income text-left">
+                            <SelectTrigger className="w-full bg-secondary/30 border-border/40 rounded-xl data-[size=default]:h-11">
                               <SelectValue placeholder="Select Account">
                                 {accounts.find((acc) => acc.id.toString() === newExpense.account_id?.toString())?.name ||
                                   "Select Account"}
                               </SelectValue>
                             </SelectTrigger>
+
                             <SelectContent className="bg-popover border-border/40 text-foreground">
                               {accounts.map((acc) => (
                                 <SelectItem key={acc.id} value={acc.id.toString()}>
@@ -689,7 +725,7 @@ export default function Budgets() {
                               ))}
                             </SelectContent>
                           </Select>
-                          
+
                           {/* CURRENCY MISMATCH WARNING*/}
                           {currencyMismatch && (
                             <div className="flex items-start gap-2 p-2.5 rounded-lg bg-expense/10 border border-expense/20 text-expense">
@@ -734,9 +770,13 @@ export default function Budgets() {
                         <Button
                           type="submit"
                           disabled={createTransactionMutation.isPending || !newExpense.amount || !newExpense.account_id}
-                          className="w-full h-11 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-semibold glow-income disabled:opacity-50 transition-all duration-300 cursor-pointer"
+                          className="w-full h-12 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-bold shadow-md glow-income disabled:opacity-50 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
                         >
-                          {createTransactionMutation.isPending ? "Recording..." : "Record Expense"}
+                          {createTransactionMutation.isPending ? (
+                            <Loader2 className="h-5 w-5 animate-spin mx-auto" />
+                          ) : (
+                            <span>Record Expense</span>
+                          )}
                         </Button>
                       </form>
                     );
@@ -748,6 +788,42 @@ export default function Budgets() {
           })()}
         </DialogContent>
       </Dialog>
+
+
+      {/* DELETE CONFIRMATION DIALOG */}
+      <AlertDialog
+        open={budgetToDeleteId !== null}
+        onOpenChange={(open) => !open && setBudgetToDeleteId(null)}
+      >
+        <AlertDialogContent className="rounded-3xl border border-border/40 bg-popover max-w-100">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-lg font-bold">Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm">
+              This action cannot be undone. This will permanently delete your budget limit and reset its tracked progress.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => setBudgetToDeleteId(null)}
+              className="rounded-xl border border-border/40 hover:bg-secondary/40 cursor-pointer"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={deleteMutation.isPending}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-xl cursor-pointer"
+            >
+              {deleteMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <span>Confirm</span>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </div>
   );
 }
