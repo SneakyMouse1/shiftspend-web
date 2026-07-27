@@ -7,9 +7,9 @@ import { CURRENCIES, getCurrencySymbol } from "@/config/currencies";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 const INITIAL_CREATE_STATE = {
@@ -33,6 +33,7 @@ export default function Goals() {
   // State for Create Modal
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newGoal, setNewGoal] = useState(INITIAL_CREATE_STATE);
+  const [GoalToDeleteId, setGoalToDeleteId] = useState(null);
 
   // Mutations
   const createMutation = useCreateGoal();
@@ -149,8 +150,14 @@ export default function Goals() {
 
 
   // to delete goal
-  const handleDeleteGoal = (id) => {
-    deleteMutation.mutate(id);
+  const handleConfirmDelete = () => {
+    if (!GoalToDeleteId) return;
+
+    deleteMutation.mutate(GoalToDeleteId, {
+      onSuccess: () => {
+        setGoalToDeleteId(null);
+      },
+    });
   };
 
 
@@ -168,8 +175,8 @@ export default function Goals() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Savings Goals</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Savings Goals</h1>
+          <p className="text-sm text-muted-foreground">
             Save for milestones, trips, or emergencies
           </p>
         </div>
@@ -300,7 +307,7 @@ export default function Goals() {
                                 Add Deposit
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                onClick={() => handleDeleteGoal(goal.id)}
+                                onClick={() => setGoalToDeleteId(goal.id)}
                                 className="cursor-pointer text-xs font-medium text-destructive focus:bg-destructive/10 focus:text-destructive"
                               >
                                 <Trash2 className="h-3.5 w-3.5 mr-2" />
@@ -309,7 +316,7 @@ export default function Goals() {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         )}
-                        
+
                       </div>
                     </div>
 
@@ -357,13 +364,32 @@ export default function Goals() {
 
       {/* MODAL - CREATE GOAL */}
       <Dialog open={isCreateOpen} onOpenChange={(open) => !open && handleCloseCreate()}>
-        <DialogContent className="modal-theme">
+        <DialogContent className="modal-theme md:max-w-135">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold tracking-tight">Create Savings Goal</DialogTitle>
             <DialogDescription className="hidden">Create a new savings goal</DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleCreateSubmit} className="space-y-5 my-2">
+
+            <div className="bg-[#131316]/50 border border-border/20 rounded-2xl p-5 flex flex-col items-center justify-center relative">
+              <span className="text-[10px] font-bold tracking-wider text-muted-foreground/50 mb-2">TARGET AMOUNT</span>
+              <div className="flex items-center justify-center font-mono">
+                <span className="text-muted-foreground/35 text-3xl font-semibold select-none mr-2">
+                  {getCurrencySymbol(newGoal.currency_code)}
+                </span>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={newGoal.target_amount}
+                  onChange={(e) => setNewGoal((prev) => ({ ...prev, target_amount: e.target.value }))}
+                  className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-44 text-4xl font-extrabold text-center text-income drop-shadow-[0_0_15px_rgba(74,222,128,0.35)] transition-all"
+                  required
+                  autoFocus
+                />
+              </div>
+            </div>
 
             {/* Goal name */}
             <div className="space-y-2">
@@ -375,53 +401,34 @@ export default function Goals() {
                 placeholder="e.g. MacBook Pro, Japan Trip..."
                 className="w-full px-4 py-3 rounded-xl bg-secondary/30 border border-border/40 text-foreground text-sm focus:outline-none focus:border-income focus:ring-1 focus:ring-income"
                 required
-                autoFocus
               />
             </div>
 
             {/* Target amount + currency */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="col-span-2 space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Target Amount</label>
-                <div className="flex items-center h-11 px-4 rounded-xl bg-secondary/30 border border-border/40">
-                  <span className="text-muted-foreground/60 mr-1 text-lg">
-                    {getCurrencySymbol(newGoal.currency_code)}
-                  </span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    placeholder="0.00"
-                    value={newGoal.target_amount}
-                    onChange={(e) => setNewGoal((prev) => ({ ...prev, target_amount: e.target.value }))}
-                    className="bg-transparent focus:outline-none placeholder-muted-foreground/40 w-full text-foreground [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Currency</label>
-                <Select
-                  value={newGoal.currency_code}
-                  onValueChange={(value) => setNewGoal((prev) => ({ ...prev, currency_code: value }))}
-                >
-                  <SelectTrigger className="w-full data-[size=default]:h-11 rounded-xl bg-secondary/30 border-border/40 text-foreground focus:ring-income text-left">
-                    <SelectValue placeholder="Currency" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover border-border/40 text-foreground">
-                    {accountCurrencies.length > 0 ? (
-                      accountCurrencies.map((code) => (
-                        <SelectItem key={code} value={code}>{code}</SelectItem>
-                      ))
-                    ) : (
-                      CURRENCIES.map((c) => (
-                        <SelectItem key={c.code} value={c.code}>{c.code}</SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Currency</label>
+              <Select
+                value={newGoal.currency_code}
+                onValueChange={(value) => setNewGoal((prev) => ({ ...prev, currency_code: value }))}
+              >
+                <SelectTrigger className="w-full bg-secondary/30 border-border/40 rounded-xl data-[size=default]:h-11">
+                  <SelectValue placeholder="Currency" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border/40 text-foreground">
+                  {accountCurrencies.length > 0 ? (
+                    accountCurrencies.map((code) => (
+                      <SelectItem key={code} value={code}>
+                        {CURRENCIES.find((c) => c.code === code)?.label || code}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="EUR">EUR (€)</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-muted-foreground">
+                Matched to the currencies used across your accounts.
+              </p>
             </div>
 
             {/* Deadline */}
@@ -441,10 +448,15 @@ export default function Goals() {
               <Button
                 type="submit"
                 disabled={createMutation.isPending || !newGoal.name.trim() || !newGoal.target_amount || !newGoal.deadline}
-                className="w-full h-11 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-semibold glow-income disabled:opacity-50 transition-all duration-300 cursor-pointer"
+                className="w-full h-12 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-bold shadow-md glow-income disabled:opacity-50 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
               >
-                {createMutation.isPending ? "Creating..." : "Create Goal"}
+                {createMutation.isPending ? (
+                  <Loader2 className="h-5 w-5 animate-spin mx-auto" />
+                ) : (
+                  <span>Create Goal</span>
+                )}
               </Button>
+
             </div>
           </form>
         </DialogContent>
@@ -452,7 +464,7 @@ export default function Goals() {
 
       {/* MODAL - ADD DEPOSIT */}
       <Dialog open={selectedGoal !== null} onOpenChange={(open) => !open && handleCloseDeposit()}>
-        <DialogContent className="modal-theme">
+        <DialogContent className="modal-theme md:max-w-135">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold tracking-tight">Add Deposit</DialogTitle>
             <DialogDescription className="hidden">Add a deposit toward this goal</DialogDescription>
@@ -466,7 +478,7 @@ export default function Goals() {
             const achieved = previewPercent >= 100;
             const symbol = getCurrencySymbol(selectedGoal.currency_code);
 
-            // NEW: check if selected account's currency matches the goal's currency
+            // check if selected account's currency matches the goal's currency
             const selectedAccount = accounts.find(
               (acc) => acc.id.toString() === deposit.account_id?.toString()
             );
@@ -490,25 +502,25 @@ export default function Goals() {
                 </div>
 
                 {/* Deposit amount */}
-                <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-secondary/20 border border-border/10 text-center">
-                  <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-1">
-                    Deposit Amount
-                  </span>
-                  <div className="flex items-center justify-center text-4xl font-bold tracking-tight text-foreground w-full">
-                    <span className="text-muted-foreground/60 mr-1">{symbol}</span>
+                <div className="bg-[#131316]/50 border border-border/20 rounded-2xl p-5 flex flex-col items-center justify-center relative">
+                  <span className="text-[10px] font-bold tracking-wider text-muted-foreground/50 mb-2">DEPOSIT AMOUNT</span>
+                  <div className="flex items-center justify-center font-mono">
+                    <span className="text-muted-foreground/35 text-3xl font-semibold select-none mr-2">
+                      {getCurrencySymbol(selectedGoal.currency_code)}
+                    </span>
                     <input
                       type="number"
                       step="0.01"
-                      min="0.01"
                       placeholder="0.00"
                       value={deposit.amount}
                       onChange={(e) => setDeposit((prev) => ({ ...prev, amount: e.target.value }))}
-                      className="bg-transparent text-center focus:outline-none placeholder-muted-foreground/20 w-full max-w-45 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-44 text-4xl font-extrabold text-center text-income drop-shadow-[0_0_15px_rgba(74,222,128,0.35)] transition-all"
                       required
                       autoFocus
                     />
                   </div>
                 </div>
+
 
                 {/* Account (optional) */}
                 <div className="space-y-2">
@@ -519,7 +531,7 @@ export default function Goals() {
                     value={deposit.account_id?.toString()}
                     onValueChange={(value) => setDeposit((prev) => ({ ...prev, account_id: value }))}
                   >
-                    <SelectTrigger className="w-full data-[size=default]:h-11 rounded-xl bg-secondary/30 border-border/40 text-foreground focus:ring-income text-left">
+                    <SelectTrigger className="w-full bg-secondary/30 border-border/40 rounded-xl data-[size=default]:h-11">
                       <SelectValue placeholder="Select Account">
                         {accounts.find((acc) => acc.id.toString() === deposit.account_id?.toString())?.name || "Select Account"}
                       </SelectValue>
@@ -579,10 +591,15 @@ export default function Goals() {
                   <Button
                     type="submit"
                     disabled={depositMutation.isPending || !deposit.amount}
-                    className="w-full h-11 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-semibold hover-glow-income disabled:opacity-50 transition-all duration-300 cursor-pointer"
+                    className="w-full h-12 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-bold shadow-md glow-income disabled:opacity-50 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
                   >
-                    {depositMutation.isPending ? "Recording..." : "Record Deposit"}
+                    {depositMutation.isPending ? (
+                      <Loader2 className="h-5 w-5 animate-spin mx-auto" />
+                    ) : (
+                      <span>Record Deposit</span>
+                    )}
                   </Button>
+
                 </div>
               </form>
             );
@@ -592,7 +609,7 @@ export default function Goals() {
 
       {/* MODAL - EDIT GOAL */}
       <Dialog open={selectedEditGoal !== null} onOpenChange={(open) => !open && handleCloseEdit()}>
-        <DialogContent className="modal-theme">
+        <DialogContent className="modal-theme md:max-w-135">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold tracking-tight">Edit Goal</DialogTitle>
             <DialogDescription className="hidden">Edit goal name, deadline, or status</DialogDescription>
@@ -644,7 +661,7 @@ export default function Goals() {
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Status</label>
                 <Select value={editStatus} onValueChange={setEditStatus}>
-                  <SelectTrigger className="w-full data-[size=default]:h-11 rounded-xl bg-secondary/30 border-border/40 text-foreground focus:ring-income text-left capitalize">
+                  <SelectTrigger className="w-full bg-secondary/30 border-border/40 rounded-xl data-[size=default]:h-11">
                     <SelectValue placeholder="Select Status" />
                   </SelectTrigger>
                   <SelectContent className="bg-popover border-border/40 text-foreground">
@@ -659,15 +676,53 @@ export default function Goals() {
                 <Button
                   type="submit"
                   disabled={updateMutation.isPending || !editName.trim()}
-                  className="w-full h-11 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-semibold hover-glow-income disabled:opacity-50 transition-all duration-300 cursor-pointer"
+                  className="w-full h-12 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-bold shadow-md glow-income disabled:opacity-50 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
                 >
-                  {updateMutation.isPending ? "Saving..." : "Save Changes"}
+                  {updateMutation.isPending ? (
+                    <Loader2 className="h-5 w-5 animate-spin mx-auto" />
+                  ) : (
+                    <span>Save Changes</span>
+                  )}
                 </Button>
               </div>
             </form>
           )}
         </DialogContent>
       </Dialog>
+
+      {/* DELETE CONFIRMATION DIALOG */}
+      <AlertDialog
+        open={GoalToDeleteId !== null}
+        onOpenChange={(open) => !open && setGoalToDeleteId(null)}
+      >
+        <AlertDialogContent className="rounded-3xl border border-border/40 bg-popover max-w-100">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-lg font-bold">Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm">
+              This action cannot be undone. This will permanently delete your goal and reset its tracked progress.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => setGoalToDeleteId(null)}
+              className="rounded-xl border border-border/40 hover:bg-secondary/40 cursor-pointer"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={deleteMutation.isPending}
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-xl cursor-pointer"
+            >
+              {deleteMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <span>Confirm</span>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </div >
   );
