@@ -557,27 +557,43 @@ export default function Budgets() {
             const IconComponent = getIconComponent(selectedBudget.category?.icon);
 
             return (
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <>
                 <DialogHeader>
                   <div className="flex items-center justify-between pr-6">
-                    <DialogTitle className="text-xl font-bold tracking-tight text-center md:text-left">Manage Budget</DialogTitle>
+                    <DialogTitle className="text-xl font-bold tracking-tight text-center md:text-left">
+                      Manage Budget
+                    </DialogTitle>
                   </div>
                   <DialogDescription className="hidden">Manage budget limits and expenses</DialogDescription>
 
-                  {/* tab switch */}
-                  <TabsList className="grid w-full grid-cols-2 mt-3 bg-secondary/50 rounded-xl">
-                    <TabsTrigger value="edit" className="rounded-lg font-semibold glow-income-active cursor-pointer">
-                      Edit Limit
-                    </TabsTrigger>
+                  {/* CUSTOM TAB SWITCH */}
+                  <div className="grid grid-cols-2 gap-2 p-1.5 rounded-xl bg-secondary/30 border border-border/40 w-full mt-3">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("edit")}
+                      className={`py-2 text-sm font-semibold rounded-lg transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5 ${activeTab === "edit"
+                          ? "bg-card border-income/30 text-income glow-income drop-shadow-[0_0_10px_rgba(74,222,128,0.15)]"
+                          : "text-muted-foreground hover:text-foreground"
+                        }`}
+                    >
+                      <span>Edit Limit</span>
+                    </button>
 
-                    <TabsTrigger value="expense" className="rounded-lg font-semibold glow-expense-active cursor-pointer">
-                      Add Expense
-                    </TabsTrigger>
-                  </TabsList>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("expense")}
+                      className={`py-2 text-sm font-semibold rounded-lg transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5 ${activeTab === "expense"
+                          ? "bg-card border-expense/30 text-expense glow-expense drop-shadow-[0_0_10px_rgba(251,146,60,0.15)]"
+                          : "text-muted-foreground hover:text-foreground"
+                        }`}
+                    >
+                      <span>Add Expense</span>
+                    </button>
+                  </div>
                 </DialogHeader>
 
-                {/* info about category spended y current amount */}
-                <div className="flex items-center gap-3 p-3.5 rounded-xl bg-secondary/20 border border-border/10 my-4">
+                {/* INFO CARD ABOUT CATEGORY */}
+                <div className="flex items-center gap-3 p-3.5 rounded-xl bg-secondary/20 border border-border/10 my-2">
                   <div className="p-2 rounded-xl bg-income/15 text-income">
                     <IconComponent className="h-5 w-5" />
                   </div>
@@ -589,9 +605,10 @@ export default function Budgets() {
                   </div>
                 </div>
 
-                {/* TAB 1: EDIT LIMIT */}
-                <TabsContent value="edit" className="mt-0 space-y-4">
-                  {(() => {
+                {/* TAB CONTENT SWITCHING */}
+                {activeTab === "edit" ? (
+                  /* TAB 1: EDIT LIMIT */
+                  (() => {
                     const remaining = currentLimit - currentSpent;
                     const exhausted = getExhaustedPercentage(currentSpent, currentLimit);
                     const status = getBudgetStatus(exhausted);
@@ -650,6 +667,7 @@ export default function Budgets() {
                             Remaining: <span className={`font-semibold ${status.textColor}`}>{getCurrencySymbol(selectedBudget.currency_code)} {remaining.toFixed(2)}</span>
                           </p>
                         </div>
+
                         <Button
                           type="submit"
                           disabled={updateMutation.isPending || !editAmount}
@@ -663,18 +681,15 @@ export default function Budgets() {
                         </Button>
                       </form>
                     );
-                  })()}
-                </TabsContent>
-
-                {/* TAB 2: ADD EXPENSE */}
-                <TabsContent value="expense" className="mt-0 space-y-4">
-                  {(() => {
+                  })()
+                ) : (
+                  /* TAB 2: ADD EXPENSE */
+                  (() => {
                     const previewSpent = currentSpent + (Number(newExpense.amount) || 0);
                     const remaining = Number(selectedBudget.amount) - previewSpent;
                     const exhausted = getExhaustedPercentage(previewSpent, Number(selectedBudget.amount));
                     const status = getBudgetStatus(exhausted);
 
-                    // check if selected account's currency matches the budget's currency
                     const selectedAccount = accounts.find(
                       (acc) => acc.id.toString() === newExpense.account_id?.toString()
                     );
@@ -726,7 +741,7 @@ export default function Budgets() {
                             </SelectContent>
                           </Select>
 
-                          {/* CURRENCY MISMATCH WARNING*/}
+                          {/* CURRENCY MISMATCH WARNING */}
                           {currencyMismatch && (
                             <div className="flex items-start gap-2 p-2.5 rounded-lg bg-expense/10 border border-expense/20 text-expense">
                               <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
@@ -770,7 +785,7 @@ export default function Budgets() {
                         <Button
                           type="submit"
                           disabled={createTransactionMutation.isPending || !newExpense.amount || !newExpense.account_id}
-                          className="w-full h-12 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-bold shadow-md glow-income disabled:opacity-50 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
+                          className="w-full h-12 bg-expense hover:bg-expense/90 text-primary-foreground rounded-xl font-bold shadow-md glow-expense disabled:opacity-50 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
                         >
                           {createTransactionMutation.isPending ? (
                             <Loader2 className="h-5 w-5 animate-spin mx-auto" />
@@ -780,10 +795,9 @@ export default function Budgets() {
                         </Button>
                       </form>
                     );
-                  })()}
-                </TabsContent>
-
-              </Tabs>
+                  })()
+                )}
+              </>
             );
           })()}
         </DialogContent>
