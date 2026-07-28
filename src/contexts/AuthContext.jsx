@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { login as apiLogin, register as apiRegister, logout as apiLogout } from "@/api/auth";
+import { login as apiLogin, register as apiRegister, logout as apiLogout, updateProfile as apiUpdateProfile } from "@/api/auth";
+
 import { AuthContext } from "./auth-context-definition";
 
 export function AuthProvider({ children }) {
@@ -68,6 +69,15 @@ export function AuthProvider({ children }) {
     }
   };
 
+
+  const updateProfile = async (payload) => {
+    const updatedUser = await apiUpdateProfile(payload);
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+    setUser(updatedUser);
+    return updatedUser;
+  };
+
+
   return (
     <AuthContext.Provider
       value={{
@@ -77,6 +87,7 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
+        updateProfile,
         loading,
         justLoggedIn,
         clearJustLoggedIn,

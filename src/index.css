@@ -195,17 +195,6 @@
   filter: drop-shadow(0 0 15px rgba(251, 146, 60, .15));
 }
 
-/* GLOW EFFECT FOR TABS*/
-[data-active].glow-income-active {
-  background-color: var(--card) !important;
-  filter: drop-shadow(0 0 15px rgba(28, 155, 75, 0.35)) !important;
-}
-
-[data-active].glow-expense-active {
-  background-color: var(--card) !important;
-  filter: drop-shadow(0 0 15px rgba(251, 146, 60, 0.35)) !important;
-}
-
 
 
 ::-webkit-scrollbar {
