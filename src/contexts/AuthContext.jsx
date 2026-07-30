@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { login as apiLogin, register as apiRegister, logout as apiLogout, updateProfile as apiUpdateProfile } from "@/api/auth";
+import { login as apiLogin, register as apiRegister, logout as apiLogout, updateProfile as apiUpdateProfile, deleteAccount as apiDeleteAccount } from "@/api/auth";
 
 import { AuthContext } from "./auth-context-definition";
 
@@ -78,6 +78,22 @@ export function AuthProvider({ children }) {
   };
 
 
+  const deleteAccount = async (payload) => {
+  setLoading(true);
+  try {
+    const result = await apiDeleteAccount(payload);
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setToken(null);
+    setUser(null);
+    queryClient.clear();
+    return result;
+  } finally {
+    setLoading(false);
+  }
+};
+
+
   return (
     <AuthContext.Provider
       value={{
@@ -91,6 +107,7 @@ export function AuthProvider({ children }) {
         loading,
         justLoggedIn,
         clearJustLoggedIn,
+        deleteAccount
       }}
     >
       {children}

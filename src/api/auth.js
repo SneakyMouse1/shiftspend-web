@@ -16,23 +16,34 @@ export async function logout() {
 
 
 export async function updateProfile(payload) {
-  let dataToSend = payload;
+  const formData = new FormData();
 
-  if (!(payload instanceof FormData)) {
-    dataToSend = new FormData();
-    if (payload.name) dataToSend.append("name", payload.name);
-    if (payload.settings) {
-      dataToSend.append("settings", JSON.stringify(payload.settings));
-    }
+  if (payload.name !== undefined) formData.append("name", payload.name);
+  if (payload.avatar instanceof File) formData.append("avatar", payload.avatar);
+
+  if (payload.settings) {
+    Object.entries(payload.settings).forEach(([key, value]) => {
+      formData.append(`settings[${key}]`, value);
+    });
   }
 
-  dataToSend.append("_method", "PATCH");
+  formData.append("_method", "PATCH");
 
-  const { data } = await api.post("/auth/profile", dataToSend, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
+  const { data } = await api.post("/auth/profile", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
   });
 
+  return data.data;
+}
+
+
+export async function changePassword(payload) {
+  const { data } = await api.patch("/auth/password", payload);
+  return data.data;
+}
+
+
+export async function deleteAccount(payload) {
+  const { data } = await api.delete("/auth/account", { data: payload });
   return data.data;
 }

@@ -1,22 +1,32 @@
 import React, { useState, useEffect, useRef } from "react";
-import { User, Save, Check, KeyRound, Loader2, Camera } from "lucide-react";
+import { User, Save, KeyRound, Loader2, Camera, AlertTriangle, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
-import { useAuth, useUpdateProfile } from "@/hooks/useAuth";
+import { useAuth, useUpdateProfile, useChangePassword, useDeleteAccount } from "@/hooks/useAuth";
 import { CURRENCIES } from "@/config/currencies";
 
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 const DEFAULT_AVATAR = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
 
 
 export default function Settings() {
   const { user } = useAuth();
-  const { mutate: updateProfile, isPending, isSuccess } = useUpdateProfile();
+  const { mutate: updateProfile, isPending } = useUpdateProfile();
 
   const [name, setName] = useState(user?.name || "");
   const [currency, setCurrency] = useState(user?.settings?.currency || "EUR");
   const [avatarFile, setAvatarFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(user?.avatar || "");
+  const changePasswordMutation = useChangePassword();
+  const [isPasswordOpen, setIsPasswordOpen] = useState(false);
+
+  const deleteAccountMutation = useDeleteAccount();
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [deleteForm, setDeleteForm] = useState({ current_password: "" });
+
 
   const fileInputRef = useRef(null);
 
@@ -30,6 +40,8 @@ export default function Settings() {
     }
   }, [user]);
 
+
+  // CHANGE AVATAR
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -38,20 +50,66 @@ export default function Settings() {
     setPreviewUrl(URL.createObjectURL(file));
   };
 
+
+  // INITIAL STATE FRO PASSWORD CHANGE IN MODAL
+  const [passwordForm, setPasswordForm] = useState({
+    current_password: "",
+    password: "",
+    password_confirmation: "",
+  });
+
+  const handleClosePassword = () => {
+    setIsPasswordOpen(false);
+    setPasswordForm({ current_password: "", password: "", password_confirmation: "" });
+  };
+
+
+  // CHANGE PASSWORD
+  const handleChangePasswordSubmit = (e) => {
+    e.preventDefault();
+    if (!passwordForm.current_password || !passwordForm.password || !passwordForm.password_confirmation) return;
+    if (passwordForm.password !== passwordForm.password_confirmation) {
+      toast.error("New passwords do not match");
+      return;
+    }
+
+    changePasswordMutation.mutate(passwordForm, {
+      onSuccess: () => handleClosePassword(),
+    });
+  };
+
+
+  // DELETE ACCOUNT
+  const handleCloseDelete = () => {
+    setIsDeleteOpen(false);
+    setDeleteForm({ current_password: "" });
+  };
+
+  const handleDeleteSubmit = (e) => {
+    e.preventDefault();
+    if (!deleteForm.current_password) return;
+
+    deleteAccountMutation.mutate(
+      { current_password: deleteForm.current_password },
+      {
+        onSuccess: () => {
+          window.location.href = "/login";
+        },
+      }
+    );
+  };
+
+
+  // SUBMIT CHANGES
   const handleSave = (e) => {
     e.preventDefault();
     if (!name.trim()) return;
 
-    const formData = new FormData();
-    formData.append("name", name.trim());
-
-    if (avatarFile) {
-      formData.append("avatar", avatarFile);
-    }
-
-    formData.append("settings[currency]", currency);
-
-    updateProfile(formData);
+    updateProfile({
+      name: name.trim(),
+      avatar: avatarFile || undefined,
+      settings: { currency },
+    });
   };
 
 
@@ -66,20 +124,20 @@ export default function Settings() {
           </p>
         </div>
 
-        <button
+        <Button
           onClick={handleSave}
-          disabled={isPending}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-income hover:bg-income/90 text-primary-foreground font-semibold text-sm transition-all duration-300 shadow-md glow-income cursor-pointer disabled:opacity-50"
+          disabled={isPending || !name.trim()}
+          className="w-40 px-5 h-12 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-bold shadow-md glow-income disabled:opacity-50 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
         >
           {isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : isSuccess ? (
-            <Check className="h-4 w-4" />
+            <Loader2 className="h-5 w-5 animate-spin mx-auto" />
           ) : (
-            <Save className="h-4 w-4" />
+            <span className="flex items-center gap-2">
+              <Save className="h-4 w-4" />
+              Save Changes
+            </span>
           )}
-          <span>{isPending ? "Saving..." : isSuccess ? "Saved!" : "Save Changes"}</span>
-        </button>
+        </Button>
       </div>
 
       {/* CONTENT */}
@@ -168,23 +226,159 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* SECURITY & DATA */}
-        <div className="bg-card border border-border/20 rounded-2xl p-6 space-y-4">
-          <h2 className="text-base font-bold text-primary flex items-center gap-2">
-            <KeyRound className="h-4 w-4 text-income" /> Security Settings
-          </h2>
-          <div className="flex items-center justify-between p-3.5 rounded-xl bg-secondary/10 border border-border/10">
-            <div>
+        <div className="grid grid-cols-2 gap-6">
+
+          {/* SECURITY & DATA */}
+          <div className="bg-card border border-border/20 rounded-2xl p-6 space-y-4">
+            <h2 className="text-base font-bold text-primary flex items-center gap-2">
+              <KeyRound className="h-4 w-4 text-income" /> Security Settings
+            </h2>
+            <div className="flex flex-col gap-2 sm:flex-row items-center justify-between p-3.5 rounded-xl bg-secondary/10 border border-border/10">
+
               <h4 className="text-sm font-semibold text-primary">Password</h4>
-              <p className="text-xs text-muted-foreground">Last updated 3 months ago</p>
+
+              <Button
+                onClick={() => setIsPasswordOpen(true)}
+                className="bg-muted text-primary hover:bg-muted/90 font-semibold shadow-md hover-glow-income rounded-xl cursor-pointer"
+              >
+                <KeyRound className="h-4 w-4 mr-1" />
+                <span>Change Password</span>
+              </Button>
             </div>
-            <button className="px-3 py-1.5 rounded-lg bg-secondary/40 hover:bg-secondary/60 text-xs font-semibold cursor-pointer transition-colors">
-              Change Password
-            </button>
           </div>
+
+          {/* DELETE ACCOUNT */}
+          <div className="bg-card border border-destructive/20 rounded-2xl p-6 space-y-4">
+            <h2 className="text-base font-bold text-destructive flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" /> Danger Zone
+            </h2>
+            <div className="flex items-center justify-between p-3.5 rounded-xl bg-destructive/5 border border-destructive/10">
+              <div>
+                <h4 className="text-sm font-semibold text-primary">Delete Account</h4>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Permanently delete your account and all associated data. This cannot be undone.
+                </p>
+              </div>
+              <Button
+                onClick={() => setIsDeleteOpen(true)}
+                className="bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/30 font-semibold rounded-xl cursor-pointer shrink-0 ml-4"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                <span>Delete Account</span>
+              </Button>
+            </div>
+          </div>
+
         </div>
 
       </div>
+
+
+      <Dialog open={isPasswordOpen} onOpenChange={(open) => !open && handleClosePassword()}>
+        <DialogContent className="modal-theme">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold tracking-tight">Change Password</DialogTitle>
+            <DialogDescription className="hidden">Update your account password</DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleChangePasswordSubmit} className="space-y-4 my-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Current Password</label>
+              <input
+                type="password"
+                value={passwordForm.current_password}
+                onChange={(e) => setPasswordForm((prev) => ({ ...prev, current_password: e.target.value }))}
+                className="w-full px-4 py-2.5 rounded-xl bg-secondary/30 border border-border/40 text-foreground text-sm focus:outline-none focus:border-income focus:ring-1 focus:ring-income"
+                required
+                autoFocus
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">New Password</label>
+              <input
+                type="password"
+                value={passwordForm.password}
+                onChange={(e) => setPasswordForm((prev) => ({ ...prev, password: e.target.value }))}
+                className="w-full px-4 py-2.5 rounded-xl bg-secondary/30 border border-border/40 text-foreground text-sm focus:outline-none focus:border-income focus:ring-1 focus:ring-income"
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Confirm New Password</label>
+              <input
+                type="password"
+                value={passwordForm.password_confirmation}
+                onChange={(e) => setPasswordForm((prev) => ({ ...prev, password_confirmation: e.target.value }))}
+                className="w-full px-4 py-2.5 rounded-xl bg-secondary/30 border border-border/40 text-foreground text-sm focus:outline-none focus:border-income focus:ring-1 focus:ring-income"
+                required
+              />
+            </div>
+
+            <div className="pt-2">
+              <Button
+                type="submit"
+                disabled={changePasswordMutation.isPending}
+                className="w-full h-12 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-bold shadow-md glow-income disabled:opacity-50 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
+              >
+                {changePasswordMutation.isPending ? (
+                  <Loader2 className="h-5 w-5 animate-spin mx-auto" />
+                ) : (
+                  <span>Update Password</span>
+                )}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+
+
+      <Dialog open={isDeleteOpen} onOpenChange={(open) => !open && handleCloseDelete()}>
+        <DialogContent className="modal-theme">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold tracking-tight text-destructive">Delete Account</DialogTitle>
+            <DialogDescription className="hidden">Permanently delete your account</DialogDescription>
+          </DialogHeader>
+
+          <div className="flex items-start gap-3 p-3.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive my-2">
+            <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+            <p className="text-xs leading-snug">
+              This will permanently delete your account, including all accounts, transactions, budgets, and goals. This action cannot be undone.
+            </p>
+          </div>
+
+          <form onSubmit={handleDeleteSubmit} className="space-y-4 my-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Current Password</label>
+              <input
+                type="password"
+                value={deleteForm.current_password}
+                onChange={(e) => setDeleteForm((prev) => ({ ...prev, current_password: e.target.value }))}
+                className="w-full px-4 py-2.5 rounded-xl bg-secondary/30 border border-border/40 text-foreground text-sm focus:outline-none focus:border-destructive focus:ring-1 focus:ring-destructive"
+                required
+                autoFocus
+              />
+            </div>
+
+            <div className="pt-2">
+              <Button
+                type="submit"
+                disabled={deleteAccountMutation.isPending || !deleteForm.current_password }
+                className="w-full h-12 bg-destructive hover:bg-destructive/90 text-white rounded-xl font-bold shadow-md disabled:opacity-50 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
+              >
+                {deleteAccountMutation.isPending ? (
+                  <Loader2 className="h-5 w-5 animate-spin mx-auto" />
+                ) : (
+                  <span>Permanently Delete Account</span>
+                )}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
