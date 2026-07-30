@@ -243,36 +243,38 @@ export default function Goals() {
                 return (
                   <div
                     key={goal.id}
-                    className={`rounded-2xl p-5 flex flex-col justify-between space-y-6 border transition-all duration-200 ${isAchieved
-                      ? "bg-card/80 border-income/20 hover-glow-income"
-                      : "bg-card/80 border-chart-3/20 hover-glow-expense"
+                    className={`rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-5 border transition-all duration-200 ${isAchieved
+                        ? "bg-card/80 border-income/20 hover-glow-income"
+                        : "bg-card/80 border-chart-3/20 hover-glow-expense"
                       }`}
                   >
                     {/* Card Header */}
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-3">
+                    <div className="flex items-start justify-between gap-2.5">
+                      <div className="flex items-center gap-3 min-w-0">
                         {/* Icon Box */}
                         <div
-                          className={`p-2.5 rounded-xl border ${isAchieved
-                            ? "bg-income/10 border-income/20 text-income"
-                            : "bg-chart-3/10 border-chart-3/20 text-chart-3"
+                          className={`p-2.5 rounded-xl border shrink-0 ${isAchieved
+                              ? "bg-income/10 border-income/20 text-income"
+                              : "bg-chart-3/10 border-chart-3/20 text-chart-3"
                             }`}
                         >
                           <IconComponent className="h-5 w-5" />
                         </div>
 
                         {/* Title & Target Date */}
-                        <div>
-                          <h3 className="font-bold text-foreground text-base leading-tight">
+                        <div className="min-w-0">
+                          <h3 className="font-bold text-foreground text-base leading-tight truncate">
                             {goalName}
                           </h3>
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1 font-medium">
-                            <Calendar className="h-3.5 w-3.5" />
-                            <span>Target: {goal.deadline || "No deadline"}</span>
+                          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground mt-1 font-medium whitespace-nowrap">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3.5 w-3.5 shrink-0" />
+                              <span>Target: {goal.deadline || "No deadline"}</span>
+                            </div>
                             {!isAchieved && daysLeft !== null && daysLeft > 0 && (
                               <>
-                                <span>•</span>
-                                <span>{daysLeft} days left</span>
+                                <span className="hidden sm:inline">•</span>
+                                <span className="text-[11px] sm:text-xs">{daysLeft} days left</span>
                               </>
                             )}
                           </div>
@@ -280,11 +282,11 @@ export default function Goals() {
                       </div>
 
                       {/* Right Action / Status Badge & Actions Menu */}
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center gap-1.5 shrink-0">
                         {isAchieved ? (
-                          <div className="flex items-center gap-1.5 bg-income/10 border border-income/30 text-income text-[11px] font-bold px-3 py-1.5 rounded-full tracking-wider uppercase">
-                            <CheckCircle className="h-3.5 w-3.5" />
-                            <span>Target Achieved</span>
+                          <div className="flex items-center gap-1 bg-income/10 border border-income/30 text-income text-[10px] sm:text-[11px] font-bold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full tracking-wider uppercase whitespace-nowrap">
+                            <CheckCircle className="h-3.5 w-3.5 shrink-0" />
+                            <span>Achieved</span>
                           </div>
                         ) : (
                           <DropdownMenu>
@@ -316,26 +318,24 @@ export default function Goals() {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         )}
-
                       </div>
                     </div>
 
                     {/* Progress & Amounts Section */}
-                    <div className="space-y-3">
-                      <div className="flex items-baseline justify-between text-sm">
-
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-lg font-bold text-foreground">
+                    <div className="space-y-2.5">
+                      <div className="flex items-baseline justify-between gap-2 text-sm">
+                        <div className="flex items-baseline gap-1.5 min-w-0 flex-wrap">
+                          <span className="text-base sm:text-lg font-bold text-foreground">
                             {symbol}{currentAmount.toLocaleString()}
                           </span>
-                          <span className="text-xs text-muted-foreground font-medium">
+                          <span className="text-xs text-muted-foreground font-medium whitespace-nowrap">
                             of {symbol}{targetAmount.toLocaleString()}
                           </span>
                         </div>
 
                         {/* Percent */}
                         <span
-                          className={`text-xs font-bold ${isAchieved ? "text-income" : "text-chart-3"
+                          className={`text-xs font-bold shrink-0 ${isAchieved ? "text-income" : "text-chart-3"
                             }`}
                         >
                           {percentage}%
@@ -345,9 +345,7 @@ export default function Goals() {
                       {/* Progress Bar */}
                       <div className="w-full bg-secondary h-2 rounded-full overflow-hidden">
                         <div
-                          className={`h-full rounded-full transition-all duration-300 ${isAchieved
-                            ? "bg-income"
-                            : "bg-chart-3"
+                          className={`h-full rounded-full transition-all duration-300 ${isAchieved ? "bg-income" : "bg-chart-3"
                             }`}
                           style={{ width: `${percentage}%` }}
                         />
