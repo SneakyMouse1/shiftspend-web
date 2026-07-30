@@ -64,11 +64,11 @@ export function useExportReport() {
         csv: "csv",
       };
 
-      const blob = new Blob([data], { type: mimeTypes[format] || "text/csv" });
+      const blob = new Blob([data], { type: mimeTypes[format] });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `financeflow_report_${format}_${new Date().toISOString().slice(0, 10)}.${extensions[format] || "csv"}`;
+      a.download = `shiftspend_report_${format}_${new Date().toISOString().slice(0, 10)}.${extensions[format]}`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);

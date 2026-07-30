@@ -60,12 +60,12 @@ export default function Reports() {
         csv: "text/csv",
       };
       const extensions = { pdf: "pdf", excel: "xlsx", csv: "csv" };
-      const format = item.format || "csv";
-      const blob = new Blob([data], { type: mimeTypes[format] || "text/csv" });
+      const format = item.format;
+      const blob = new Blob([data], { type: mimeTypes[format] });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `financeflow_report_${format}_${item.key.slice(0, 8)}.${extensions[format] || "csv"}`;
+      a.download = `shiftspend_report_${format}_${item.key.slice(0, 8)}.${extensions[format]}`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
