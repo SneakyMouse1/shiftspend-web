@@ -25,11 +25,11 @@ export function SlideSheet({ isOpen, onClose, title, children }) {
             animate={{ opacity: 0.7 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-[#000000] z-50 cursor-pointer"
+            className="fixed inset-0 bg-[#000000] z-[60] cursor-pointer"
           />
 
           {/* Sheet Container */}
-          <div className="fixed inset-0 pointer-events-none z-50 flex items-end md:items-center md:justify-center p-0 md:p-4">
+          <div className="fixed inset-0 pointer-events-none z-[60] flex items-end md:items-center md:justify-center p-0 md:p-4">
             <motion.div
               initial={{ y: "100%", opacity: 0.5 }}
               animate={{ y: 0, opacity: 1 }}

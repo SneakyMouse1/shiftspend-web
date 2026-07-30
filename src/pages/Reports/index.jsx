@@ -392,10 +392,10 @@ export default function Reports() {
       <div className="flex items-center gap-2 border-b border-border/40 pb-3">
         <button
           onClick={() => setActiveTab("overview")}
-          className={`flex flex-col md:flex-row items-center gap-2 px-4 py-2 rounded-2xl text-xs font-semibold transition-all cursor-pointer ${
+          className={`flex flex-col md:flex-row items-center gap-2 px-4 py-2 rounded-2xl text-xs font-semibold transition-all cursor-pointer border ${
             activeTab === "overview"
-              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-sm"
-              : "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
+              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-sm"
+              : "border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary/40"
           }`}
         >
           <TrendingUp className="h-3.5 w-3.5" />
@@ -404,10 +404,10 @@ export default function Reports() {
 
         <button
           onClick={() => setActiveTab("categories")}
-          className={`flex flex-col md:flex-row items-center gap-2 px-4 py-2 rounded-2xl text-xs font-semibold transition-all cursor-pointer ${
+          className={`flex flex-col md:flex-row items-center gap-2 px-4 py-2 rounded-2xl text-xs font-semibold transition-all cursor-pointer border ${
             activeTab === "categories"
-              ? "bg-purple-500/10 text-purple-400 border border-purple-500/20 shadow-sm"
-              : "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
+              ? "bg-purple-500/10 text-purple-400 border-purple-500/20 shadow-sm"
+              : "border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary/40"
           }`}
         >
           <PieIcon className="h-3.5 w-3.5" />
@@ -416,10 +416,10 @@ export default function Reports() {
 
         <button
           onClick={() => setActiveTab("habits")}
-          className={`flex flex-col md:flex-row items-center gap-2 px-4 py-2 rounded-2xl text-xs font-semibold transition-all cursor-pointer ${
+          className={`flex flex-col md:flex-row items-center gap-2 px-4 py-2 rounded-2xl text-xs font-semibold transition-all cursor-pointer border ${
             activeTab === "habits"
-              ? "bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-sm"
-              : "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
+              ? "bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-sm"
+              : "border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary/40"
           }`}
         >
           <TrendingUp className="h-3.5 w-3.5" />
@@ -428,38 +428,32 @@ export default function Reports() {
       </div>
 
       {/* Active Tab Content */}
-      <div className="min-h-[460px] transition-all duration-300">
-        {activeTab === "overview" && (
-          <div className="animate-in fade-in duration-200">
-            <CashFlowTab
-              timelineData={timelineData}
-              metrics={metrics}
-              primaryCurrency={primaryCurrency}
-              formattedDateRange={formattedDateRange}
-            />
-          </div>
-        )}
+      <div className="min-h-[580px]">
+        <div className={activeTab === "overview" ? "block animate-in fade-in duration-200" : "hidden"}>
+          <CashFlowTab
+            timelineData={timelineData}
+            metrics={metrics}
+            primaryCurrency={primaryCurrency}
+            formattedDateRange={formattedDateRange}
+          />
+        </div>
 
-        {activeTab === "categories" && (
-          <div className="animate-in fade-in duration-200">
-            <CategorySharesTab
-              categoryBreakdown={categoryBreakdown}
-              primaryCurrency={primaryCurrency}
-              formattedDateRange={formattedDateRange}
-            />
-          </div>
-        )}
+        <div className={activeTab === "categories" ? "block animate-in fade-in duration-200" : "hidden"}>
+          <CategorySharesTab
+            categoryBreakdown={categoryBreakdown}
+            primaryCurrency={primaryCurrency}
+            formattedDateRange={formattedDateRange}
+          />
+        </div>
 
-        {activeTab === "habits" && (
-          <div className="animate-in fade-in duration-200">
-            <SpendingHabitsTab
-              dayOfWeekData={dayOfWeekData}
-              topExpenseTransactions={topExpenseTransactions}
-              primaryCurrency={primaryCurrency}
-              formattedDateRange={formattedDateRange}
-            />
-          </div>
-        )}
+        <div className={activeTab === "habits" ? "block animate-in fade-in duration-200" : "hidden"}>
+          <SpendingHabitsTab
+            dayOfWeekData={dayOfWeekData}
+            topExpenseTransactions={topExpenseTransactions}
+            primaryCurrency={primaryCurrency}
+            formattedDateRange={formattedDateRange}
+          />
+        </div>
       </div>
     </div>
   );
