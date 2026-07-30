@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Header } from "./components/shared/Header";
 import { Sidebar } from "./components/shared/Sidebar";
+import { MobileNav } from "./components/shared/MobileNav";
 import { ProtectedRoute } from "./components/shared/ProtectedRoute";
 import { GuestRoute } from "./components/shared/GuestRoute";
 import { DashboardLoader } from "./components/shared/DashboardLoader";
@@ -47,10 +47,10 @@ function AuthenticatedLayout({ theme, toggleTheme }) {
         <DashboardLoader onComplete={handleLoaderComplete} />
       )}
       <Sidebar theme={theme} toggleTheme={toggleTheme} />
-      <Header theme={theme} toggleTheme={toggleTheme} />
+      <MobileNav theme={theme} toggleTheme={toggleTheme} />
 
       <div className="md:pl-64 flex flex-col flex-1 min-h-screen">
-        <main className="flex-1 p-4 md:p-8 max-w-[1400px] w-full mx-auto space-y-6">
+        <main className="flex-1 p-4 md:p-8 max-w-[1400px] w-full mx-auto space-y-6 pb-24 md:pb-8">
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
