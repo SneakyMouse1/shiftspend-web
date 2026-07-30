@@ -299,7 +299,7 @@ export default function Categories() {
                             ? {
                               backgroundColor: newCategory.color,
                               color: "#ffffff",
-                              boxShadow: `0 4px 12px ${newCategory.color}40`, // Добавляет мягкое свечение цвета иконки
+                              boxShadow: `0 4px 12px ${newCategory.color}40`,
                             }
                             : {}
                         }
