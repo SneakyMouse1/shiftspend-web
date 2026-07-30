@@ -292,7 +292,7 @@ export default function Transactions() {
           resetCreateForm();
           setIsCreateOpen(true);
         }}
-        className="md:hidden fixed bottom-6 right-6 w-14 h-14 bg-income text-primary-foreground hover:bg-income/90 flex items-center justify-center rounded-full shadow-2xl glow-income border border-income/30 transition-all duration-300 transform active:scale-95 cursor-pointer z-50"
+        className="md:hidden fixed bottom-20 right-5 w-14 h-14 bg-income text-primary-foreground hover:bg-income/90 flex items-center justify-center rounded-full shadow-2xl glow-income border border-income/30 transition-all duration-300 transform active:scale-95 cursor-pointer z-50"
         aria-label="Add Transaction"
       >
         <Plus className="h-7 w-7" />
