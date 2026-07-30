@@ -98,13 +98,11 @@ export const TransactionRow = React.memo(function TransactionRow({
         </div>
 
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className="p-2 rounded-lg text-muted-foreground/60 hover:text-foreground hover:bg-secondary transition-all cursor-pointer shrink-0"
-              aria-label="Transaction actions"
-            >
-              <MoreVertical className="h-4.5 w-4.5" />
-            </button>
+          <DropdownMenuTrigger
+            className="p-2 rounded-lg text-muted-foreground/60 hover:text-foreground hover:bg-secondary transition-all cursor-pointer shrink-0"
+            aria-label="Transaction actions"
+          >
+            <MoreVertical className="h-4.5 w-4.5" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="rounded-xl min-w-30 bg-popover border border-border/40 p-1">
             {!isTransfer && (

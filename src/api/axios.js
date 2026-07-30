@@ -16,13 +16,28 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       window.location.href = "/login";
     }
-    return Promise.reject(error.response?.data || error);
+
+    if (error.response?.data instanceof Blob) {
+      try {
+        const text = await error.response.data.text();
+        const json = JSON.parse(text);
+        if (json.message || json.error) {
+          error.message = json.message || json.error;
+        }
+      } catch {
+        // Blob wasn't JSON
+      }
+    } else if (error.response?.data?.message || error.response?.data?.error) {
+      error.message = error.response.data.message || error.response.data.error;
+    }
+
+    return Promise.reject(error);
   }
 );
 
