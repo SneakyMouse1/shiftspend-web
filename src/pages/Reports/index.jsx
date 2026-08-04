@@ -394,7 +394,7 @@ export default function Reports() {
           onClick={() => setActiveTab("overview")}
           className={`flex flex-col md:flex-row items-center gap-2 px-4 py-2 rounded-2xl text-xs font-semibold transition-all cursor-pointer border ${
             activeTab === "overview"
-              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-sm"
+              ? "bg-income/10 text-income border-income/20 shadow-sm"
               : "border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary/40"
           }`}
         >
@@ -406,7 +406,7 @@ export default function Reports() {
           onClick={() => setActiveTab("categories")}
           className={`flex flex-col md:flex-row items-center gap-2 px-4 py-2 rounded-2xl text-xs font-semibold transition-all cursor-pointer border ${
             activeTab === "categories"
-              ? "bg-purple-500/10 text-purple-400 border-purple-500/20 shadow-sm"
+              ? "bg-chart-4/10 text-chart-4 border-chart-4/20 shadow-sm"
               : "border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary/40"
           }`}
         >
@@ -418,7 +418,7 @@ export default function Reports() {
           onClick={() => setActiveTab("habits")}
           className={`flex flex-col md:flex-row items-center gap-2 px-4 py-2 rounded-2xl text-xs font-semibold transition-all cursor-pointer border ${
             activeTab === "habits"
-              ? "bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-sm"
+              ? "bg-expense/10 text-expense border-expense/20 shadow-sm"
               : "border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary/40"
           }`}
         >

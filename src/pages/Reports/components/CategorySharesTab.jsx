@@ -10,7 +10,7 @@ const PieTooltip = ({ active, payload }) => {
       <p className="text-muted-foreground flex items-center gap-2">
         <span className="font-mono font-bold text-foreground">{formatCompact(entry.value)}</span>
         <span>·</span>
-        <span className="font-mono text-emerald-400 font-bold">{entry.payload.percent}%</span>
+        <span className="font-mono text-income font-bold">{entry.payload.percent}%</span>
       </p>
     </div>
   );

@@ -55,7 +55,7 @@ export const TransactionRow = React.memo(function TransactionRow({
                 <span>Transfer</span>
                 <span className="mx-1">•</span>
                 <span>{transaction.source_account?.name || "Chase Checking"}</span>
-                <span className="text-emerald-500">→</span>
+                <span className="text-income">→</span>
                 <span>{transaction.destination_account?.name || "Chase Checking"}</span>
               </span>
             ) : (

@@ -50,7 +50,7 @@ export default function ReportKpis({ metrics, primaryCurrency, formattedDateRang
       <div className="rounded-3xl border border-border/40 bg-card p-5 shadow-sm space-y-3 relative overflow-hidden">
         <div className="flex justify-between items-center">
           <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Net Savings</span>
-          <div className="h-8 w-8 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400">
+          <div className="h-8 w-8 rounded-xl bg-chart-3/10 flex items-center justify-center text-chart-3">
             <PiggyBank className="h-4 w-4" />
           </div>
         </div>
@@ -65,7 +65,7 @@ export default function ReportKpis({ metrics, primaryCurrency, formattedDateRang
         </div>
         <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all duration-500 ${metrics.savingsRate > 50 ? "bg-emerald-400" : "bg-cyan-400"}`}
+            className={`h-full rounded-full transition-all duration-500 ${metrics.savingsRate > 50 ? "bg-income" : "bg-chart-3"}`}
             style={{ width: `${Math.min(100, Math.max(0, metrics.savingsRate))}%` }}
           />
         </div>
@@ -75,7 +75,7 @@ export default function ReportKpis({ metrics, primaryCurrency, formattedDateRang
       <div className="rounded-3xl border border-border/40 bg-card p-5 shadow-sm space-y-3 relative overflow-hidden">
         <div className="flex justify-between items-center">
           <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Daily Avg Spend</span>
-          <div className="h-8 w-8 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400">
+          <div className="h-8 w-8 rounded-xl bg-chart-4/10 flex items-center justify-center text-chart-4">
             <Zap className="h-4 w-4" />
           </div>
         </div>
@@ -88,7 +88,7 @@ export default function ReportKpis({ metrics, primaryCurrency, formattedDateRang
           </p>
         </div>
         <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-          <div className="h-full bg-amber-400 rounded-full" style={{ width: "70%" }} />
+          <div className="h-full bg-chart-4 rounded-full" style={{ width: "70%" }} />
         </div>
       </div>
     </div>

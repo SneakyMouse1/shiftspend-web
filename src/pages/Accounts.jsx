@@ -93,7 +93,7 @@ export default function Accounts() {
     setModalOpen(true);
   };
 
-  const handleSave = async (e) => {
+  const handleSave = (e) => {
     e.preventDefault();
     if (!formName.trim()) return;
 
@@ -107,11 +107,15 @@ export default function Accounts() {
     };
 
     if (isEditMode && activeAccount) {
-      await updateMutation.mutateAsync({ id: activeAccount.id, payload });
+      updateMutation.mutate(
+        { id: activeAccount.id, payload },
+        { onSuccess: () => setModalOpen(false) }
+      );
     } else {
-      await createMutation.mutateAsync(payload);
+      createMutation.mutate(payload, {
+        onSuccess: () => setModalOpen(false),
+      });
     }
-    setModalOpen(false);
   };
 
   const handleDeleteClick = () => {
@@ -119,12 +123,17 @@ export default function Accounts() {
     setDeleteAlertOpen(true);
   };
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = () => {
     if (activeAccount) {
-      await deleteMutation.mutateAsync(activeAccount.id);
-      setActiveAccount(null);
+      deleteMutation.mutate(activeAccount.id, {
+        onSuccess: () => {
+          setActiveAccount(null);
+          setDeleteAlertOpen(false);
+        },
+      });
+    } else {
+      setDeleteAlertOpen(false);
     }
-    setDeleteAlertOpen(false);
   };
 
   // Rendering logic
@@ -245,7 +254,7 @@ export default function Accounts() {
 
       {/* Centered Dialog Modal for Create/Edit */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="md:max-w-105 p-6 rounded-3xl bg-card border border-border/40 shadow-2xl">
+        <DialogContent className="modal-theme md:max-w-135">
           <DialogHeader className="flex flex-row items-center justify-between">
             <DialogTitle className="text-lg font-bold">
               {isEditMode ? "Modify Financial Account" : "Setup New Account"}
@@ -292,7 +301,7 @@ export default function Accounts() {
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
                 placeholder="e.g. Chase Premium checking, Cash, cold wallet..."
-                className="rounded-xl border-border/40 bg-card h-11 text-sm placeholder:text-muted-foreground/60 focus-visible:ring-emerald-500/20"
+                className="rounded-xl border-border/40 bg-card h-11 text-sm placeholder:text-muted-foreground/60 focus-visible:ring-income/20"
                 required
               />
             </div>
@@ -313,11 +322,11 @@ export default function Accounts() {
                       onClick={() => setFormType(type.value)}
                       className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border transition-all text-xs font-semibold cursor-pointer justify-start text-left ${
                         isSelected
-                          ? "border-emerald-500 bg-emerald-500/10 text-emerald-500 ring-1 ring-emerald-500"
+                          ? "border-income bg-income/10 text-income ring-1 ring-income"
                           : "border-border/40 bg-card text-muted-foreground hover:bg-secondary/30"
                       }`}
                     >
-                      <TypeIcon className={`h-4 w-4 shrink-0 ${isSelected ? "text-emerald-500" : ""}`} />
+                      <TypeIcon className={`h-4 w-4 shrink-0 ${isSelected ? "text-income" : ""}`} />
                       <span className="truncate">{type.label}</span>
                     </button>
                   );
@@ -377,7 +386,7 @@ export default function Accounts() {
               <Button
                 type="submit"
                 disabled={createMutation.isPending || updateMutation.isPending}
-                className="w-full h-11 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-2xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2"
+                className="w-full h-11 bg-income hover:bg-income/90 text-primary-foreground font-bold rounded-2xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2"
               >
                 {(createMutation.isPending || updateMutation.isPending) && (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -389,7 +398,7 @@ export default function Accounts() {
                 <button
                   type="button"
                   onClick={handleDeleteClick}
-                  className="w-full text-center text-rose-500 hover:text-rose-600 font-semibold cursor-pointer text-sm py-2 mt-2 hover:underline transition-all block"
+                  className="w-full text-center text-destructive hover:text-destructive/90 font-semibold cursor-pointer text-sm py-2 mt-2 hover:underline transition-all block"
                 >
                   Delete This Account
                 </button>

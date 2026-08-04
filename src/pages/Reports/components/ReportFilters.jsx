@@ -22,11 +22,11 @@ export default function ReportFilters({
     <div className="bg-card/40 border border-border/40 p-4 rounded-3xl shadow-sm space-y-3">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-          <Filter className="h-3.5 w-3.5 text-emerald-400" />
+          <Filter className="h-3.5 w-3.5 text-income" />
           <span>Report Filters</span>
         </div>
         {formattedDateRange && (
-          <div className="flex items-center gap-1.5 text-xs font-mono font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+          <div className="flex items-center gap-1.5 text-xs font-mono font-semibold text-income bg-income/10 px-2.5 py-1 rounded-full border border-income/20">
             <CalendarDays className="h-3.5 w-3.5 shrink-0" />
             <span>{formattedDateRange}</span>
           </div>
