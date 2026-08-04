@@ -53,7 +53,7 @@ export function useChangePassword() {
 
 
 
-export function useDeleteAccount() {
+export function useDeleteUserAccount() {
   const { deleteAccount } = useAuth();
 
   return useMutation({

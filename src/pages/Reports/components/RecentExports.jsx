@@ -11,7 +11,7 @@ export default function RecentExports({
     <div className="bg-card/40 backdrop-blur-xl border border-border/40 rounded-3xl p-5 md:p-6 space-y-4 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-emerald-400" />
+          <Clock className="h-4 w-4 text-income" />
           <h2 className="text-xs font-bold tracking-wider uppercase text-foreground">Recent Exports (24h Archive)</h2>
         </div>
         {exportsLoading && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
@@ -45,10 +45,10 @@ export default function RecentExports({
                   <div
                     className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${
                       isPdf
-                        ? "bg-rose-500/10 text-rose-400"
+                        ? "bg-expense/10 text-expense"
                         : isExcel
-                        ? "bg-emerald-500/10 text-emerald-400"
-                        : "bg-cyan-500/10 text-cyan-400"
+                        ? "bg-income/10 text-income"
+                        : "bg-chart-3/10 text-chart-3"
                     }`}
                   >
                     {isPdf ? (
@@ -65,7 +65,7 @@ export default function RecentExports({
                         {item.format}
                       </span>
                       {item.period && (
-                        <span className="text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded-full">
+                        <span className="text-[10px] font-semibold bg-income/10 text-income border border-income/20 px-1.5 py-0.5 rounded-full">
                           {item.period}
                         </span>
                       )}

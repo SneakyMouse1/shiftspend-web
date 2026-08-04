@@ -53,6 +53,7 @@ export function useDeleteCategory() {
     mutationFn: deleteCategoryApi,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
+      queryClient.invalidateQueries({ queryKey: ["budgets"] });
       toast.success("Category deleted");
     },
     onError: (error) => {

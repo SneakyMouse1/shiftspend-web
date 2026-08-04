@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { User, Save, KeyRound, Loader2, Camera, AlertTriangle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { useAuth, useUpdateProfile, useChangePassword, useDeleteAccount } from "@/hooks/useAuth";
+import { useAuth, useUpdateProfile, useChangePassword, useDeleteUserAccount } from "@/hooks/useAuth";
 import { CURRENCIES } from "@/config/currencies";
 
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ export default function Settings() {
   const changePasswordMutation = useChangePassword();
   const [isPasswordOpen, setIsPasswordOpen] = useState(false);
 
-  const deleteAccountMutation = useDeleteAccount();
+  const deleteAccountMutation = useDeleteUserAccount();
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [deleteForm, setDeleteForm] = useState({ current_password: "" });
 

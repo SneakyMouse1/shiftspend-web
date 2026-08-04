@@ -6,7 +6,7 @@ export const getCategoriesApi = async () => {
 };
 
 export const updateCategoryApi = async (id, categoryData) => {
-  const response = await api.put(`/categories/${id}`, categoryData);
+  const response = await api.patch(`/categories/${id}`, categoryData);
   return response.data.data;
 };
 

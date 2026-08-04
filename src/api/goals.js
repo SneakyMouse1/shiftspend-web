@@ -6,7 +6,7 @@ export const getGoalApi = async () => {
 };
 
 export const updateGoalApi = async (id, goalData) => {
-  const response = await api.put(`/goals/${id}`, goalData);
+  const response = await api.patch(`/goals/${id}`, goalData);
   return response.data.data;
 };
 
