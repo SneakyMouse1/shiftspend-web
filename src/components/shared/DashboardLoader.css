@@ -1,0 +1,128 @@
+/* Fullscreen Dashboard Loader Styles */
+.dashboard-loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--background);
+  color: var(--income);
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dashboard-loader-overlay.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dashboard-loader-stage {
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dashboard-loader-svg {
+  width: 320px;
+  max-width: 80vw;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+/* Phase 1: Letter S moves into place */
+.dashboard-loader-overlay #s-group {
+  transform-box: view-box;
+  transform-origin: 24px 43.5px;
+  transform: translate(50px, -6px) scale(1.6);
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: loader-s-move 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes loader-s-move {
+  0% {
+    opacity: 0;
+    transform: translate(50px, -6px) scale(1.6);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(50px, -6px) scale(1.6);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+/* Phase 2: Word hift slides right */
+.dashboard-loader-overlay #hift-group {
+  opacity: 0;
+  transform: translateX(-45px);
+  will-change: transform, opacity;
+  animation: loader-hift-slide 0.75s cubic-bezier(0.16, 1, 0.3, 1) 1.0s forwards;
+}
+
+@keyframes loader-hift-slide {
+  0% {
+    opacity: 0;
+    transform: translateX(-45px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Phase 3: Word pend slides down */
+.dashboard-loader-overlay #pend-group {
+  opacity: 0;
+  transform: translateY(-22px);
+  will-change: transform, opacity;
+  animation: loader-pend-slide 0.75s cubic-bezier(0.16, 1, 0.3, 1) 1.55s forwards;
+}
+
+@keyframes loader-pend-slide {
+  0% {
+    opacity: 0;
+    transform: translateY(-22px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Phase 4: Bills fan out sequentially */
+.dashboard-loader-overlay #bill-1,
+.dashboard-loader-overlay #bill-2,
+.dashboard-loader-overlay #bill-3 {
+  opacity: 0;
+  transform-box: view-box;
+  transform-origin: 148px 20px;
+  will-change: transform, opacity;
+}
+
+.dashboard-loader-overlay #bill-2 {
+  animation: loader-deal 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 2.15s forwards;
+}
+
+.dashboard-loader-overlay #bill-3 {
+  animation: loader-deal 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 2.30s forwards;
+}
+
+.dashboard-loader-overlay #bill-1 {
+  animation: loader-deal 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 2.45s forwards;
+}
+
+@keyframes loader-deal {
+  0% {
+    opacity: 0;
+    transform: translate(6px, 6px) rotate(6deg) scale(0.85);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+}
