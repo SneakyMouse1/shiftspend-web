@@ -514,7 +514,7 @@ export default function Categories() {
         open={categoryToDeleteId !== null}
         onOpenChange={(open) => !open && setCategoryToDeleteId(null)}
       >
-        <AlertDialogContent className="rounded-3xl border border-border/40 bg-popover max-w-100">
+        <AlertDialogContent className="rounded-3xl border border-border/40 bg-popover sm:max-w-100">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-lg font-bold">Are you sure?</AlertDialogTitle>
             <AlertDialogDescription className="text-sm">

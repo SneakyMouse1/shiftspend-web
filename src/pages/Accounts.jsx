@@ -245,7 +245,7 @@ export default function Accounts() {
 
       {/* Centered Dialog Modal for Create/Edit */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-105 p-6 rounded-3xl bg-card border border-border/40 shadow-2xl">
+        <DialogContent className="sm:max-w-105 p-6 rounded-3xl bg-card border border-border/40 shadow-2xl">
           <DialogHeader className="flex flex-row items-center justify-between">
             <DialogTitle className="text-lg font-bold">
               {isEditMode ? "Modify Financial Account" : "Setup New Account"}
@@ -401,7 +401,7 @@ export default function Accounts() {
 
       {/* Delete Confirmation Alert Dialog */}
       <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
-        <AlertDialogContent className="max-w-100">
+        <AlertDialogContent className="sm:max-w-100">
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>

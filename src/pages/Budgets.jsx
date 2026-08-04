@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useBudgets, useCreateBudget, useUpdateBudget, useDeleteBudget } from "@/hooks/useBudgets";
 import { useCategories } from "@/hooks/useCategories";
 import { useAccounts } from "@/hooks/useAccounts";
@@ -808,7 +808,7 @@ export default function Budgets() {
         open={budgetToDeleteId !== null}
         onOpenChange={(open) => !open && setBudgetToDeleteId(null)}
       >
-        <AlertDialogContent className="rounded-3xl border border-border/40 bg-popover max-w-100">
+        <AlertDialogContent className="rounded-3xl border border-border/40 bg-popover sm:max-w-100">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-lg font-bold">Are you sure?</AlertDialogTitle>
             <AlertDialogDescription className="text-sm">
