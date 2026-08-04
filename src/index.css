@@ -158,10 +158,10 @@
   }
 }
 
-/* STYLE FOR MODAL TO CONTROL THE HEIGHT */
+/* STYLE FOR MODAL TO CONTROL THE HEIGHT & POSITIONING */
 @layer components {
   .modal-theme {
-    @apply w-full max-h-[85vh] overflow-y-auto scrollbar-none flex flex-col p-5 md:p-6 sm:rounded-[2rem] sm:top-[50%] sm:left-[50%] sm:-translate-x-[50%] sm:-translate-y-[50%] max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:top-auto max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-t-[2rem] max-sm:rounded-b-none max-sm:border-t max-sm:border-border/40 max-sm:max-h-[90vh];
+    @apply w-full flex flex-col p-5 md:p-6 overflow-y-auto scrollbar-none md:fixed md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-[2rem] md:max-h-[85vh] max-md:fixed max-md:bottom-0 max-md:left-0 max-md:right-0 max-md:top-auto max-md:translate-x-0 max-md:translate-y-0 max-md:w-full max-md:max-w-full max-md:rounded-t-[2rem] max-md:rounded-b-none max-md:border-t max-md:border-border/40 max-md:max-h-[90vh] max-md:mb-0 max-md:m-0;
   }
 }
 
