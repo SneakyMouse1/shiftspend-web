@@ -55,10 +55,16 @@ function DialogContent({
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-6 rounded-4xl bg-popover p-6 text-sm text-popover-foreground shadow-xl ring-1 ring-foreground/5 duration-100 outline-none sm:max-w-md dark:ring-foreground/10 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "fixed z-50 grid w-full gap-6 bg-popover text-sm text-popover-foreground shadow-xl ring-1 ring-foreground/5 duration-200 outline-none dark:ring-foreground/10",
+          // Mobile: SlideSheet at bottom
+          "max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:top-auto max-sm:translate-x-0 max-sm:translate-y-0 max-sm:w-full max-sm:max-w-full max-sm:rounded-t-[2rem] max-sm:rounded-b-none max-sm:border-t max-sm:border-border/40 max-sm:p-6 max-sm:max-h-[90vh] max-sm:overflow-y-auto max-sm:data-open:animate-in max-sm:data-open:slide-in-from-bottom-full max-sm:data-closed:animate-out max-sm:data-closed:slide-to-bottom-full",
+          // Desktop: Centered modal
+          "sm:fixed sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-md sm:rounded-4xl sm:p-6 sm:data-open:animate-in sm:data-open:fade-in-0 sm:data-open:zoom-in-95 sm:data-closed:animate-out sm:data-closed:fade-out-0 sm:data-closed:zoom-out-95",
           className
         )}
         {...props}>
+        {/* Mobile handle indicator */}
+        <div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full mx-auto -mt-1 mb-1 sm:hidden shrink-0" />
         {children}
         {showCloseButton && (
           <DialogPrimitive.Close
