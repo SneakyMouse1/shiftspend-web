@@ -274,9 +274,9 @@ export default function Transactions() {
       {/* Creation/edition form dialog modal */}
       {isCreateOpen && (
         <TransactionDialog
+          key={editingTransaction?.id ?? 'create'}
           isOpen={isCreateOpen}
           onClose={() => setIsCreateOpen(false)}
-          key={editingTransaction?.id || "new"}
           editingTransaction={editingTransaction}
           accounts={accounts}
           categories={categories}
