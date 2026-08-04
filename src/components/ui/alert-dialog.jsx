@@ -1,5 +1,6 @@
 import { AlertDialog as AlertDialogPrimitive } from "@base-ui/react/alert-dialog"
 import { motion, AnimatePresence } from "motion/react"
+import { useMediaQuery } from "@/hooks/useMediaQuery"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -59,6 +60,8 @@ function AlertDialogContent({
   children,
   ...props
 }) {
+  const isMobile = useMediaQuery("(max-width: 767px)");
+
   return (
     <AlertDialogPortal>
       <AlertDialogOverlay />
@@ -67,10 +70,10 @@ function AlertDialogContent({
         data-size={size}
         render={
           <motion.div
-            initial={{ y: "100%", opacity: 0.5 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: "100%", opacity: 0.5 }}
-            transition={{ type: "spring", damping: 25, stiffness: 220 }}
+            initial={isMobile ? { y: "100%", opacity: 0.5 } : { scale: 0.95, opacity: 0, y: 0 }}
+            animate={isMobile ? { y: 0, opacity: 1 } : { scale: 1, opacity: 1, y: 0 }}
+            exit={isMobile ? { y: "100%", opacity: 0.5 } : { scale: 0.95, opacity: 0, y: 0 }}
+            transition={isMobile ? { type: "spring", damping: 25, stiffness: 220 } : { duration: 0.15, ease: "easeOut" }}
           />
         }
         className={cn(
