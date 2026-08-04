@@ -18,7 +18,7 @@ export function DeleteConfirmDialog({
 }) {
   return (
     <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <AlertDialogContent className="rounded-3xl border border-border/40 bg-popover max-w-100">
+      <AlertDialogContent className="rounded-3xl border border-border/40 bg-popover sm:max-w-100">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-lg font-bold">Are you sure?</AlertDialogTitle>
           <AlertDialogDescription className="text-sm">

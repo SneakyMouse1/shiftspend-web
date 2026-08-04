@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useBudgets, useCreateBudget, useUpdateBudget, useDeleteBudget } from "@/hooks/useBudgets";
 import { useCategories } from "@/hooks/useCategories";
 import { useAccounts } from "@/hooks/useAccounts";
@@ -221,7 +221,7 @@ export default function Budgets() {
         </div>
         <Button
           onClick={handleOpenCreate}
-          className="bg-muted text-primary hover:bg-muted/90 font-semibold shadow-md hover-glow-income rounded-xl cursor-pointer"
+          className="bg-muted text-primary hover:bg-muted/90 font-semibold shadow-md hover-glow-income rounded-xl cursor-pointer hidden md:flex items-center"
         >
           <Plus className="h-4 w-4 mr-1" />
           <span>New Limit</span>
@@ -808,7 +808,7 @@ export default function Budgets() {
         open={budgetToDeleteId !== null}
         onOpenChange={(open) => !open && setBudgetToDeleteId(null)}
       >
-        <AlertDialogContent className="rounded-3xl border border-border/40 bg-popover max-w-100">
+        <AlertDialogContent className="rounded-3xl border border-border/40 bg-popover sm:max-w-100">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-lg font-bold">Are you sure?</AlertDialogTitle>
             <AlertDialogDescription className="text-sm">
@@ -837,6 +837,15 @@ export default function Budgets() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Mobile Floating Green Add Button */}
+      <button
+        type="button"
+        onClick={handleOpenCreate}
+        className="fixed bottom-20 right-5 z-40 md:hidden bg-income text-primary-foreground hover:bg-income/90 p-4 rounded-full shadow-xl glow-income flex items-center justify-center cursor-pointer transition-all duration-300 active:scale-95"
+        aria-label="Add Budget"
+      >
+        <Plus className="h-6 w-6 stroke-[2.5]" />
+      </button>
     </div>
   );
 }

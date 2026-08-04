@@ -14,7 +14,13 @@ import {
   Moon,
   LogOut
 } from "lucide-react";
-import { SlideSheet } from "./SlideSheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 
 export function MobileNav({ theme, toggleTheme }) {
@@ -82,12 +88,13 @@ export function MobileNav({ theme, toggleTheme }) {
       </nav>
 
       {/* MOBILE SLIDE-UP SHEET FOR "MORE" OPERATIONS */}
-      <SlideSheet
-        isOpen={showMoreSheet}
-        onClose={() => setShowMoreSheet(false)}
-        title="More Operations"
-      >
-        <div className="space-y-4 pb-4">
+      <Dialog open={showMoreSheet} onOpenChange={setShowMoreSheet}>
+        <DialogContent className="modal-theme md:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold tracking-tight">More Operations</DialogTitle>
+            <DialogDescription className="hidden">Extended features and system preferences</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
           <div>
             <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-2 px-1">
               Extended Features
@@ -210,8 +217,9 @@ export function MobileNav({ theme, toggleTheme }) {
             </button>
           </div>
         </div>
-      </SlideSheet>
-    </>
+      </DialogContent>
+    </Dialog>
+  </>
   );
 }
 

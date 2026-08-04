@@ -1,12 +1,21 @@
 import { AlertDialog as AlertDialogPrimitive } from "@base-ui/react/alert-dialog"
+import { motion, AnimatePresence } from "motion/react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
 function AlertDialog({
+  open,
+  children,
   ...props
 }) {
-  return <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />;
+  return (
+    <AlertDialogPrimitive.Root open={open} data-slot="alert-dialog" {...props}>
+      <AnimatePresence>
+        {open && children}
+      </AnimatePresence>
+    </AlertDialogPrimitive.Root>
+  );
 }
 
 function AlertDialogTrigger({
@@ -28,8 +37,16 @@ function AlertDialogOverlay({
   return (
     <AlertDialogPrimitive.Backdrop
       data-slot="alert-dialog-overlay"
+      render={
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.6 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        />
+      }
       className={cn(
-        "fixed inset-0 isolate z-50 bg-black/30 duration-100 supports-backdrop-filter:backdrop-blur-sm data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        "fixed inset-0 isolate z-50 bg-black/60 supports-backdrop-filter:backdrop-blur-sm",
         className
       )}
       {...props} />
@@ -39,6 +56,7 @@ function AlertDialogOverlay({
 function AlertDialogContent({
   className,
   size = "default",
+  children,
   ...props
 }) {
   return (
@@ -47,11 +65,27 @@ function AlertDialogContent({
       <AlertDialogPrimitive.Popup
         data-slot="alert-dialog-content"
         data-size={size}
+        render={
+          <motion.div
+            initial={{ y: "100%", opacity: 0.5 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: "100%", opacity: 0.5 }}
+            transition={{ type: "spring", damping: 25, stiffness: 220 }}
+          />
+        }
         className={cn(
-          "group/alert-dialog-content fixed top-1/2 left-1/2 z-50 grid w-full -translate-x-1/2 -translate-y-1/2 gap-6 rounded-4xl bg-popover p-6 text-popover-foreground shadow-xl ring-1 ring-foreground/5 duration-100 outline-none data-[size=default]:max-w-xs data-[size=sm]:max-w-xs data-[size=default]:sm:max-w-md dark:ring-foreground/10 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "group/alert-dialog-content fixed z-50 grid w-full gap-6 bg-popover text-popover-foreground shadow-xl ring-1 ring-foreground/5 outline-none dark:ring-foreground/10",
+          // Mobile: SlideSheet layout anchored flush to bottom edge
+          "max-md:fixed max-md:bottom-0 max-md:left-0 max-md:right-0 max-md:top-auto max-md:translate-x-0 max-md:translate-y-0 max-md:w-full max-md:max-w-full max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:border-border/40 max-md:p-6 max-md:max-h-[90vh] max-md:overflow-y-auto max-md:mb-0 max-md:m-0",
+          // Desktop: Centered alert dialog
+          "md:fixed md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:data-[size=default]:max-w-xs md:data-[size=sm]:max-w-xs md:data-[size=default]:md:max-w-md md:rounded-4xl md:p-6",
           className
         )}
-        {...props} />
+        {...props}>
+        {/* Mobile handle indicator */}
+        <div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full mx-auto -mt-1 mb-1 md:hidden shrink-0" />
+        {children}
+      </AlertDialogPrimitive.Popup>
     </AlertDialogPortal>
   );
 }

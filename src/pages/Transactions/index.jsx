@@ -286,20 +286,6 @@ export default function Transactions() {
         />
       )}
 
-      {/* Floating Action Button (FAB) for mobile viewports */}
-      {!isCreateOpen && (
-        <button
-          onClick={() => {
-            resetCreateForm();
-            setIsCreateOpen(true);
-          }}
-          className="md:hidden fixed bottom-20 right-5 w-14 h-14 bg-income text-primary-foreground hover:bg-income/90 flex items-center justify-center rounded-full shadow-2xl glow-income border border-income/30 transition-all duration-300 transform active:scale-95 cursor-pointer z-50"
-          aria-label="Add Transaction"
-        >
-          <Plus className="h-7 w-7" />
-        </button>
-      )}
-
       {/* Confirmation dialog for deleting transaction entries */}
       <DeleteConfirmDialog
         isOpen={deleteConfirmId !== null}
@@ -307,6 +293,18 @@ export default function Transactions() {
         onConfirm={handleDeleteConfirm}
         isPending={deleteMutation.isPending}
       />
+      {/* Mobile Floating Green Add Button */}
+      <button
+        type="button"
+        onClick={() => {
+          resetCreateForm();
+          setIsCreateOpen(true);
+        }}
+        className="md:hidden fixed bottom-20 right-5 w-14 h-14 bg-income text-primary-foreground hover:bg-income/90 flex items-center justify-center rounded-full shadow-2xl glow-income border border-income/30 transition-all duration-300 transform active:scale-95 cursor-pointer z-50"
+        aria-label="Add Transaction"
+      >
+        <Plus className="h-6 w-6 stroke-[2.5]" />
+      </button>
     </div>
   );
 }

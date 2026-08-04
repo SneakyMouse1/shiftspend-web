@@ -161,7 +161,7 @@
 /* STYLE FOR MODAL TO CONTROL THE HEIGHT */
 @layer components {
   .modal-theme {
-    @apply w-full max-h-[85vh] overflow-y-auto scrollbar-none flex flex-col p-5 md:p-6 rounded-[2rem] top-[50%] left-[50%] -translate-x-[50%] -translate-y-[50%]
+    @apply w-full max-h-[85vh] overflow-y-auto scrollbar-none flex flex-col p-5 md:p-6 sm:rounded-[2rem] sm:top-[50%] sm:left-[50%] sm:-translate-x-[50%] sm:-translate-y-[50%] max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:top-auto max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-t-[2rem] max-sm:rounded-b-none max-sm:border-t max-sm:border-border/40 max-sm:max-h-[90vh];
   }
 }
 
@@ -230,9 +230,17 @@
   animation-delay: var(--delay, 0s);
 }
 
-.logo-bill-2 { --delay: 0s; }
-.logo-bill-3 { --delay: 0.12s; }
-.logo-bill-1 { --delay: 0.24s; }
+.logo-bill-2 {
+  --delay: 0s;
+}
+
+.logo-bill-3 {
+  --delay: 0.12s;
+}
+
+.logo-bill-1 {
+  --delay: 0.24s;
+}
 
 /* Re-trigger animation on hover smoothly */
 .logo-container:hover .logo-bill,
@@ -246,6 +254,7 @@
     opacity: 0;
     transform: translate(6px, 6px) rotate(6deg) scale(0.85);
   }
+
   100% {
     opacity: 1;
     transform: translate(0, 0) rotate(0deg) scale(1);
@@ -257,6 +266,7 @@
     opacity: 0.4;
     transform: translate(5px, 5px) rotate(5deg) scale(0.9);
   }
+
   100% {
     opacity: 1;
     transform: translate(0, 0) rotate(0deg) scale(1);
