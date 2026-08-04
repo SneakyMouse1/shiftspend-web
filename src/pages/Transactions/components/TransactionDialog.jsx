@@ -52,9 +52,11 @@ export function TransactionDialog({
 
   const createTagMutation = useCreateTag();
 
+  const effectiveAccountId = formAccountId || (accounts[0]?.id ? String(accounts[0].id) : "");
+
   const activeAccountObj = useMemo(
-    () => accounts.find((a) => String(a.id) === String(formAccountId)),
-    [accounts, formAccountId]
+    () => accounts.find((a) => String(a.id) === String(effectiveAccountId)),
+    [accounts, effectiveAccountId]
   );
   const activeCurrencySymbol = activeAccountObj?.currency_code ?? "USD";
 
@@ -89,12 +91,12 @@ export function TransactionDialog({
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    if (!formAmount || !formAccountId || !formDate) return;
+    if (!formAmount || !effectiveAccountId || !formDate) return;
 
     const payload = {
       type: formType,
       amount: parseFloat(formAmount),
-      account_id: parseInt(formAccountId, 10),
+      account_id: parseInt(effectiveAccountId, 10),
       date: formDate,
       comment: formComment.trim() || null,
       currency_code: activeCurrencySymbol,
@@ -228,10 +230,10 @@ export function TransactionDialog({
                   <Wallet className="h-3.5 w-3.5 text-muted-foreground/80" />
                   <span>From Account</span>
                 </label>
-                <Select value={formAccountId} onValueChange={setFormAccountId}>
+                <Select value={effectiveAccountId} onValueChange={setFormAccountId}>
                   <SelectTrigger className="w-full bg-secondary/30 border-border/40 rounded-xl h-11">
                     <SelectValue placeholder="Source Account">
-                      {accounts.find((acc) => String(acc.id) === String(formAccountId))?.name || "Source Account"}
+                      {accounts.find((acc) => String(acc.id) === String(effectiveAccountId))?.name || "Source Account"}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="max-h-56">
@@ -259,7 +261,7 @@ export function TransactionDialog({
                   </SelectTrigger>
                   <SelectContent className="max-h-56">
                     {accounts
-                      .filter((acc) => String(acc.id) !== String(formAccountId))
+                      .filter((acc) => String(acc.id) !== String(effectiveAccountId))
                       .map((acc) => (
                         <SelectItem key={acc.id} value={String(acc.id)}>
                           {acc.name}
@@ -275,10 +277,10 @@ export function TransactionDialog({
                 <Wallet className="h-3.5 w-3.5 text-muted-foreground/80" />
                 <span>Account</span>
               </label>
-              <Select value={formAccountId} onValueChange={setFormAccountId}>
+              <Select value={effectiveAccountId} onValueChange={setFormAccountId}>
                 <SelectTrigger className="w-full bg-secondary/30 border-border/40 rounded-xl h-11">
                   <SelectValue placeholder="Select Account">
-                    {accounts.find((acc) => String(acc.id) === String(formAccountId))?.name || "Select Account"}
+                    {accounts.find((acc) => String(acc.id) === String(effectiveAccountId))?.name || "Select Account"}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="max-h-56">
