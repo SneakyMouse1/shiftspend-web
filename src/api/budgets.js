@@ -6,7 +6,7 @@ export const getBudgetApi = async () => {
 };
 
 export const updateBudgetApi = async (id, budgetData) => {
-  const response = await api.put(`/budgets/${id}`, budgetData);
+  const response = await api.patch(`/budgets/${id}`, budgetData);
   return response.data.data;
 };
 

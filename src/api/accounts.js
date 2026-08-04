@@ -11,7 +11,7 @@ export async function createAccount(payload) {
 }
 
 export async function updateAccount(id, payload) {
-  const { data } = await api.put(`/accounts/${id}`, payload);
+  const { data } = await api.patch(`/accounts/${id}`, payload);
   return data.data;
 }
 
