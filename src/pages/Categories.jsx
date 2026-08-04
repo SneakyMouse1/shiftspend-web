@@ -121,7 +121,7 @@ export default function Categories() {
 
         <Button
           onClick={() => setIsCreateOpen(true)}
-          className="bg-income text-primary-foreground hover:bg-income/90 font-semibold shadow-md glow-income rounded-xl transition-all duration-300 cursor-pointer"
+          className="bg-income text-primary-foreground hover:bg-income/90 font-semibold shadow-md glow-income rounded-xl transition-all duration-300 cursor-pointer hidden md:flex items-center"
         >
           <Plus className="h-4 w-4" />
           <span>Add Category</span>
@@ -542,7 +542,16 @@ export default function Categories() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
+      
+      {/* Mobile Floating Green Add Button */}
+      <button
+        type="button"
+        onClick={() => setIsCreateOpen(true)}
+        className="fixed bottom-20 right-5 z-40 md:hidden bg-income text-primary-foreground hover:bg-income/90 p-4 rounded-full shadow-xl glow-income flex items-center justify-center cursor-pointer transition-all duration-300 active:scale-95"
+        aria-label="Add Category"
+      >
+        <Plus className="h-6 w-6 stroke-[2.5]" />
+      </button>
     </div>
   );
 }

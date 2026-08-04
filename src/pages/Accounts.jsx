@@ -153,7 +153,7 @@ export default function Accounts() {
         </div>
         <Button
           onClick={handleOpenCreate}
-          className="rounded-xl bg-secondary hover:bg-accent border border-border/40 text-foreground flex items-center gap-1.5 text-xs font-semibold px-4 py-2 transition-colors duration-200"
+          className="rounded-xl bg-secondary hover:bg-accent border border-border/40 text-foreground hidden md:flex items-center gap-1.5 text-xs font-semibold px-4 py-2 transition-colors duration-200"
         >
           <Plus className="h-4 w-4" />
           Add Account
@@ -245,7 +245,7 @@ export default function Accounts() {
 
       {/* Centered Dialog Modal for Create/Edit */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="sm:max-w-105 p-6 rounded-3xl bg-card border border-border/40 shadow-2xl">
+        <DialogContent className="md:max-w-105 p-6 rounded-3xl bg-card border border-border/40 shadow-2xl">
           <DialogHeader className="flex flex-row items-center justify-between">
             <DialogTitle className="text-lg font-bold">
               {isEditMode ? "Modify Financial Account" : "Setup New Account"}
@@ -401,7 +401,7 @@ export default function Accounts() {
 
       {/* Delete Confirmation Alert Dialog */}
       <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
-        <AlertDialogContent className="sm:max-w-100">
+        <AlertDialogContent className="md:max-w-100">
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -424,6 +424,15 @@ export default function Accounts() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {/* Mobile Floating Green Add Button */}
+      <button
+        type="button"
+        onClick={handleOpenCreate}
+        className="fixed bottom-20 right-5 z-40 md:hidden bg-income text-primary-foreground hover:bg-income/90 p-4 rounded-full shadow-xl glow-income flex items-center justify-center cursor-pointer transition-all duration-300 active:scale-95"
+        aria-label="Add Account"
+      >
+        <Plus className="h-6 w-6 stroke-[2.5]" />
+      </button>
     </div>
   );
 }

@@ -29,13 +29,13 @@ export function SlideSheet({ isOpen, onClose, title, children }) {
           />
 
           {/* Sheet Container */}
-          <div className="fixed inset-0 pointer-events-none z-[60] flex items-end md:items-center md:justify-center p-0 md:p-4">
+          <div className="fixed inset-0 pointer-events-none z-[60] flex items-end md:items-center md:justify-center p-0 md:p-4 mb-0">
             <motion.div
               initial={{ y: "100%", opacity: 0.5 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: "100%", opacity: 0.5 }}
               transition={{ type: "spring", damping: 25, stiffness: 220 }}
-              className="pointer-events-auto w-full md:max-w-lg bg-[#131316] rounded-t-2xl md:rounded-2xl border-t md:border border-[rgba(255,255,255,0.08)] max-h-[92vh] md:max-h-[85vh] flex flex-col overflow-hidden shadow-2xl"
+              className="pointer-events-auto w-full md:max-w-lg bg-[#131316] rounded-t-2xl md:rounded-2xl border-t md:border border-[rgba(255,255,255,0.08)] max-h-[92vh] md:max-h-[85vh] flex flex-col overflow-hidden shadow-2xl mb-0"
             >
               {/* Drag indicator (mobile) */}
               <div className="w-full flex justify-center py-2.5 md:hidden">
