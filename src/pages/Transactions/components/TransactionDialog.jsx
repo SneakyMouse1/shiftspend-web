@@ -12,7 +12,13 @@ import {
   FolderOpen,
   Tag as TagIcon,
 } from "lucide-react";
-import { SlideSheet } from "@/components/shared/SlideSheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -114,12 +120,16 @@ export function TransactionDialog({
   };
 
   return (
-    <SlideSheet
-      isOpen={isOpen}
-      onClose={onClose}
-      title={editingTransaction ? "Edit Ledger Transaction" : "Record Ledger Transaction"}
-    >
-      <form onSubmit={handleFormSubmit} className="space-y-4 pb-2">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="modal-theme md:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold tracking-tight">
+            {editingTransaction ? "Edit Ledger Transaction" : "Record Ledger Transaction"}
+          </DialogTitle>
+          <DialogDescription className="hidden">Transaction record details</DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleFormSubmit} className="space-y-4">
         {/* Tab selector for transaction types */}
           <div className="space-y-1.5">
             <div className="grid grid-cols-3 gap-1.5 p-1 bg-secondary/30 border border-border/40 rounded-xl">
@@ -425,6 +435,7 @@ export function TransactionDialog({
             </Button>
           </div>
         </form>
-    </SlideSheet>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -1,13 +1,22 @@
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
+import { motion, AnimatePresence } from "motion/react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
 
 function Dialog({
+  open,
+  children,
   ...props
 }) {
-  return <DialogPrimitive.Root data-slot="dialog" {...props} />;
+  return (
+    <DialogPrimitive.Root open={open} data-slot="dialog" {...props}>
+      <AnimatePresence>
+        {open && children}
+      </AnimatePresence>
+    </DialogPrimitive.Root>
+  );
 }
 
 function DialogTrigger({
@@ -35,8 +44,16 @@ function DialogOverlay({
   return (
     <DialogPrimitive.Backdrop
       data-slot="dialog-overlay"
+      render={
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.6 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        />
+      }
       className={cn(
-        "fixed inset-0 isolate z-50 bg-black/30 duration-100 supports-backdrop-filter:backdrop-blur-sm data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        "fixed inset-0 isolate z-50 bg-black/60 supports-backdrop-filter:backdrop-blur-sm",
         className
       )}
       {...props} />
@@ -54,17 +71,25 @@ function DialogContent({
       <DialogOverlay />
       <DialogPrimitive.Popup
         data-slot="dialog-content"
+        render={
+          <motion.div
+            initial={{ y: "100%", opacity: 0.5 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: "100%", opacity: 0.5 }}
+            transition={{ type: "spring", damping: 25, stiffness: 220 }}
+          />
+        }
         className={cn(
-          "fixed z-50 grid w-full gap-6 bg-popover text-sm text-popover-foreground shadow-xl ring-1 ring-foreground/5 duration-200 outline-none dark:ring-foreground/10",
-          // Mobile: SlideSheet at bottom
-          "max-sm:fixed max-sm:bottom-0 max-sm:left-0 max-sm:right-0 max-sm:top-auto max-sm:translate-x-0 max-sm:translate-y-0 max-sm:w-full max-sm:max-w-full max-sm:rounded-t-[2rem] max-sm:rounded-b-none max-sm:border-t max-sm:border-border/40 max-sm:p-6 max-sm:max-h-[90vh] max-sm:overflow-y-auto max-sm:data-open:animate-in max-sm:data-open:slide-in-from-bottom-full max-sm:data-closed:animate-out max-sm:data-closed:slide-to-bottom-full",
-          // Desktop: Centered modal
-          "sm:fixed sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-md sm:rounded-4xl sm:p-6 sm:data-open:animate-in sm:data-open:fade-in-0 sm:data-open:zoom-in-95 sm:data-closed:animate-out sm:data-closed:fade-out-0 sm:data-closed:zoom-out-95",
+          "fixed z-50 grid w-full gap-6 bg-popover text-sm text-popover-foreground shadow-xl ring-1 ring-foreground/5 outline-none dark:ring-foreground/10",
+          // Mobile: SlideSheet layout anchored flush to bottom edge
+          "max-md:fixed max-md:bottom-0 max-md:left-0 max-md:right-0 max-md:top-auto max-md:translate-x-0 max-md:translate-y-0 max-md:w-full max-md:max-w-full max-md:rounded-t-3xl max-md:rounded-b-none max-md:border-t max-md:border-border/40 max-md:p-6 max-md:max-h-[90vh] max-md:overflow-y-auto max-md:mb-0 max-md:m-0",
+          // Desktop: Centered modal dialog
+          "md:fixed md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:max-w-md md:rounded-4xl md:p-6",
           className
         )}
         {...props}>
         {/* Mobile handle indicator */}
-        <div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full mx-auto -mt-1 mb-1 sm:hidden shrink-0" />
+        <div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full mx-auto -mt-1 mb-1 md:hidden shrink-0" />
         {children}
         {showCloseButton && (
           <DialogPrimitive.Close
