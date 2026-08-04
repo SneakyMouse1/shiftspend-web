@@ -71,6 +71,8 @@ export function useDepositGoal() {
     mutationFn: ({ id, payload }) => depositGoalApi(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goals"] });
+      queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success("Deposit added successfully!");
     },
     onError: (error) => {
