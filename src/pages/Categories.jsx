@@ -6,6 +6,7 @@ import { Plus, Lock, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { getIconComponent, AVAILABLE_ICONS } from "@/config/categoryIcons";
+import { useTranslation } from "@/hooks/useLanguage";
 
 
 // colors to pick in modal
@@ -35,7 +36,7 @@ function CategoryPreviewIcon({ iconName, className }) {
 }
 
 export default function Categories() {
-
+  const { t } = useTranslation();
   const { data: categories = [], isLoading } = useCategories();
 
   // to initialize mutation
@@ -113,9 +114,9 @@ export default function Categories() {
       {/* Headline */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Categories Mapping</h1>
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{t("categories.title")}</h1>
           <p className="text-muted-foreground text-sm">
-            Classify incoming and outgoing financial flows.
+            {t("categories.subtitle")}
           </p>
         </div>
 
@@ -124,14 +125,14 @@ export default function Categories() {
           className="bg-income text-primary-foreground hover:bg-income/90 font-semibold shadow-md glow-income rounded-xl transition-all duration-300 cursor-pointer hidden md:flex items-center"
         >
           <Plus className="h-4 w-4" />
-          <span>Add Category</span>
+          <span>{t("categories.newCategory")}</span>
         </Button>
       </div>
 
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-20 space-y-4">
           <Loader2 className="h-8 w-8 animate-spin text-income" />
-          <p className="text-sm text-muted-foreground">Fetching your categories...</p>
+          <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
         </div>
       ) : (
 
@@ -147,7 +148,7 @@ export default function Categories() {
                 : "text-muted-foreground hover:text-foreground border border-transparent"
                 }`}
             >
-              <span>Expense Categories</span>
+              <span>{t("categories.expenseCategories")}</span>
               <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${activeTab === "expense" ? "bg-orange-500/15 text-orange-600 dark:text-orange-400" : "bg-secondary text-muted-foreground"}`}>
                 {expenseCategories.length}
               </span>
@@ -161,7 +162,7 @@ export default function Categories() {
                 : "text-muted-foreground hover:text-foreground border border-transparent"
                 }`}
             >
-              <span>Income Categories</span>
+              <span>{t("categories.incomeCategories")}</span>
               <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${activeTab === "income" ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" : "bg-secondary text-muted-foreground"}`}>
                 {incomeCategories.length}
               </span>
@@ -223,7 +224,7 @@ export default function Categories() {
       <Dialog open={isCreateOpen} onOpenChange={(open) => { if (!open) { handleCloseCreate(); } }}>
         <DialogContent className="modal-theme md:max-w-135">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold tracking-tight">Create New Category</DialogTitle>
+            <DialogTitle className="text-xl font-bold tracking-tight">{t("categories.createCategory")}</DialogTitle>
             <DialogDescription className="hidden">Create custom category helper</DialogDescription>
           </DialogHeader>
 
@@ -239,15 +240,15 @@ export default function Categories() {
                 >
                   <CategoryPreviewIcon iconName={newCategory.icon} className="h-8 w-8" />
                 </div>
-                <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Visual Preview</span>
+                <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">{t("categories.visualPreview")}</span>
                 <span className="text-2xl font-bold text-foreground mt-1">
-                  {newCategory.name || "Unnamed Category"}
+                  {newCategory.name || t("categories.unnamedCategory")}
                 </span>
               </div>
 
               {/* Choosing type of category - Expense / Income */}
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Category Type</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("categories.categoryType")}</label>
                 <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-secondary/80 border border-border/80 shadow-inner">
                   <button
                     type="button"
@@ -257,7 +258,7 @@ export default function Categories() {
                       : "text-muted-foreground hover:text-foreground border border-transparent"
                       }`}
                   >
-                    Expense
+                    {t("transactions.types.expense")}
                   </button>
                   <button
                     type="button"
@@ -267,17 +268,17 @@ export default function Categories() {
                       : "text-muted-foreground hover:text-foreground border border-transparent"
                       }`}
                   >
-                    Income
+                    {t("transactions.types.income")}
                   </button>
                 </div>
               </div>
 
               {/* Name of category*/}
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Category Name</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("categories.categoryName")}</label>
                 <input
                   type="text"
-                  placeholder="e.g. Subscriptions, Freelance..."
+                  placeholder={t("categories.categoryNamePlaceholder")}
                   value={newCategory.name}
                   onChange={(e) => setNewCategory(prev => ({ ...prev, name: e.target.value }))}
                   className="w-full px-4 py-3 rounded-xl bg-secondary/30 border border-border/40 text-foreground text-sm focus:outline-none focus:border-income focus:ring-1 focus:ring-income"
@@ -286,7 +287,7 @@ export default function Categories() {
 
               {/* Chosing icon */}
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Select Icon</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("categories.selectIcon")}</label>
                 <div className="grid grid-cols-8 gap-2 p-3 rounded-xl bg-secondary/30 border border-border/40">
                   {AVAILABLE_ICONS.map((item) => {
                     const CurrentIconComponent = item.icon;
@@ -320,7 +321,7 @@ export default function Categories() {
 
               {/* Choosing color */}
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Color Theme Swatch</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("categories.color")}</label>
                 <div className="flex flex-wrap gap-2.5 p-3 rounded-xl bg-secondary/30 border border-border/40">
                   {COLOR_SWATCHES.map((swatch, idx) => {
                     const isActive = newCategory.color === swatch.hex;
@@ -349,7 +350,7 @@ export default function Categories() {
                   {createMutation.isPending ? (
                     <Loader2 className="h-5 w-5 animate-spin mx-auto" />
                   ) : (
-                    <span>Create Category</span>
+                    <span>{t("categories.createCategory")}</span>
                   )}
                 </Button>
               </div>
@@ -365,7 +366,7 @@ export default function Categories() {
         <DialogContent className="modal-theme md:max-w-135">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold tracking-tight">
-              {!selectedCategory?.is_default ? "Modify Custom Category" : "View System Category"}
+              {!selectedCategory?.is_default ? t("categories.editCategory") : t("categories.systemDefault")}
             </DialogTitle>
             <DialogDescription className="hidden">Category details editor</DialogDescription>
           </DialogHeader>
@@ -384,7 +385,7 @@ export default function Categories() {
                     return <PreviewIcon className="h-8 w-8" />;
                   })()}
                 </div>
-                <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Visual Preview</span>
+                <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">{t("categories.visualPreview")}</span>
                 <span className="text-2xl font-bold text-foreground mt-1">{selectedCategory.name}</span>
               </div>
 
@@ -393,9 +394,9 @@ export default function Categories() {
                 <div className="flex gap-3 p-4 rounded-xl border border-expense/20 bg-expense/5 text-expense">
                   <Lock className="h-5 w-5 shrink-0 mt-0.5" />
                   <div className="text-xs space-y-1">
-                    <p className="font-bold">System Default Category</p>
+                    <p className="font-bold">{t("categories.systemDefault")}</p>
                     <p className="text-expense/50">
-                      This category is system-protected to ensure past logs remain correct.
+                      {t("categories.systemDefaultWarning")}
                     </p>
                   </div>
                 </div>
@@ -403,7 +404,7 @@ export default function Categories() {
 
               {/* Input name */}
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Category Name</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("categories.categoryName")}</label>
                 <input
                   type="text"
                   value={selectedCategory.name}
@@ -418,7 +419,7 @@ export default function Categories() {
 
               {/* Select Icon */}
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Select Icon</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("categories.selectIcon")}</label>
                 <div className="grid grid-cols-8 gap-2 p-3 rounded-xl bg-secondary/30 border border-border/40">
                   {AVAILABLE_ICONS.map((item) => {
                     const CurrentIconComponent = item.icon;
@@ -453,7 +454,7 @@ export default function Categories() {
 
               {/* Color Theme */}
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Color Theme Swatch</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("categories.color")}</label>
                 <div className="flex flex-wrap gap-2.5 p-3 rounded-xl bg-secondary/30 border border-border/40">
                   {COLOR_SWATCHES.map((swatch, idx) => {
                     const isActive = selectedCategory.color === swatch.hex;
@@ -485,7 +486,7 @@ export default function Categories() {
                     {updateMutation.isPending ? (
                       <Loader2 className="h-5 w-5 animate-spin mx-auto" />
                     ) : (
-                      <span>Save Changes</span>
+                      <span>{t("common.saveChanges")}</span>
                     )}
                   </Button>
 
@@ -494,7 +495,7 @@ export default function Categories() {
                     onClick={() => setCategoryToDeleteId(selectedCategory.id)}
                     className="mt-2 w-full text-center bg-transparent rounded-xl text-destructive hover:bg-transparent hover:border-destructive hover:destructive/50 text-sm font-semibold py-1 block transition-all duration-300 cursor-pointer"
                   >
-                    Delete This Category
+                    {t("categories.deleteConfirm")}
                   </Button>
                 </div>
               ) : (
@@ -503,7 +504,7 @@ export default function Categories() {
                   onClick={handleClose}
                   className="w-full h-11 bg-secondary text-foreground hover:bg-secondary/80 rounded-xl font-semibold mt-2 block sm:inline-flex transition-all duration-300 cursor-pointer"
                 >
-                  Close
+                  {t("common.close")}
                 </Button>
               )}
 
@@ -519,9 +520,9 @@ export default function Categories() {
       >
         <AlertDialogContent className="rounded-3xl border border-border/40 bg-popover sm:max-w-100">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-lg font-bold">Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle className="text-lg font-bold">{t("transactions.confirmDeleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription className="text-sm">
-              This action cannot be undone. This will permanently delete category.
+              {t("categories.deleteWarning")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -529,7 +530,7 @@ export default function Categories() {
               onClick={() => setCategoryToDeleteId(null)}
               className="rounded-xl border border-border/40 hover:bg-secondary/40 cursor-pointer"
             >
-              Cancel
+              {t("common.cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
@@ -539,7 +540,7 @@ export default function Categories() {
               {deleteMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <span>Confirm</span>
+                <span>{t("common.confirm")}</span>
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

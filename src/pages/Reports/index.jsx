@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { format, parseISO, subDays, subMonths, startOfMonth, endOfMonth, isWithinInterval, getDay } from "date-fns";
+import { format, parseISO, subDays, subMonths, startOfMonth, endOfMonth, isWithinInterval, getDay, differenceInDays } from "date-fns";
 import { TrendingUp, PieChart as PieIcon, RefreshCcw, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useReports, useExportReport, useReportExports, useDeleteReportExport } from "@/hooks/useReports";
@@ -7,6 +7,7 @@ import { downloadExportFileApi } from "@/api/reports";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useCategories } from "@/hooks/useCategories";
 import { useAccounts } from "@/hooks/useAccounts";
+import { useTranslation } from "@/hooks/useLanguage";
 import { toast } from "sonner";
 
 import ReportsSkeleton from "./components/ReportsSkeleton";
@@ -21,6 +22,7 @@ import SpendingHabitsTab from "./components/SpendingHabitsTab";
 const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export default function Reports() {
+  const { t } = useTranslation();
   const [period, setPeriod] = useState("last_month");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -173,6 +175,103 @@ export default function Reports() {
       totalCount: filteredTransactions.length,
     };
   }, [apiReportData, filteredTransactions]);
+
+  // Calculate Previous Period Metrics for Period-over-Period Delta comparison
+  const deltas = useMemo(() => {
+    const now = new Date();
+    let prevStart;
+    let prevEnd;
+
+    if (period === "last_month") {
+      const lastM = subMonths(now, 1);
+      prevStart = startOfMonth(lastM);
+      prevEnd = endOfMonth(lastM);
+    } else if (period === "previous_month") {
+      const twoMAgo = subMonths(now, 2);
+      prevStart = startOfMonth(twoMAgo);
+      prevEnd = endOfMonth(twoMAgo);
+    } else if (period === "3_months") {
+      prevStart = subDays(now, 180);
+      prevEnd = subDays(now, 90);
+    } else if (period === "6_months") {
+      prevStart = subDays(now, 360);
+      prevEnd = subDays(now, 180);
+    } else if (period === "this_year" || period === "1_year") {
+      const lastYr = now.getFullYear() - 1;
+      prevStart = new Date(lastYr, 0, 1);
+      prevEnd = new Date(lastYr, 11, 31, 23, 59, 59);
+    } else if (period === "custom" && dateFrom && dateTo) {
+      const dFrom = parseISO(dateFrom);
+      const dTo = parseISO(dateTo);
+      const spanDays = Math.max(1, differenceInDays(dTo, dFrom) + 1);
+      prevEnd = subDays(dFrom, 1);
+      prevStart = subDays(prevEnd, spanDays - 1);
+    }
+
+    let prevIncome = 0;
+    let prevExpenses = 0;
+
+    if (prevStart && prevEnd) {
+      rawTransactions.forEach((tx) => {
+        const accId = tx.account_id ?? tx.account?.id;
+        if (selectedAccountId !== "all" && accId !== undefined && String(accId) !== String(selectedAccountId)) {
+          return;
+        }
+        const catId = tx.category_id ?? tx.category?.id;
+        if (selectedCategoryId !== "all" && catId !== undefined && String(catId) !== String(selectedCategoryId)) {
+          return;
+        }
+        if (selectedType !== "all" && tx.type !== selectedType) {
+          return;
+        }
+        if (!tx.date) return;
+        const txDate = parseISO(tx.date);
+        if (isWithinInterval(txDate, { start: prevStart, end: prevEnd })) {
+          const amt = parseFloat(tx.amount || 0);
+          if (tx.type === "income") prevIncome += amt;
+          if (tx.type === "expense") prevExpenses += amt;
+        }
+      });
+    }
+
+    const prevNet = prevIncome - prevExpenses;
+    const prevDailyAvg = prevExpenses / 30;
+
+    const calcDelta = (current, previous) => {
+      if (!prevStart || !prevEnd) return null;
+      // If current period has no data or previous period was 0, do not show misleading delta badges
+      if (!current || !previous || current === 0 || previous === 0) return null;
+
+      const diff = current - previous;
+      if (diff === 0) return null;
+
+      const pct = Math.round((Math.abs(diff) / Math.abs(previous)) * 100 * 10) / 10;
+      const trend = diff > 0 ? "up" : "down";
+      const sign = diff > 0 ? "+" : "-";
+      return {
+        percent: pct,
+        trend,
+        diff,
+        text: `${sign}${pct}%`,
+      };
+    };
+
+    return {
+      income: calcDelta(metrics.income, prevIncome),
+      expenses: calcDelta(metrics.expenses, prevExpenses),
+      netSavings: calcDelta(metrics.netSavings, prevNet),
+      dailyAverageSpend: calcDelta(metrics.dailyAverageSpend, prevDailyAvg),
+    };
+  }, [
+    period,
+    dateFrom,
+    dateTo,
+    rawTransactions,
+    selectedAccountId,
+    selectedCategoryId,
+    selectedType,
+    metrics,
+  ]);
 
   // Category breakdown for Pie Chart & Category Table
   const categoryBreakdown = useMemo(() => {
@@ -378,6 +477,7 @@ export default function Reports() {
         metrics={metrics} 
         primaryCurrency={primaryCurrency} 
         formattedDateRange={formattedDateRange}
+        deltas={deltas}
       />
 
       {/* Recent Exports (24h Archive) */}
@@ -399,7 +499,7 @@ export default function Reports() {
           }`}
         >
           <TrendingUp className="h-3.5 w-3.5" />
-          <span>Cash Flow Timeline</span>
+          <span>{t("reports.tabs.timeline")}</span>
         </button>
 
         <button
@@ -411,7 +511,7 @@ export default function Reports() {
           }`}
         >
           <PieIcon className="h-3.5 w-3.5" />
-          <span>Category Shares</span>
+          <span>{t("reports.tabs.categoryShares")}</span>
         </button>
 
         <button
@@ -423,7 +523,7 @@ export default function Reports() {
           }`}
         >
           <TrendingUp className="h-3.5 w-3.5" />
-          <span>Spending Habits</span>
+          <span>{t("reports.tabs.spendingHabits")}</span>
         </button>
       </div>
 

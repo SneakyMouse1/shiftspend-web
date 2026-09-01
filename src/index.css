@@ -11,7 +11,7 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  /* Light theme values - soft, modern palette easy on the eyes with clear surface elevation */
+  /* Light theme values*/
   --background: #F1F3F6;
   --foreground: #0F172A;
 
@@ -56,7 +56,7 @@
 }
 
 .dark {
-  /* Dark theme values matching user's original custom colors */
+  /* Dark theme values */
   --background: #0A0A0B;
   --foreground: #F3F4F6;
 
@@ -255,16 +255,31 @@
   padding: 4px 10px !important;
 }
 
-.apexcharts-xaxistooltip, .apexcharts-yaxistooltip {
+.apexcharts-xaxistooltip,
+.apexcharts-yaxistooltip {
   background: var(--card) !important;
   border: 1px solid var(--border) !important;
   color: var(--foreground) !important;
   border-radius: 0.5rem !important;
 }
 
-.dark .apexcharts-xaxistooltip, .dark .apexcharts-yaxistooltip {
+.dark .apexcharts-xaxistooltip,
+.dark .apexcharts-yaxistooltip {
   background: #1C1C1F !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Privacy Mode */
+.privacy-mode .font-mono:not(.privacy-exempt),
+.privacy-mode .privacy-blur {
+  filter: blur(7px);
+  user-select: none;
+  transition: filter 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.privacy-mode .font-mono:not(.privacy-exempt):hover,
+.privacy-mode .privacy-blur:hover {
+  filter: blur(0px);
 }
 
 /* Animated SVG Logo */

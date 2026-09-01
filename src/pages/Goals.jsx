@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useGoals, useCreateGoal, useUpdateGoal, useDeleteGoal, useDepositGoal } from "@/hooks/useGoals";
 import { useAccounts } from "@/hooks/useAccounts";
 
-import { Plus, Loader2, Wallet, PiggyBank, Trophy, Calendar, CheckCircle, ArrowUpRight, AlertTriangle, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Plus, Loader2, PiggyBank, Trophy, Calendar, CheckCircle, PauseCircle, ArrowUpRight, AlertTriangle, MoreVertical, Pencil, Trash2, Target } from "lucide-react";
 import { CURRENCIES, getCurrencySymbol } from "@/config/currencies";
 
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useTranslation } from "@/hooks/useLanguage";
 
 
 const INITIAL_CREATE_STATE = {
@@ -27,6 +28,7 @@ const INITIAL_DEPOSIT_STATE = {
 
 
 export default function Goals() {
+  const { t } = useTranslation();
   const { data: goals = [], isLoading } = useGoals();
   const { data: accounts = [] } = useAccounts();
 
@@ -75,27 +77,36 @@ export default function Goals() {
   // Opening create deposit 
   const handleOpenDeposit = (goal) => {
     setSelectedGoal(goal);
-    setDeposit(INITIAL_DEPOSIT_STATE);
+    setDeposit({
+      ...INITIAL_DEPOSIT_STATE,
+      account_id: accounts[0]?.id ? String(accounts[0].id) : "",
+    });
   };
 
-  // Closing modal of adding deposit
+  // Closing create deposit
   const handleCloseDeposit = () => {
     setSelectedGoal(null);
     setDeposit(INITIAL_DEPOSIT_STATE);
   };
 
 
+  // Open Edit Modal
   const handleOpenEdit = (goal) => {
     setSelectedEditGoal(goal);
-    setEditName(goal.name || "");
-    setEditDeadline(goal.deadline || "");
+    setEditName(goal.name);
+    setEditDeadline(goal.deadline ? goal.deadline.slice(0, 10) : "");
     setEditStatus(goal.status || "active");
   };
 
+  // Close Edit Modal
   const handleCloseEdit = () => {
     setSelectedEditGoal(null);
+    setEditName("");
+    setEditDeadline("");
+    setEditStatus("active");
   };
 
+  // Editing Goal Submit
   const handleUpdateSubmit = (e) => {
     e.preventDefault();
     if (!selectedEditGoal || !editName.trim()) return;
@@ -109,47 +120,59 @@ export default function Goals() {
           status: editStatus,
         },
       },
-      { onSuccess: () => handleCloseEdit() }
+      {
+        onSuccess: () => {
+          handleCloseEdit();
+        },
+      }
     );
   };
 
-  // Submit deposit
+  // Creating deposit
   const handleDepositSubmit = (e) => {
     e.preventDefault();
-    if (!selectedGoal || !deposit.amount) return;
+    if (!deposit.amount || !selectedGoal) return;
 
     const payload = {
       amount: Number(deposit.amount),
-      comment: deposit.comment || undefined,
       account_id: deposit.account_id ? Number(deposit.account_id) : undefined,
+      comment: deposit.comment?.trim() || undefined,
     };
 
     depositMutation.mutate(
-      { id: selectedGoal.id, payload },
-      { onSuccess: () => handleCloseDeposit() }
+      {
+        id: selectedGoal.id,
+        payload,
+      },
+      {
+        onSuccess: () => {
+          handleCloseDeposit();
+        },
+      }
     );
   };
 
-
-  // Submit goal
+  // Creating goal
   const handleCreateSubmit = (e) => {
     e.preventDefault();
-    if (!newGoal.name.trim() || !newGoal.target_amount || !newGoal.deadline) return;
+    if (!newGoal.name.trim() || !newGoal.target_amount) return;
 
     const payload = {
       name: newGoal.name.trim(),
       target_amount: Number(newGoal.target_amount),
       currency_code: newGoal.currency_code,
-      deadline: newGoal.deadline,
+      deadline: newGoal.deadline || undefined,
     };
 
     createMutation.mutate(payload, {
-      onSuccess: () => handleCloseCreate(),
+      onSuccess: () => {
+        handleCloseCreate();
+      },
     });
   };
 
 
-  // to delete goal
+  // Deleting Goal
   const handleConfirmDelete = () => {
     if (!GoalToDeleteId) return;
 
@@ -161,37 +184,34 @@ export default function Goals() {
   };
 
 
-  // Get percentage
-  const getExhaustedPercentage = (targetAmount, currentAmount) => {
-    if (!targetAmount || targetAmount <= 0) return 0;
-    const percent = (currentAmount / targetAmount) * 100;
-    return Math.min(Math.round(percent), 100);
+  // calculating progress percentage
+  const getExhaustedPercentage = (target, current) => {
+    if (!target || target === 0) return 0;
+    return Math.min(100, Math.round((current / target) * 100));
   };
 
 
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Headline */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Savings Goals</h1>
-          <p className="text-sm text-muted-foreground">
-            Save for milestones, trips, or emergencies
-          </p>
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{t("goals.title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("goals.subtitle")}</p>
         </div>
         <Button
           onClick={handleOpenCreate}
-          className="bg-muted text-primary hover:bg-muted/90 font-semibold shadow-md rounded-xl cursor-pointer hidden md:flex items-center"
+          className="bg-income text-primary-foreground hover:bg-income/90 font-semibold shadow-md glow-income rounded-xl cursor-pointer hidden md:flex items-center"
         >
           <Plus className="h-4 w-4 mr-1" />
-          <span>New Goal</span>
+          <span>{t("goals.newGoal")}</span>
         </Button>
       </div>
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-20 space-y-4">
           <Loader2 className="h-8 w-8 animate-spin text-income" />
-          <p className="text-sm text-muted-foreground">Fetching your goals...</p>
+          <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
         </div>
       ) : (
         <>
@@ -199,24 +219,24 @@ export default function Goals() {
           {goals.length === 0 ? (
             <div className="rounded-xl border border-dashed border-secondary p-12 text-center max-w-md mx-auto mt-6">
               <div className="p-3 bg-secondary w-fit rounded-xl mx-auto text-income mb-4">
-                <Wallet className="h-6 w-6" />
+                <Target className="h-6 w-6" />
               </div>
-              <h3 className="font-semibold text-primary">No active goals</h3>
+              <h3 className="font-semibold text-primary">{t("common.noData")}</h3>
               <p className="text-sm text-muted-foreground mt-1 mb-6">
-                You haven't set up any goals yet. Create your first goal to keep track of your spending.
+                {t("goals.subtitle")}
               </p>
               <Button
                 onClick={handleOpenCreate}
                 className="cursor-pointer bg-income text-secondary hover:bg-income/50 font-medium"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Create First Goal
+                {t("goals.createGoal")}
               </Button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {goals.map((goal) => {
-                const goalName = goal.name || "Unnamed Goal";
+                const goalName = goal.name || "—";
                 const currentAmount = Number(goal.current_amount) || 0;
                 const targetAmount = Number(goal.target_amount) || 0;
                 const symbol = getCurrencySymbol(goal.currency_code);
@@ -229,6 +249,7 @@ export default function Goals() {
 
 
                 const isAchieved = percentage >= 100 || goal.status === "completed";
+                const isPaused = goal.status === "paused";
                 const IconComponent = isAchieved ? Trophy : PiggyBank;
 
                 // days till deadline
@@ -245,6 +266,8 @@ export default function Goals() {
                     key={goal.id}
                     className={`rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-5 border transition-all duration-200 ${isAchieved
                         ? "bg-card border-income/30 hover:border-income/50 hover:shadow-md"
+                        : isPaused
+                        ? "bg-card border-amber-500/20 opacity-80 hover:opacity-100 hover:shadow-md"
                         : "bg-card border-border/40 hover:border-border/80 hover:shadow-md"
                       }`}
                   >
@@ -255,6 +278,8 @@ export default function Goals() {
                         <div
                           className={`p-2.5 rounded-xl border shrink-0 ${isAchieved
                               ? "bg-income/10 border-income/20 text-income"
+                              : isPaused
+                              ? "bg-amber-500/10 border-amber-500/20 text-amber-500"
                               : "bg-chart-3/10 border-chart-3/20 text-chart-3"
                             }`}
                         >
@@ -269,12 +294,12 @@ export default function Goals() {
                           <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground mt-1 font-medium whitespace-nowrap">
                             <div className="flex items-center gap-1">
                               <Calendar className="h-3.5 w-3.5 shrink-0" />
-                              <span>Target: {goal.deadline || "No deadline"}</span>
+                              <span>{t("goals.target")}: {goal.deadline || "—"}</span>
                             </div>
                             {!isAchieved && daysLeft !== null && daysLeft > 0 && (
                               <>
                                 <span className="hidden sm:inline">•</span>
-                                <span className="text-[11px] sm:text-xs">{daysLeft} days left</span>
+                                <span className="text-[11px] sm:text-xs">{daysLeft} {t("goals.daysLeft")}</span>
                               </>
                             )}
                           </div>
@@ -283,41 +308,46 @@ export default function Goals() {
 
                       {/* Right Action / Status Badge & Actions Menu */}
                       <div className="flex items-center gap-1.5 shrink-0">
-                        {isAchieved ? (
+                        {isAchieved && (
                           <div className="flex items-center gap-1 bg-income/10 border border-income/30 text-income text-[10px] sm:text-[11px] font-bold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full tracking-wider uppercase whitespace-nowrap">
                             <CheckCircle className="h-3.5 w-3.5 shrink-0" />
-                            <span>Achieved</span>
+                            <span>{t("goals.targetAchieved")}</span>
                           </div>
-                        ) : (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-secondary/80 transition-colors focus:outline-none cursor-pointer">
-                              <MoreVertical className="h-4 w-4" />
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-popover border-border/40 text-foreground w-36">
-                              <DropdownMenuItem
-                                onClick={() => handleOpenEdit(goal)}
-                                className="cursor-pointer text-xs font-medium focus:bg-secondary"
-                              >
-                                <Pencil className="h-3.5 w-3.5 mr-2" />
-                                Edit Goal
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleOpenDeposit(goal)}
-                                className="cursor-pointer text-xs font-medium focus:bg-secondary"
-                              >
-                                <ArrowUpRight className="h-3.5 w-3.5 mr-2" />
-                                Add Deposit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => setGoalToDeleteId(goal.id)}
-                                className="cursor-pointer text-xs font-medium text-destructive focus:bg-destructive/10 focus:text-destructive"
-                              >
-                                <Trash2 className="h-3.5 w-3.5 mr-2" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
                         )}
+                        {isPaused && (
+                          <div className="flex items-center gap-1 bg-amber-500/10 border border-amber-500/30 text-amber-500 text-[10px] sm:text-[11px] font-bold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full tracking-wider uppercase whitespace-nowrap">
+                            <PauseCircle className="h-3 w-3 shrink-0" />
+                            <span>{t("goals.paused")}</span>
+                          </div>
+                        )}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-secondary/80 transition-colors focus:outline-none cursor-pointer">
+                            <MoreVertical className="h-4 w-4" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-popover border-border/40 text-foreground w-36">
+                            <DropdownMenuItem
+                              onClick={() => handleOpenEdit(goal)}
+                              className="cursor-pointer text-xs font-medium focus:bg-secondary"
+                            >
+                              <Pencil className="h-3.5 w-3.5 mr-2" />
+                              {t("common.edit")}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleOpenDeposit(goal)}
+                              className="cursor-pointer text-xs font-medium focus:bg-secondary"
+                            >
+                              <ArrowUpRight className="h-3.5 w-3.5 mr-2" />
+                              {t("goals.deposit")}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => setGoalToDeleteId(goal.id)}
+                              className="cursor-pointer text-xs font-medium text-destructive focus:bg-destructive/10 focus:text-destructive"
+                            >
+                              <Trash2 className="h-3.5 w-3.5 mr-2" />
+                              {t("common.delete")}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
 
@@ -329,7 +359,7 @@ export default function Goals() {
                             {symbol}{currentAmount.toLocaleString()}
                           </span>
                           <span className="text-xs text-muted-foreground font-medium whitespace-nowrap">
-                            of {symbol}{targetAmount.toLocaleString()}
+                            {t("budgets.ofLimit")} {symbol}{targetAmount.toLocaleString()}
                           </span>
                         </div>
 
@@ -364,14 +394,14 @@ export default function Goals() {
       <Dialog open={isCreateOpen} onOpenChange={(open) => !open && handleCloseCreate()}>
         <DialogContent className="modal-theme md:max-w-135">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold tracking-tight">Create Savings Goal</DialogTitle>
+            <DialogTitle className="text-xl font-bold tracking-tight">{t("goals.createGoal")}</DialogTitle>
             <DialogDescription className="hidden">Create a new savings goal</DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleCreateSubmit} className="space-y-5 my-2">
 
             <div className="bg-[#131316]/50 border border-border/20 rounded-2xl p-5 flex flex-col items-center justify-center relative">
-              <span className="text-[10px] font-bold tracking-wider text-muted-foreground/50 mb-2">TARGET AMOUNT</span>
+              <span className="text-[10px] font-bold tracking-wider text-muted-foreground/50 mb-2">{t("goals.targetAmount")}</span>
               <div className="flex items-center justify-center font-mono">
                 <span className="text-muted-foreground/35 text-3xl font-semibold select-none mr-2">
                   {getCurrencySymbol(newGoal.currency_code)}
@@ -391,12 +421,12 @@ export default function Goals() {
 
             {/* Goal name */}
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Goal Name</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("goals.goalName")}</label>
               <input
                 type="text"
                 value={newGoal.name}
                 onChange={(e) => setNewGoal((prev) => ({ ...prev, name: e.target.value }))}
-                placeholder="e.g. MacBook Pro, Japan Trip..."
+                placeholder={t("goals.goalNamePlaceholder")}
                 className="w-full px-4 py-3 rounded-xl bg-secondary/30 border border-border/40 text-foreground text-sm focus:outline-none focus:border-income focus:ring-1 focus:ring-income"
                 required
               />
@@ -404,13 +434,15 @@ export default function Goals() {
 
             {/* Target amount + currency */}
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Currency</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("common.currency")}</label>
               <Select
                 value={newGoal.currency_code}
                 onValueChange={(value) => setNewGoal((prev) => ({ ...prev, currency_code: value }))}
               >
                 <SelectTrigger className="w-full bg-secondary/30 border-border/40 rounded-xl data-[size=default]:h-11">
-                  <SelectValue placeholder="Currency" />
+                  <SelectValue placeholder={t("common.currency")}>
+                    {CURRENCIES.find((c) => c.code === newGoal.currency_code)?.label || newGoal.currency_code}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="bg-popover border-border/40 text-foreground">
                   {accountCurrencies.length > 0 ? (
@@ -424,14 +456,11 @@ export default function Goals() {
                   )}
                 </SelectContent>
               </Select>
-              <p className="text-[10px] text-muted-foreground">
-                Matched to the currencies used across your accounts.
-              </p>
             </div>
 
             {/* Deadline */}
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Target Date</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("goals.targetDate")}</label>
               <input
                 type="date"
                 value={newGoal.deadline}
@@ -451,7 +480,7 @@ export default function Goals() {
                 {createMutation.isPending ? (
                   <Loader2 className="h-5 w-5 animate-spin mx-auto" />
                 ) : (
-                  <span>Create Goal</span>
+                  <span>{t("goals.createGoal")}</span>
                 )}
               </Button>
 
@@ -464,7 +493,7 @@ export default function Goals() {
       <Dialog open={selectedGoal !== null} onOpenChange={(open) => !open && handleCloseDeposit()}>
         <DialogContent className="modal-theme md:max-w-135">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold tracking-tight">Add Deposit</DialogTitle>
+            <DialogTitle className="text-xl font-bold tracking-tight">{t("goals.deposit")}</DialogTitle>
             <DialogDescription className="hidden">Add a deposit toward this goal</DialogDescription>
           </DialogHeader>
 
@@ -494,14 +523,14 @@ export default function Goals() {
                   <div>
                     <h3 className="font-semibold text-primary leading-tight">{selectedGoal.name}</h3>
                     <p className="text-xs text-muted-foreground">
-                      Saved: {symbol}{currentAmount.toFixed(2)} / {symbol}{targetAmount.toFixed(2)}
+                      {t("goals.saved")}: {symbol}{currentAmount.toFixed(2)} / {symbol}{targetAmount.toFixed(2)}
                     </p>
                   </div>
                 </div>
 
                 {/* Deposit amount */}
                 <div className="bg-[#131316]/50 border border-border/20 rounded-2xl p-5 flex flex-col items-center justify-center relative">
-                  <span className="text-[10px] font-bold tracking-wider text-muted-foreground/50 mb-2">DEPOSIT AMOUNT</span>
+                  <span className="text-[10px] font-bold tracking-wider text-muted-foreground/50 mb-2">{t("goals.depositAmount")}</span>
                   <div className="flex items-center justify-center font-mono">
                     <span className="text-muted-foreground/35 text-3xl font-semibold select-none mr-2">
                       {getCurrencySymbol(selectedGoal.currency_code)}
@@ -523,15 +552,15 @@ export default function Goals() {
                 {/* Account (optional) */}
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Account <span className="normal-case font-normal text-muted-foreground/60">(optional)</span>
+                    {t("common.account")}
                   </label>
                   <Select
                     value={deposit.account_id?.toString()}
                     onValueChange={(value) => setDeposit((prev) => ({ ...prev, account_id: value }))}
                   >
                     <SelectTrigger className="w-full bg-secondary/30 border-border/40 rounded-xl data-[size=default]:h-11">
-                      <SelectValue placeholder="Select Account">
-                        {accounts.find((acc) => acc.id.toString() === deposit.account_id?.toString())?.name || "Select Account"}
+                      <SelectValue placeholder={t("transactions.selectAccount")}>
+                        {accounts.find((acc) => acc.id.toString() === deposit.account_id?.toString())?.name || t("transactions.selectAccount")}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent className="bg-popover border-border/40 text-foreground">
@@ -543,13 +572,12 @@ export default function Goals() {
                     </SelectContent>
                   </Select>
 
-                  {/* NEW: currency mismatch warning */}
+                  {/* currency mismatch warning */}
                   {currencyMismatch && (
                     <div className="flex items-start gap-2 p-2.5 rounded-lg bg-expense/10 border border-expense/20 text-expense">
                       <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                       <p className="text-[11px] leading-snug">
-                        This goal tracks {selectedGoal.currency_code} only. A deposit from a{" "}
-                        {selectedAccount.currency_code} account won't be converted automatically.
+                        {selectedGoal.currency_code}
                       </p>
                     </div>
                   )}
@@ -558,7 +586,7 @@ export default function Goals() {
                 {/* Comment (optional) */}
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    Comment <span className="normal-case font-normal text-muted-foreground/60">(optional)</span>
+                    {t("common.description")}
                   </label>
                   <input
                     type="text"
@@ -573,7 +601,7 @@ export default function Goals() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs">
                     <span className={`font-bold tracking-wider uppercase ${achieved ? "text-income" : "text-chart-3"}`}>
-                      {achieved ? "Target Achieved" : "In Progress"}
+                      {achieved ? t("goals.targetAchieved") : t("goals.inProgress")}
                     </span>
                     <span className="text-muted-foreground">{previewPercent}%</span>
                   </div>
@@ -594,7 +622,7 @@ export default function Goals() {
                     {depositMutation.isPending ? (
                       <Loader2 className="h-5 w-5 animate-spin mx-auto" />
                     ) : (
-                      <span>Record Deposit</span>
+                      <span>{t("goals.recordDeposit")}</span>
                     )}
                   </Button>
 
@@ -609,7 +637,7 @@ export default function Goals() {
       <Dialog open={selectedEditGoal !== null} onOpenChange={(open) => !open && handleCloseEdit()}>
         <DialogContent className="modal-theme md:max-w-135">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold tracking-tight">Edit Goal</DialogTitle>
+            <DialogTitle className="text-xl font-bold tracking-tight">{t("goals.editGoal")}</DialogTitle>
             <DialogDescription className="hidden">Edit goal name, deadline, or status</DialogDescription>
           </DialogHeader>
 
@@ -623,17 +651,17 @@ export default function Goals() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-primary leading-tight">
-                    {getCurrencySymbol(selectedEditGoal.currency_code)}{Number(selectedEditGoal.target_amount).toFixed(2)} target
+                    {getCurrencySymbol(selectedEditGoal.currency_code)}{Number(selectedEditGoal.target_amount).toFixed(2)} {t("goals.target")}
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    Saved so far: {getCurrencySymbol(selectedEditGoal.currency_code)}{Number(selectedEditGoal.current_amount).toFixed(2)}
+                    {t("goals.saved")}: {getCurrencySymbol(selectedEditGoal.currency_code)}{Number(selectedEditGoal.current_amount).toFixed(2)}
                   </p>
                 </div>
               </div>
 
               {/* Name */}
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Goal Name</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("goals.goalName")}</label>
                 <input
                   type="text"
                   value={editName}
@@ -646,7 +674,7 @@ export default function Goals() {
 
               {/* Deadline */}
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Target Date</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("goals.targetDate")}</label>
                 <input
                   type="date"
                   value={editDeadline}
@@ -657,15 +685,17 @@ export default function Goals() {
 
               {/* Status */}
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Status</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("goals.statusLabel")}</label>
                 <Select value={editStatus} onValueChange={setEditStatus}>
                   <SelectTrigger className="w-full bg-secondary/30 border-border/40 rounded-xl data-[size=default]:h-11">
-                    <SelectValue placeholder="Select Status" />
+                    <SelectValue placeholder={t("goals.statusLabel")}>
+                      {editStatus === "completed" ? t("goals.completed") : editStatus === "paused" ? t("goals.paused") : t("goals.active")}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="bg-popover border-border/40 text-foreground">
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="paused">Paused</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="active">{t("goals.active")}</SelectItem>
+                    <SelectItem value="paused">{t("goals.paused")}</SelectItem>
+                    <SelectItem value="completed">{t("goals.completed")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -679,7 +709,7 @@ export default function Goals() {
                   {updateMutation.isPending ? (
                     <Loader2 className="h-5 w-5 animate-spin mx-auto" />
                   ) : (
-                    <span>Save Changes</span>
+                    <span>{t("common.saveChanges")}</span>
                   )}
                 </Button>
               </div>
@@ -695,9 +725,9 @@ export default function Goals() {
       >
         <AlertDialogContent className="rounded-3xl border border-border/40 bg-popover sm:max-w-100">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-lg font-bold">Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle className="text-lg font-bold">{t("transactions.confirmDeleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription className="text-sm">
-              This action cannot be undone. This will permanently delete your goal and reset its tracked progress.
+              {t("goals.deleteWarning")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -705,7 +735,7 @@ export default function Goals() {
               onClick={() => setGoalToDeleteId(null)}
               className="rounded-xl border border-border/40 hover:bg-secondary/40 cursor-pointer"
             >
-              Cancel
+              {t("common.cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
@@ -715,7 +745,7 @@ export default function Goals() {
               {deleteMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <span>Confirm</span>
+                <span>{t("common.confirm")}</span>
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

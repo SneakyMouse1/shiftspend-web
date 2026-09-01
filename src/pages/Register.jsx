@@ -17,8 +17,10 @@ import { Input } from "@/components/ui/input";
 import { registerSchema } from "@/lib/validations/auth";
 import { mapServerErrors } from "@/lib/mapServerErrors";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/hooks/useLanguage";
 
 export default function Register() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { register } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,12 +39,12 @@ export default function Register() {
     setIsSubmitting(true);
     try {
       const { user } = await register(values);
-      toast.success(`Welcome to Shift Spend, ${user.name}`);
+      toast.success(`${t("auth.registerTitle")}, ${user.name}`);
       navigate("/dashboard", { state: { showLoader: true } });
     } catch (error) {
       const handled = mapServerErrors(error, form.setError);
       if (!handled) {
-        toast.error(error?.message || "Something went wrong");
+        toast.error(error?.message || t("common.error"));
       }
     } finally {
       setIsSubmitting(false);
@@ -50,7 +52,7 @@ export default function Register() {
   }
 
   return (
-    <AuthLayout title="Create your account" subtitle="Start tracking your finances">
+    <AuthLayout title={t("auth.registerTitle")} subtitle={t("auth.registerSubtitle")}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
@@ -58,10 +60,10 @@ export default function Register() {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Name</FormLabel>
+                <FormLabel>{t("auth.nameLabel")}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Your name"
+                    placeholder={t("auth.namePlaceholder")}
                     autoComplete="name"
                     disabled={isSubmitting}
                     {...field}
@@ -77,11 +79,11 @@ export default function Register() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>{t("auth.emailLabel")}</FormLabel>
                 <FormControl>
                   <Input
                     type="email"
-                    placeholder="you@example.com"
+                    placeholder={t("auth.emailPlaceholder")}
                     autoComplete="email"
                     disabled={isSubmitting}
                     {...field}
@@ -97,11 +99,11 @@ export default function Register() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel>{t("auth.passwordLabel")}</FormLabel>
                 <FormControl>
                   <Input
                     type="password"
-                    placeholder="At least 8 characters"
+                    placeholder={t("auth.passwordPlaceholder")}
                     autoComplete="new-password"
                     disabled={isSubmitting}
                     {...field}
@@ -117,11 +119,11 @@ export default function Register() {
             name="password_confirmation"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Confirm password</FormLabel>
+                <FormLabel>{t("auth.confirmPasswordLabel")}</FormLabel>
                 <FormControl>
                   <Input
                     type="password"
-                    placeholder="••••••••"
+                    placeholder={t("auth.confirmPasswordPlaceholder")}
                     autoComplete="new-password"
                     disabled={isSubmitting}
                     {...field}
@@ -132,16 +134,16 @@ export default function Register() {
             )}
           />
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "Creating account..." : "Create account"}
+          <Button type="submit" className="w-full cursor-pointer" disabled={isSubmitting}>
+            {isSubmitting ? t("auth.registering") : t("auth.registerButton")}
           </Button>
         </form>
       </Form>
 
       <p className="text-sm text-muted-foreground text-center mt-6">
-        Already have an account?{" "}
+        {t("auth.hasAccount")}{" "}
         <Link to="/login" className="text-foreground font-medium hover:underline">
-          Log in
+          {t("auth.loginLink")}
         </Link>
       </p>
     </AuthLayout>

@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Clock, Loader2, FileText, FileSpreadsheet, Download, Trash2 } from "lucide-react";
+import { useTranslation } from "@/hooks/useLanguage";
 
 export default function RecentExports({
   exportsList,
@@ -7,19 +8,21 @@ export default function RecentExports({
   handleDownloadHistoryItem,
   deleteExportMutation,
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="bg-card/40 backdrop-blur-xl border border-border/40 rounded-3xl p-5 md:p-6 space-y-4 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-emerald-400" />
-          <h2 className="text-xs font-bold tracking-wider uppercase text-foreground">Recent Exports (24h Archive)</h2>
+          <h2 className="text-xs font-bold tracking-wider uppercase text-foreground">{t("reports.recentExports")}</h2>
         </div>
         {exportsLoading && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
       </div>
 
       {exportsList.length === 0 ? (
         <div className="py-4 text-center text-xs text-muted-foreground">
-          No active report exports stored. Generate a PDF, Excel, or CSV report above.
+          {t("reports.noExports")}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -79,10 +82,10 @@ export default function RecentExports({
                       <Clock className="h-3 w-3 shrink-0" />
                       <span>
                         {isPending
-                          ? "Processing..."
+                          ? t("common.loading")
                           : isFailed
-                          ? "Failed"
-                          : `Expires in ${diffHours}h ${diffMins}m`}
+                          ? "Error"
+                          : `${t("reports.expiresIn")} ${diffHours}h ${diffMins}m`}
                       </span>
                     </div>
                   </div>
@@ -95,7 +98,7 @@ export default function RecentExports({
                       variant="ghost"
                       onClick={() => handleDownloadHistoryItem(item)}
                       className="h-8 w-8 rounded-xl text-primary hover:bg-primary/10 cursor-pointer"
-                      title="Download file"
+                      title={t("reports.exportPdf")}
                     >
                       <Download className="h-4 w-4" />
                     </Button>
@@ -111,7 +114,7 @@ export default function RecentExports({
                     onClick={() => deleteExportMutation.mutate(item.key)}
                     disabled={deleteExportMutation.isPending}
                     className="h-8 w-8 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
-                    title="Delete export"
+                    title={t("common.delete")}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>

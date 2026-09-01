@@ -17,8 +17,10 @@ import { Input } from "@/components/ui/input";
 import { loginSchema } from "@/lib/validations/auth";
 import { mapServerErrors } from "@/lib/mapServerErrors";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/hooks/useLanguage";
 
 export default function Login() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { login } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,12 +34,12 @@ export default function Login() {
     setIsSubmitting(true);
     try {
       const { user } = await login(values);
-      toast.success(`Welcome back, ${user.name}`);
+      toast.success(`${t("auth.loginTitle")}, ${user.name}`);
       navigate("/dashboard", { state: { showLoader: true } });
     } catch (error) {
       const handled = mapServerErrors(error, form.setError);
       if (!handled) {
-        toast.error(error?.message || "Invalid email or password");
+        toast.error(error?.message || t("common.error"));
       } else if (error?.errors?.email) {
         form.setError("password", { type: "server", message: "" });
       }
@@ -47,7 +49,7 @@ export default function Login() {
   }
 
   return (
-    <AuthLayout title="Welcome back" subtitle="Log in to your account">
+    <AuthLayout title={t("auth.loginTitle")} subtitle={t("auth.loginSubtitle")}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
@@ -55,11 +57,11 @@ export default function Login() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>{t("auth.emailLabel")}</FormLabel>
                 <FormControl>
                   <Input
                     type="email"
-                    placeholder="you@example.com"
+                    placeholder={t("auth.emailPlaceholder")}
                     autoComplete="email"
                     disabled={isSubmitting}
                     {...field}
@@ -75,7 +77,7 @@ export default function Login() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel>{t("auth.passwordLabel")}</FormLabel>
                 <FormControl>
                   <Input
                     type="password"
@@ -90,16 +92,16 @@ export default function Login() {
             )}
           />
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "Logging in..." : "Log in"}
+          <Button type="submit" className="w-full cursor-pointer" disabled={isSubmitting}>
+            {isSubmitting ? t("auth.loggingIn") : t("auth.loginButton")}
           </Button>
         </form>
       </Form>
 
       <p className="text-sm text-muted-foreground text-center mt-6">
-        Don't have an account?{" "}
+        {t("auth.noAccount")}{" "}
         <Link to="/register" className="text-foreground font-medium hover:underline">
-          Sign up
+          {t("auth.registerLink")}
         </Link>
       </p>
     </AuthLayout>

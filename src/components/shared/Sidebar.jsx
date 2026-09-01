@@ -1,17 +1,21 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { Sun, Moon, LogOut } from "lucide-react";
+import { Sun, Moon, LogOut, Eye, EyeOff, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { navItems } from "@/lib/navigation";
 import { Logo } from "@/components/shared/Logo";
-
 import { useAuth } from "@/hooks/useAuth";
+import { usePrivacy } from "@/hooks/usePrivacy";
+import { useTranslation } from "@/hooks/useLanguage";
 
 export function Sidebar({ theme, toggleTheme }) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
 
   const userName = user?.name || "User";
   const avatarLetter = userName.charAt(0).toUpperCase();
+
+  const { isPrivate, togglePrivacy } = usePrivacy();
 
   const handleLogout = async () => {
     await logout();
@@ -21,9 +25,26 @@ export function Sidebar({ theme, toggleTheme }) {
   return (
     <aside className="hidden md:flex flex-col fixed left-0 top-0 h-screen w-64 border-r border-border/40 bg-card p-6 transition-all duration-300 z-40">
       {/* Logo */}
-      <NavLink to="/" className="group logo-container flex items-center gap-2 mb-8 hover:opacity-90 transition-opacity">
+      <NavLink to="/" className="group logo-container flex items-center gap-2 mb-6 hover:opacity-90 transition-opacity">
         <Logo className="h-20 w-auto text-income" />
       </NavLink>
+
+      {/* Quick Command Trigger */}
+      <button
+        type="button"
+        onClick={() => {
+          window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }));
+        }}
+        className="flex items-center justify-between w-full px-3.5 py-2.5 mb-5 rounded-2xl bg-secondary/40 hover:bg-secondary/70 border border-border/40 text-muted-foreground hover:text-foreground text-xs font-medium transition-all cursor-pointer"
+      >
+        <div className="flex items-center gap-2">
+          <Search className="h-3.5 w-3.5" />
+          <span>{t("common.quickActions")}</span>
+        </div>
+        <kbd className="px-1.5 py-0.5 font-mono text-[10px] font-bold bg-card border border-border/50 rounded-md">
+          ⌘K
+        </kbd>
+      </button>
 
       {/* Navigation links */}
       <nav className="flex-1 flex flex-col gap-1">
@@ -41,7 +62,7 @@ export function Sidebar({ theme, toggleTheme }) {
               }
             >
               <Icon className="h-4 w-4 shrink-0" />
-              <span>{item.label}</span>
+              <span>{item.translationKey ? t(item.translationKey) : item.label}</span>
             </NavLink>
           );
         })}
@@ -69,6 +90,19 @@ export function Sidebar({ theme, toggleTheme }) {
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={togglePrivacy}
+            className={`h-9 w-9 rounded-xl border border-border/20 transition-all duration-300 cursor-pointer ${
+              isPrivate ? "bg-amber-500/15 text-amber-500 hover:bg-amber-500/25" : "bg-secondary/50 text-muted-foreground hover:text-foreground hover:bg-secondary"
+            }`}
+            title={isPrivate ? "Disable privacy mode" : "Enable privacy mode (hide balances)"}
+            aria-label="Toggle privacy mode"
+          >
+            {isPrivate ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </Button>
+
           <Button
             variant="ghost"
             size="icon"
