@@ -1,20 +1,17 @@
 import { useState, useMemo } from "react";
 import { format, parseISO, subDays } from "date-fns";
-import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar,
-} from "recharts";
+import { Link } from "react-router-dom";
+import Chart from "react-apexcharts";
 import {
   ArrowUpRight, ArrowDownRight, PiggyBank,
-  RefreshCcw, AlertCircle,
+  RefreshCcw, AlertCircle, ArrowLeftRight, ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useAccounts } from "@/hooks/useAccounts";
+import { useIsDarkMode } from "@/hooks/useIsDarkMode";
 import { getAccountType } from "@/config/accountTypes";
 import { formatCurrency, formatCompact } from "@/config/currencies";
-
-
 
 function SkeletonBlock({ className = "" }) {
   return <div className={`animate-pulse rounded-2xl bg-secondary/40 ${className}`} />;
@@ -32,20 +29,33 @@ function DashboardSkeleton() {
       {/* Row 1: 3 equal cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="min-h-55 rounded-3xl border border-border/40 bg-card/50 p-6 flex flex-col justify-between">
+          <div key={i} className="min-h-48 rounded-3xl border border-border/40 bg-card/50 p-6 flex flex-col justify-between">
             <div className="space-y-2">
               <SkeletonBlock className="h-4 w-24" />
               <SkeletonBlock className="h-8 w-32" />
             </div>
-            <div className="h-12 flex items-center justify-between gap-4 border-t border-border/30 pt-2">
-              <SkeletonBlock className="h-6 w-full" />
-              <SkeletonBlock className="h-6 w-full" />
+            <div className="h-10 flex items-center justify-between gap-4 border-t border-border/30 pt-2">
+              <SkeletonBlock className="h-5 w-full" />
+              <SkeletonBlock className="h-5 w-full" />
             </div>
           </div>
         ))}
       </div>
 
-      {/* Row 2: Chart Area */}
+      {/* Row 2: Recent Activity (Full Width, 3 cols) */}
+      <div className="rounded-3xl border border-border/40 bg-card/50 p-6 space-y-4">
+        <div className="flex justify-between items-center">
+          <SkeletonBlock className="h-5 w-36" />
+          <SkeletonBlock className="h-4 w-20" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <SkeletonBlock key={i} className="h-14 w-full" />
+          ))}
+        </div>
+      </div>
+
+      {/* Row 3: Chart Area */}
       <div className="rounded-3xl border border-border/40 bg-card/50 p-6 space-y-4">
         <div className="flex justify-between items-center">
           <div className="space-y-2 flex-1">
@@ -60,25 +70,17 @@ function DashboardSkeleton() {
         <SkeletonBlock className="h-65 w-full" />
       </div>
 
-      {/* Row 3: 3 detailed widget cards */}
+      {/* Row 4: 3 detailed widget cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Top Categories Skeleton */}
         <div className="rounded-3xl border border-border/40 bg-card/50 p-6 space-y-4 h-64">
           <SkeletonBlock className="h-5 w-32" />
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="space-y-1">
-                <div className="flex justify-between">
-                  <SkeletonBlock className="h-4 w-20" />
-                  <SkeletonBlock className="h-4 w-12" />
-                </div>
-                <SkeletonBlock className="h-2 w-full" />
-              </div>
+              <SkeletonBlock key={i} className="h-8 w-full" />
             ))}
           </div>
         </div>
 
-        {/* Asset Allocation Skeleton */}
         <div className="rounded-3xl border border-border/40 bg-card/50 p-6 space-y-4 h-64">
           <SkeletonBlock className="h-5 w-36" />
           <div className="flex items-center gap-6 pt-2">
@@ -86,78 +88,19 @@ function DashboardSkeleton() {
             <div className="flex-1 space-y-2">
               <SkeletonBlock className="h-3 w-full" />
               <SkeletonBlock className="h-3 w-2/3" />
-              <SkeletonBlock className="h-3 w-1/2" />
             </div>
           </div>
         </div>
 
-        {/* Weekly Pulse Skeleton */}
-        <div className="rounded-3xl border border-border/40 bg-card/50 p-6 space-y-4 h-64 flex flex-col justify-between">
+        <div className="rounded-3xl border border-border/40 bg-card/50 p-6 space-y-4 h-64">
           <SkeletonBlock className="h-5 w-28" />
-          <div className="h-32 flex items-end gap-3 justify-center pb-2">
-            {[30, 60, 45, 90, 50, 75, 40].map((h, i) => (
-              <SkeletonBlock key={i} className="w-3 rounded" style={{ height: `${h}%` }} />
-            ))}
-          </div>
+          <SkeletonBlock className="h-36 w-full" />
         </div>
       </div>
     </div>
   );
 }
 
-const CustomAreaTooltip = ({ active, payload, label }) => {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="bg-card border border-border/40 rounded-xl p-3 text-xs shadow-lg space-y-1.5">
-      <p className="font-bold text-muted-foreground">{label}</p>
-      {payload.map((p) => (
-        <div key={p.dataKey} className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
-          <span className="text-muted-foreground capitalize">{p.dataKey}:</span>
-          <span className="font-mono font-bold">{formatCompact(p.value)}</span>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-const CustomBarTooltip = ({ active, payload, label }) => {
-  if (!active || !payload?.length) return null;
-  const expense = payload.find((p) => p.dataKey === "expense")?.value ?? 0;
-  const income = payload.find((p) => p.dataKey === "income")?.value ?? 0;
-  return (
-    <div className="bg-card border border-border/40 rounded-xl p-3 text-xs shadow-lg space-y-1.5">
-      <p className="font-bold text-muted-foreground">{label}</p>
-      <div className="flex items-center gap-2">
-        <span className="h-2 w-2 rounded-full bg-expense shrink-0" />
-        <span className="text-muted-foreground">Expense:</span>
-        <span className="font-mono font-bold text-expense">{formatCompact(expense)}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="h-2 w-2 rounded-full bg-income shrink-0" />
-        <span className="text-muted-foreground">Income:</span>
-        <span className="font-mono font-bold text-income">{formatCompact(income)}</span>
-      </div>
-    </div>
-  );
-};
-
-const CustomPieTooltip = ({ active, payload }) => {
-  if (!active || !payload?.length) return null;
-  const entry = payload[0];
-  return (
-    <div className="bg-card border border-border/40 rounded-xl p-3 text-xs shadow-lg space-y-1">
-      <p className="font-bold">{entry.name}</p>
-      <p className="text-muted-foreground">
-        <span className="font-mono font-bold text-foreground">{formatCompact(entry.value, entry.payload.currency)}</span>
-        {" "}·{" "}
-        <span className="font-mono">{entry.payload.percent}%</span>
-      </p>
-    </div>
-  );
-};
-
-// Pure helpers — no deps on component state, safe to define at module level
 const getTransactionColor = (type) => {
   if (type === "income") return "text-income";
   if (type === "expense") return "text-expense";
@@ -170,22 +113,13 @@ const getTransactionPrefix = (type) => {
   return "";
 };
 
-// Stable tooltip element references — prevents Recharts from remounting
-// the tooltip on every render when content={<Component />} creates a new ref
-const AREA_TOOLTIP = <CustomAreaTooltip />;
-const BAR_TOOLTIP = <CustomBarTooltip />;
-const PIE_TOOLTIP = <CustomPieTooltip />;
-
 export default function Dashboard() {
+  const isDark = useIsDarkMode();
   const { data, isLoading, isError, refetch } = useDashboard();
   const { data: accounts = [] } = useAccounts();
   const [activeAllocationSlice, setActiveAllocationSlice] = useState(null);
 
-  // Data extracted with safe defaults — works even when data is undefined (loading/error)
   const summary = data?.summary ?? {};
-
-  // Wrapped in useMemo: "?? []" would otherwise create a NEW array on every render,
-  // making all downstream useMemo hooks think their deps changed and recomputing needlessly
   const chartRaw = useMemo(() => data?.chart ?? [], [data]);
   const topCategories = useMemo(() => data?.top_categories ?? [], [data]);
   const recentTx = useMemo(() => data?.recent_transactions ?? [], [data]);
@@ -196,9 +130,6 @@ export default function Dashboard() {
   const monthSavings = summary.month_savings ?? 0;
   const primaryCurrency = summary.balances?.[0]?.currency_code ?? "EUR";
 
-  // useMemo: these are expensive derivations — recompute only when source data changes,
-  // not on every render (e.g. clicking the allocation pie triggers a re-render too)
-  // NOTE: all useMemo calls are before early returns — required by Rules of Hooks
   const chartData = useMemo(
     () => chartRaw.map((item) => ({ ...item, label: format(parseISO(item.date), "MMM d") })),
     [chartRaw]
@@ -214,11 +145,6 @@ export default function Dashboard() {
       return { label, expense: found?.expense ?? 0, income: found?.income ?? 0 };
     });
   }, [chartRaw]);
-
-  const maxWeekly = useMemo(
-    () => Math.max(...weeklyData.map((d) => d.expense), 1),
-    [weeklyData]
-  );
 
   const allocationData = useMemo(() => {
     const activeAccounts = accounts.filter((a) => !a.is_archived && a.balance > 0);
@@ -247,6 +173,193 @@ export default function Dashboard() {
     [topCategories]
   );
 
+  // ApexCharts Configs
+  const areaSeries = useMemo(() => [
+    { name: "Income", data: chartData.map((d) => d.income) },
+    { name: "Expense", data: chartData.map((d) => d.expense) },
+  ], [chartData]);
+
+  const areaOptions = useMemo(() => ({
+    chart: {
+      type: "area",
+      toolbar: { show: false },
+      background: "transparent",
+      fontFamily: "Inter, sans-serif",
+      zoom: { enabled: false },
+    },
+    colors: isDark ? ["#4ADE80", "#FB923C"] : ["#16A34A", "#EA580C"],
+    dataLabels: { enabled: false },
+    stroke: { curve: "smooth", width: 2.5 },
+    fill: {
+      type: "gradient",
+      gradient: {
+        shadeIntensity: 1,
+        opacityFrom: isDark ? 0.35 : 0.25,
+        opacityTo: 0.02,
+        stops: [0, 95, 100],
+      },
+    },
+    grid: {
+      borderColor: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)",
+      strokeDashArray: 3,
+      xaxis: { lines: { show: false } },
+      yaxis: { lines: { show: true } },
+    },
+    xaxis: {
+      categories: chartData.map((d) => d.label),
+      tickAmount: chartData.length > 20 ? 6 : Math.min(chartData.length, 6),
+      labels: {
+        style: {
+          colors: isDark ? "#9CA3AF" : "#64748B",
+          fontSize: "11px",
+        },
+        rotate: 0,
+        rotateAlways: false,
+        hideOverlappingLabels: true,
+        showDuplicates: false,
+      },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+      tooltip: { enabled: false },
+    },
+    yaxis: {
+      labels: {
+        style: {
+          colors: isDark ? "#9CA3AF" : "#64748B",
+          fontSize: "11px",
+        },
+        formatter: (val) => formatCompact(val, primaryCurrency),
+      },
+    },
+    tooltip: {
+      theme: isDark ? "dark" : "light",
+      x: { show: true },
+      y: {
+        formatter: (val) => formatCurrency(val, primaryCurrency),
+      },
+    },
+    legend: { show: false },
+    responsive: [{
+      breakpoint: 640,
+      options: {
+        chart: { height: 220 },
+        xaxis: {
+          tickAmount: 3,
+          labels: {
+            style: { fontSize: "10px" },
+            rotate: 0,
+          },
+        },
+        yaxis: { labels: { style: { fontSize: "10px" } } },
+      },
+    }],
+  }), [isDark, chartData, primaryCurrency]);
+
+  const donutSeries = useMemo(() => allocationData.map((d) => d.value), [allocationData]);
+  const donutOptions = useMemo(() => ({
+    chart: {
+      type: "donut",
+      background: "transparent",
+      fontFamily: "Inter, sans-serif",
+    },
+    labels: allocationData.map((d) => d.name),
+    colors: allocationData.map((d) => d.color),
+    dataLabels: { enabled: false },
+    legend: { show: false },
+    stroke: {
+      show: true,
+      colors: [isDark ? "#131316" : "#FFFFFF"],
+      width: 2,
+    },
+    plotOptions: {
+      pie: {
+        donut: {
+          size: "72%",
+          labels: {
+            show: true,
+            total: {
+              show: true,
+              label: "Total",
+              fontSize: "11px",
+              fontWeight: 600,
+              color: isDark ? "#9CA3AF" : "#64748B",
+              formatter: () => formatCompact(totalBalance, primaryCurrency),
+            },
+            value: {
+              fontSize: "15px",
+              fontWeight: 700,
+              color: isDark ? "#F3F4F6" : "#0F172A",
+              formatter: (val) => formatCompact(val, primaryCurrency),
+            },
+          },
+        },
+      },
+    },
+    tooltip: {
+      theme: isDark ? "dark" : "light",
+      y: {
+        formatter: (val) => formatCurrency(val, primaryCurrency),
+      },
+    },
+  }), [isDark, allocationData, totalBalance, primaryCurrency]);
+
+  const weeklySeries = useMemo(() => [
+    { name: "Spent", data: weeklyData.map((d) => d.expense) },
+    { name: "Earned", data: weeklyData.map((d) => d.income) },
+  ], [weeklyData]);
+
+  const weeklyOptions = useMemo(() => ({
+    chart: {
+      type: "bar",
+      toolbar: { show: false },
+      background: "transparent",
+      fontFamily: "Inter, sans-serif",
+    },
+    colors: isDark ? ["#FB923C", "#4ADE80"] : ["#EA580C", "#16A34A"],
+    plotOptions: {
+      bar: {
+        horizontal: false,
+        columnWidth: "55%",
+        borderRadius: 4,
+        borderRadiusApplication: "end",
+      },
+    },
+    dataLabels: { enabled: false },
+    grid: {
+      borderColor: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)",
+      strokeDashArray: 3,
+      xaxis: { lines: { show: false } },
+      yaxis: { lines: { show: true } },
+    },
+    xaxis: {
+      categories: weeklyData.map((d) => d.label),
+      labels: {
+        style: {
+          colors: isDark ? "#9CA3AF" : "#64748B",
+          fontSize: "10px",
+        },
+      },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+    },
+    yaxis: {
+      labels: {
+        style: {
+          colors: isDark ? "#9CA3AF" : "#64748B",
+          fontSize: "10px",
+        },
+        formatter: (val) => formatCompact(val, primaryCurrency),
+      },
+    },
+    tooltip: {
+      theme: isDark ? "dark" : "light",
+      y: {
+        formatter: (val) => formatCurrency(val, primaryCurrency),
+      },
+    },
+    legend: { show: false },
+  }), [isDark, weeklyData, primaryCurrency]);
+
   if (isLoading) return <DashboardSkeleton />;
 
   if (isError) {
@@ -266,50 +379,56 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-5 pb-20 md:pb-0">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">
-            {summary.period
-              ? `${format(parseISO(summary.period.from), "MMM d")} – ${format(parseISO(summary.period.to), "MMM d, yyyy")}`
-              : "Your financial overview"}
-          </p>
-        </div>
+      <div>
+        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Financial Overview</h1>
+        <p className="text-xs sm:text-sm text-muted-foreground">Your real-time wealth metrics & activity</p>
       </div>
 
-      {/* Bento Grid — Row 1: 3 equal columns */}
+      {/* Bento Grid — Row 1: 3 Balanced KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Net Worth — spans 2 cols */}
-        <section className="min-h-55 rounded-3xl border border-border/40 bg-card p-6 shadow-sm flex flex-col justify-between space-y-4">
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Total Net Worth</span>
-            <div className="flex items-end gap-3 mt-1">
-              <h2 className="text-4xl font-extrabold tracking-tight font-mono glow-balance">
-                {formatCurrency(totalBalance, primaryCurrency)}
-              </h2>
+        {/* Net Worth */}
+        <section className="rounded-3xl border border-border/40 bg-card p-5 sm:p-6 shadow-sm flex flex-col justify-between space-y-4">
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Total Net Worth</span>
+            <div className="text-2xl sm:text-3xl font-extrabold tracking-tight font-mono text-foreground">
+              {formatCurrency(totalBalance, primaryCurrency)}
             </div>
           </div>
+          <div className="border-t border-border/30 pt-3 flex items-center justify-between text-xs text-muted-foreground">
+            <span>Primary Currency</span>
+            <span className="font-bold text-foreground font-mono bg-secondary/60 px-2 py-0.5 rounded-md">
+              {primaryCurrency}
+            </span>
+          </div>
+        </section>
 
-          <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/30">
+        {/* Monthly Flow KPI */}
+        <section className="rounded-3xl border border-border/40 bg-card p-5 sm:p-6 shadow-sm flex flex-col justify-between space-y-4">
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">This Month Flow</span>
+            <div className="text-xs text-muted-foreground mt-0.5">Summary of all registered activity</div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-1 pt-3 border-t border-border/30">
             <div className="flex flex-col items-center space-y-0.5">
               <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Income</span>
-              <div className="text-income font-bold text-base flex items-center gap-0.5 font-mono">
+              <div className="text-income font-bold text-sm sm:text-base flex items-center gap-0.5 font-mono">
                 <ArrowUpRight className="h-4 w-4 shrink-0" />
                 {formatCompact(monthIncome, primaryCurrency)}
               </div>
             </div>
             <div className="flex flex-col items-center space-y-0.5 border-x border-border/30">
               <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Expenses</span>
-              <div className="text-expense font-bold text-base flex items-center gap-0.5 font-mono">
+              <div className="text-expense font-bold text-sm sm:text-base flex items-center gap-0.5 font-mono">
                 <ArrowDownRight className="h-4 w-4 shrink-0" />
                 {formatCompact(monthExpense, primaryCurrency)}
               </div>
             </div>
             <div className="flex flex-col items-center space-y-0.5">
               <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Saved</span>
-              <div className="text-chart-3 font-bold text-base flex items-center gap-0.5 font-mono">
+              <div className="text-chart-3 font-bold text-sm sm:text-base flex items-center gap-0.5 font-mono">
                 <PiggyBank className="h-4 w-4 shrink-0" />
                 {formatCompact(monthSavings, primaryCurrency)}
               </div>
@@ -318,10 +437,16 @@ export default function Dashboard() {
         </section>
 
         {/* Accounts list */}
-        <section className="min-h-55 rounded-3xl border border-border/40 bg-card p-5 shadow-sm flex flex-col gap-2 overflow-hidden">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Accounts</span>
-          <div className="flex flex-col gap-2 overflow-y-auto max-h-40">
-            {accounts.filter((a) => !a.is_archived).slice(0, 5).map((acc) => {
+        <section className="rounded-3xl border border-border/40 bg-card p-5 shadow-sm flex flex-col justify-between gap-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Accounts</span>
+            <Link to="/accounts" className="text-xs text-muted-foreground hover:text-foreground font-semibold flex items-center gap-0.5">
+              <span>View all</span>
+              <ChevronRight className="h-3 w-3" />
+            </Link>
+          </div>
+          <div className="flex flex-col gap-2">
+            {accounts.filter((a) => !a.is_archived).slice(0, 4).map((acc) => {
               const Icon = getAccountType(acc.type).icon;
               return (
                 <div key={acc.id} className="flex items-center justify-between gap-2">
@@ -339,33 +464,74 @@ export default function Dashboard() {
             })}
           </div>
         </section>
+      </div>
 
-        {/* Recent Transactions mini */}
-        <section className="min-h-55 rounded-3xl border border-border/40 bg-card p-5 shadow-sm flex flex-col gap-2 overflow-hidden">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Recent Activity</span>
-          <div className="flex flex-col gap-2 overflow-y-auto max-h-40">
-            {recentTx.slice(0, 5).map((tx) => (
-              <div key={tx.id} className="flex items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold truncate">
-                    {tx.comment || tx.category || (tx.type === "transfer" ? "Transfer" : "—")}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground">{tx.account}</p>
+      {/* Row 2: Recent Activity (Full Width with 3 Columns, No Scrollbar) */}
+      <section className="rounded-3xl border border-border/40 bg-card p-5 sm:p-6 shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-base sm:text-lg font-bold">Recent Activity</h2>
+            <p className="text-xs text-muted-foreground">Latest registered transactions</p>
+          </div>
+          <Link
+            to="/transactions"
+            className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1 bg-secondary/50 hover:bg-secondary px-3 py-1.5 rounded-xl border border-border/30 transition-all"
+          >
+            <span>All Transactions</span>
+            <ChevronRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+
+        {recentTx.length === 0 ? (
+          <p className="text-xs text-muted-foreground py-6 text-center">No recent transactions found</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {recentTx.slice(0, 9).map((tx) => (
+              <div
+                key={tx.id}
+                className="p-3 sm:p-3.5 rounded-2xl bg-secondary/30 border border-border/30 hover:border-border/60 hover:bg-secondary/50 transition-all flex items-center justify-between gap-3 min-w-0"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div
+                    className={`h-8 w-8 rounded-xl flex items-center justify-center shrink-0 ${
+                      tx.type === "income"
+                        ? "bg-income/10 text-income"
+                        : tx.type === "expense"
+                        ? "bg-expense/10 text-expense"
+                        : "bg-chart-3/10 text-chart-3"
+                    }`}
+                  >
+                    {tx.type === "income" ? (
+                      <ArrowUpRight className="h-4 w-4" />
+                    ) : tx.type === "expense" ? (
+                      <ArrowDownRight className="h-4 w-4" />
+                    ) : (
+                      <ArrowLeftRight className="h-4 w-4" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm font-semibold truncate text-foreground">
+                      {tx.comment || tx.category || (tx.type === "transfer" ? "Transfer" : "—")}
+                    </p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
+                      {tx.date ? format(parseISO(tx.date), "MMM d") : ""} · {tx.account || "Account"}
+                    </p>
+                  </div>
                 </div>
-                <span className={`text-xs font-mono font-bold shrink-0 ${getTransactionColor(tx.type)}`}>
+                <span className={`text-xs sm:text-sm font-mono font-bold shrink-0 ${getTransactionColor(tx.type)}`}>
                   {getTransactionPrefix(tx.type)}{formatCompact(tx.amount, tx.currency_code)}
                 </span>
               </div>
             ))}
           </div>
-        </section>
-      </div>
+        )}
+      </section>
 
-      {/* Bento Grid — Row 2: Area Chart (full width) */}
-      <section className="rounded-3xl border border-border/40 bg-card p-6 shadow-sm space-y-4">
+      {/* Row 3: Area Chart (Income vs Expenses) */}
+      <section className="rounded-3xl border border-border/40 bg-card p-4 sm:p-6 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold">Income vs Expenses</h2>
+            <h2 className="text-base sm:text-lg font-bold">Income vs Expenses</h2>
             <p className="text-xs text-muted-foreground">Daily activity — last 30 days</p>
           </div>
           <div className="flex items-center gap-4 text-xs font-semibold">
@@ -380,46 +546,27 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="h-65 w-full">
+        <div className="h-64 sm:h-72 w-full">
           {chartData.length === 0 ? (
             <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
               No chart data for this period
             </div>
           ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="incomeGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--income)" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="var(--income)" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="expenseGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--expense)" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="var(--expense)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.3} />
-                <XAxis dataKey="label" tickLine={false} axisLine={false} stroke="var(--muted-foreground)" fontSize={11} />
-                <YAxis tickLine={false} axisLine={false} stroke="var(--muted-foreground)" fontSize={11} tickFormatter={(v) => formatCompact(v)} />
-                <Tooltip content={AREA_TOOLTIP} />
-                <Area type="monotone" dataKey="income" stroke="var(--income)" strokeWidth={2} fillOpacity={1} fill="url(#incomeGrad)" dot={false} activeDot={{ r: 4 }} />
-                <Area type="monotone" dataKey="expense" stroke="var(--expense)" strokeWidth={2} fillOpacity={1} fill="url(#expenseGrad)" dot={false} activeDot={{ r: 4 }} />
-              </AreaChart>
-            </ResponsiveContainer>
+            <Chart options={areaOptions} series={areaSeries} type="area" height="100%" />
           )}
         </div>
 
         <div className="border-t border-border/30 pt-3 grid grid-cols-2 gap-4">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Total Inflow</span>
-            <span className="text-income font-bold text-lg font-mono flex items-center gap-0.5">
+            <span className="text-income font-bold text-base sm:text-lg font-mono flex items-center gap-0.5">
               <ArrowUpRight className="h-4 w-4 shrink-0" />
               {formatCurrency(monthIncome, primaryCurrency)}
             </span>
           </div>
           <div>
             <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Total Outflow</span>
-            <span className="text-expense font-bold text-lg font-mono flex items-center gap-0.5">
+            <span className="text-expense font-bold text-base sm:text-lg font-mono flex items-center gap-0.5">
               <ArrowDownRight className="h-4 w-4 shrink-0" />
               {formatCurrency(monthExpense, primaryCurrency)}
             </span>
@@ -427,7 +574,7 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* Bento Grid — Row 3: Top Categories + Asset Allocation + Weekly Pulse */}
+      {/* Row 4: Top Categories + Asset Allocation + Weekly Pulse */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Top Categories */}
         <section className="rounded-3xl border border-border/40 bg-card p-6 shadow-sm space-y-4">
@@ -476,44 +623,12 @@ export default function Dashboard() {
           {allocationData.length === 0 ? (
             <p className="text-sm text-muted-foreground py-8 text-center">No accounts with balance</p>
           ) : (
-            <div className="flex items-center gap-4">
-              <div className="relative h-35 w-35 shrink-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={allocationData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={42}
-                      outerRadius={62}
-                      paddingAngle={3}
-                      dataKey="value"
-                      onClick={(_, index) =>
-                        setActiveAllocationSlice(activeAllocationSlice === index ? null : index)
-                      }
-                      stroke="none"
-                    >
-                      {allocationData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={entry.color}
-                          opacity={activeAllocationSlice === null || activeAllocationSlice === index ? 1 : 0.3}
-                          style={{ cursor: "pointer", transition: "opacity 0.2s" }}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip content={PIE_TOOLTIP} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Total</span>
-                  <span className="text-base font-bold font-mono">
-                    {formatCompact(totalBalance, primaryCurrency)}
-                  </span>
-                </div>
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <div className="relative h-44 w-44 shrink-0 mx-auto">
+                <Chart options={donutOptions} series={donutSeries} type="donut" height="100%" />
               </div>
 
-              <div className="flex-1 space-y-2 min-w-0">
+              <div className="flex-1 space-y-2 min-w-0 w-full">
                 {allocationData.map((entry, index) => (
                   <button
                     key={entry.name}
@@ -553,24 +668,8 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground">Spending & income — last 7 days</p>
           </div>
 
-          <div className="h-35 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={weeklyData} barSize={10} barGap={4}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.2} />
-                <XAxis dataKey="label" axisLine={false} tickLine={false} stroke="var(--muted-foreground)" fontSize={10} />
-                <Tooltip content={BAR_TOOLTIP} cursor={{ fill: "var(--secondary)", opacity: 0.4 }} />
-                <Bar dataKey="expense" radius={[4, 4, 0, 0]}>
-                  {weeklyData.map((entry, index) => (
-                    <Cell
-                      key={`expense-${index}`}
-                      fill={entry.expense === maxWeekly && entry.expense > 0 ? "var(--expense)" : "var(--muted)"}
-                    />
-                  ))}
-                </Bar>
-                {/* All income bars share the same static color — no need for per-item Cell map */}
-                <Bar dataKey="income" radius={[4, 4, 0, 0]} fill="var(--income)" fillOpacity={0.5} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="h-40 w-full">
+            <Chart options={weeklyOptions} series={weeklySeries} type="bar" height="100%" />
           </div>
 
           <div className="border-t border-border/30 pt-3 flex items-center justify-between text-xs">

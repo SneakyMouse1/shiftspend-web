@@ -137,37 +137,39 @@ export default function Categories() {
 
         <>
 
-          {/* Switch Expenses/Income */}
-          <div className="grid grid-cols-2 gap-2 p-1.5 rounded-xl bg-secondary/30 border border-border/40 w-full">
+          {/* Switch Expenses/Income - Modern Segmented Control */}
+          <div className="flex sm:inline-flex p-1 rounded-2xl bg-secondary/80 border border-border/80 w-full sm:w-auto shadow-inner">
             <button
               type="button"
               onClick={() => setActiveTab("expense")}
-              className={`py-2 text-sm font-semibold rounded-lg transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5 ${activeTab === "expense"
-                ? "bg-card border-expense/30 text-expense glow-expense drop-shadow-[0_0_10px_rgba(251,146,60,0.15)]"
-                : "bg-card border-border text-foreground"
+              className={`flex-1 sm:flex-initial py-2 px-5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 ${activeTab === "expense"
+                ? "bg-card text-orange-600 dark:text-orange-400 font-bold shadow-xs border border-orange-500/30"
+                : "text-muted-foreground hover:text-foreground border border-transparent"
                 }`}
             >
-              <span>Expense</span>
-              <span className="hidden sm:inline">Categories</span>
-              <span className="text-xs opacity-80">({expenseCategories.length})</span>
+              <span>Expense Categories</span>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${activeTab === "expense" ? "bg-orange-500/15 text-orange-600 dark:text-orange-400" : "bg-secondary text-muted-foreground"}`}>
+                {expenseCategories.length}
+              </span>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveTab("income")}
-              className={`py-2 text-sm font-semibold rounded-lg transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5 ${activeTab === "income"
-                ? "bg-card border-income/30 text-income glow-income drop-shadow-[0_0_10px_rgba(74,222,128,0.15)]"
-                : "bg-card border-border text-foreground"
+              className={`flex-1 sm:flex-initial py-2 px-5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 ${activeTab === "income"
+                ? "bg-card text-emerald-600 dark:text-emerald-400 font-bold shadow-xs border border-emerald-500/30"
+                : "text-muted-foreground hover:text-foreground border border-transparent"
                 }`}
             >
-              <span>Income</span>
-              <span className="hidden sm:inline">Categories</span>
-              <span className="text-xs opacity-80">({incomeCategories.length})</span>
+              <span>Income Categories</span>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${activeTab === "income" ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" : "bg-secondary text-muted-foreground"}`}>
+                {incomeCategories.length}
+              </span>
             </button>
           </div>
 
-          {/* Category List Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+          {/* Category List Grid: 2 per row on mobile, 6 per row on PC */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 mt-6">
             {(activeTab === "expense" ? expenseCategories : incomeCategories).map((category) => {
               const IconComponent = getIconComponent(category.icon);
               const isExpense = activeTab === "expense";
@@ -176,37 +178,38 @@ export default function Categories() {
                 <div
                   key={category.id}
                   onClick={() => setSelectedCategory(category)}
-                  className={`flex flex-col justify-between p-5 rounded-2xl bg-card border border-border/40 hover:border-border transition-all duration-300 cursor-pointer ${isExpense ? "hover-glow-expense" : "hover-glow-income"
-                    }`}
+                  className="flex flex-col justify-between p-3.5 sm:p-4 rounded-2xl bg-card border border-border/80 hover:border-border shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer group"
                 >
-                  <div className="flex items-start justify-between mb-8">
+                  <div className="flex items-start justify-between gap-1 mb-4 sm:mb-6">
                     <div
-                      className="p-3 rounded-xl"
+                      className="p-2 sm:p-2.5 rounded-xl shrink-0 transition-transform group-hover:scale-105"
                       style={{ color: category.color, backgroundColor: `${category.color}15` }}
                     >
-                      <IconComponent className="h-6 w-6" />
+                      <IconComponent className="h-5 w-5" />
                     </div>
 
                     {!category.is_default ? (
                       <span
-                        className={`px-2.5 py-1 rounded-md border text-xs font-medium ${isExpense
-                          ? "border-expense text-expense bg-expense/10"
-                          : "border-income text-income bg-income/10"
+                        className={`px-1.5 sm:px-2 py-0.5 rounded-md border text-[10px] sm:text-xs font-semibold shrink-0 ${isExpense
+                          ? "border-expense/40 text-expense bg-expense/10"
+                          : "border-income/40 text-income bg-income/10"
                           }`}
                       >
                         Custom
                       </span>
                     ) : (
-                      <div className="p-2 rounded-lg bg-secondary/50 text-muted-foreground">
-                        <Lock className="h-4 w-4" />
+                      <div className="p-1 sm:p-1.5 rounded-lg bg-secondary/80 text-muted-foreground shrink-0">
+                        <Lock className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                       </div>
                     )}
                   </div>
 
-                  <div>
-                    <h3 className="text-lg font-semibold text-foreground">{category.name}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {!category.is_default ? "Your custom category" : "Protected"}
+                  <div className="min-w-0">
+                    <h3 className="text-xs sm:text-sm font-semibold text-foreground truncate" title={category.name}>
+                      {category.name}
+                    </h3>
+                    <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 truncate">
+                      {!category.is_default ? "Custom" : "Protected"}
                     </p>
                   </div>
                 </div>
@@ -245,13 +248,13 @@ export default function Categories() {
               {/* Choosing type of category - Expense / Income */}
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Category Type</label>
-                <div className="grid grid-cols-2 gap-2 p-1.5 rounded-xl bg-secondary/30 border border-border/40">
+                <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-secondary/80 border border-border/80 shadow-inner">
                   <button
                     type="button"
                     onClick={() => setNewCategory(prev => ({ ...prev, type: "expense" }))}
-                    className={`py-2 text-sm font-semibold rounded-lg transition-all duration-300 cursor-pointer ${newCategory.type === "expense"
-                      ? "bg-card border-expense/30 text-expense glow-expense drop-shadow-[0_0_10px_rgba(251,146,60,0.15)]"
-                      : "text-muted-foreground/60 hover:text-foreground"
+                    className={`py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5 ${newCategory.type === "expense"
+                      ? "bg-card text-orange-600 dark:text-orange-400 font-bold shadow-xs border border-orange-500/30"
+                      : "text-muted-foreground hover:text-foreground border border-transparent"
                       }`}
                   >
                     Expense
@@ -259,9 +262,9 @@ export default function Categories() {
                   <button
                     type="button"
                     onClick={() => setNewCategory(prev => ({ ...prev, type: "income" }))}
-                    className={`py-2 text-sm font-semibold rounded-lg transition-all cursor-pointer ${newCategory.type === "income"
-                      ? "bg-card border-income/30 text-income glow-income drop-shadow-[0_0_10px_rgba(74,222,128,0.15)]"
-                      : "text-muted-foreground/60 hover:text-foreground"
+                    className={`py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5 ${newCategory.type === "income"
+                      ? "bg-card text-emerald-600 dark:text-emerald-400 font-bold shadow-xs border border-emerald-500/30"
+                      : "text-muted-foreground hover:text-foreground border border-transparent"
                       }`}
                   >
                     Income

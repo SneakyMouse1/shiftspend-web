@@ -11,41 +11,41 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  /* Light theme values */
-  --background: #FFFFFF;
-  --foreground: #09090B;
+  /* Light theme values - soft, modern palette easy on the eyes with clear surface elevation */
+  --background: #F1F3F6;
+  --foreground: #0F172A;
 
   --card: #FFFFFF;
-  --card-foreground: #09090B;
+  --card-foreground: #0F172A;
 
   --popover: #FFFFFF;
-  --popover-foreground: #09090B;
+  --popover-foreground: #0F172A;
 
-  --primary: #09090B;
+  --primary: #0F172A;
   --primary-foreground: #FFFFFF;
 
-  --secondary: #F4F4F5;
-  --secondary-foreground: #09090B;
+  --secondary: #E2E8F0;
+  --secondary-foreground: #0F172A;
 
-  --muted: #F4F4F5;
-  --muted-foreground: #71717A;
+  --muted: #E2E8F0;
+  --muted-foreground: #64748B;
 
-  --accent: #F4F4F5;
-  --accent-foreground: #09090B;
+  --accent: #E2E8F0;
+  --accent-foreground: #0F172A;
 
   --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
 
-  --border: #E4E4E7;
-  --input: #E4E4E7;
+  --border: #CBD5E1;
+  --input: #CBD5E1;
 
-  --ring: #A1A1AA;
+  --ring: #94A3B8;
   --radius: 0.75rem;
 
   /* Custom colors for light mode (contrast compliant) */
   --income: #16A34A;
   --expense: #EA580C;
-  --balance: #09090B;
+  --balance: #0F172A;
 
   /* Chart colors for light mode */
   --chart-1: #16A34A;
@@ -214,6 +214,57 @@
 .dark input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(1) brightness(0.9);
   cursor: pointer;
+}
+
+/* ApexCharts Styling */
+.apexcharts-canvas {
+  margin: 0 auto;
+}
+
+.apexcharts-tooltip {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--foreground) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.dark .apexcharts-tooltip {
+  background: rgba(19, 19, 22, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+}
+
+.apexcharts-tooltip-title {
+  background: var(--secondary) !important;
+  border-bottom: 1px solid var(--border) !important;
+  font-weight: 700 !important;
+  font-family: inherit !important;
+  color: var(--foreground) !important;
+  padding: 6px 12px !important;
+}
+
+.dark .apexcharts-tooltip-title {
+  background: rgba(28, 28, 31, 0.8) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: var(--foreground) !important;
+}
+
+.apexcharts-tooltip-series-group {
+  padding: 4px 10px !important;
+}
+
+.apexcharts-xaxistooltip, .apexcharts-yaxistooltip {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--foreground) !important;
+  border-radius: 0.5rem !important;
+}
+
+.dark .apexcharts-xaxistooltip, .dark .apexcharts-yaxistooltip {
+  background: #1C1C1F !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 /* Animated SVG Logo */

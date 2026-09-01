@@ -182,7 +182,7 @@ export default function Goals() {
         </div>
         <Button
           onClick={handleOpenCreate}
-          className="bg-muted text-primary hover:bg-muted/90 font-semibold shadow-md hover-glow-income rounded-xl cursor-pointer hidden md:flex items-center"
+          className="bg-muted text-primary hover:bg-muted/90 font-semibold shadow-md rounded-xl cursor-pointer hidden md:flex items-center"
         >
           <Plus className="h-4 w-4 mr-1" />
           <span>New Goal</span>
@@ -244,8 +244,8 @@ export default function Goals() {
                   <div
                     key={goal.id}
                     className={`rounded-2xl p-4 sm:p-5 flex flex-col justify-between space-y-5 border transition-all duration-200 ${isAchieved
-                        ? "bg-card/80 border-income/20 hover-glow-income"
-                        : "bg-card/80 border-chart-3/20 hover-glow-expense"
+                        ? "bg-card border-income/30 hover:border-income/50 hover:shadow-md"
+                        : "bg-card border-border/40 hover:border-border/80 hover:shadow-md"
                       }`}
                   >
                     {/* Card Header */}
