@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { Logo } from "@/components/shared/Logo";
+import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { usePrivacy } from "@/hooks/usePrivacy";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/hooks/useLanguage";
@@ -19,6 +20,8 @@ export function MobileHeader() {
       </Link>
 
       <div className="flex items-center gap-2">
+        <LanguageSwitcher variant="compact" />
+
         <button
           type="button"
           onClick={togglePrivacy}

@@ -53,11 +53,8 @@ export default function Goals() {
   const [editStatus, setEditStatus] = useState("active");
 
 
-  // Getting currency of all accounts
   const accountCurrencies = [...new Set(accounts.map((acc) => acc.currency_code).filter(Boolean))];
 
-
-  // Opening create modal — default currency comes from the user's primary (first) account
   const handleOpenCreate = () => {
     setNewGoal({
       ...INITIAL_CREATE_STATE,
@@ -66,15 +63,11 @@ export default function Goals() {
     setIsCreateOpen(true);
   };
 
-
-  // Closing modal of creating goals
   const handleCloseCreate = () => {
     setIsCreateOpen(false);
     setNewGoal(INITIAL_CREATE_STATE);
   };
 
-
-  // Opening create deposit 
   const handleOpenDeposit = (goal) => {
     setSelectedGoal(goal);
     setDeposit({
@@ -83,14 +76,11 @@ export default function Goals() {
     });
   };
 
-  // Closing create deposit
   const handleCloseDeposit = () => {
     setSelectedGoal(null);
     setDeposit(INITIAL_DEPOSIT_STATE);
   };
 
-
-  // Open Edit Modal
   const handleOpenEdit = (goal) => {
     setSelectedEditGoal(goal);
     setEditName(goal.name);
@@ -98,7 +88,6 @@ export default function Goals() {
     setEditStatus(goal.status || "active");
   };
 
-  // Close Edit Modal
   const handleCloseEdit = () => {
     setSelectedEditGoal(null);
     setEditName("");
@@ -106,7 +95,6 @@ export default function Goals() {
     setEditStatus("active");
   };
 
-  // Editing Goal Submit
   const handleUpdateSubmit = (e) => {
     e.preventDefault();
     if (!selectedEditGoal || !editName.trim()) return;
@@ -128,7 +116,6 @@ export default function Goals() {
     );
   };
 
-  // Creating deposit
   const handleDepositSubmit = (e) => {
     e.preventDefault();
     if (!deposit.amount || !selectedGoal) return;
@@ -152,7 +139,6 @@ export default function Goals() {
     );
   };
 
-  // Creating goal
   const handleCreateSubmit = (e) => {
     e.preventDefault();
     if (!newGoal.name.trim() || !newGoal.target_amount) return;
@@ -171,8 +157,6 @@ export default function Goals() {
     });
   };
 
-
-  // Deleting Goal
   const handleConfirmDelete = () => {
     if (!GoalToDeleteId) return;
 
@@ -183,8 +167,6 @@ export default function Goals() {
     });
   };
 
-
-  // calculating progress percentage
   const getExhaustedPercentage = (target, current) => {
     if (!target || target === 0) return 0;
     return Math.min(100, Math.round((current / target) * 100));

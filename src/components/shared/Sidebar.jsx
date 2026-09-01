@@ -3,6 +3,7 @@ import { Sun, Moon, LogOut, Eye, EyeOff, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { navItems } from "@/lib/navigation";
 import { Logo } from "@/components/shared/Logo";
+import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { useAuth } from "@/hooks/useAuth";
 import { usePrivacy } from "@/hooks/usePrivacy";
 import { useTranslation } from "@/hooks/useLanguage";
@@ -90,6 +91,8 @@ export function Sidebar({ theme, toggleTheme }) {
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
+          <LanguageSwitcher variant="compact" />
+
           <Button
             variant="ghost"
             size="icon"

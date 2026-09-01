@@ -7,6 +7,16 @@ export function LanguageProvider({ children }) {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("language");
       if (saved && translations[saved]) return saved;
+
+      // Auto-detect browser language
+      const browserLangs = navigator.languages || [navigator.language || ""];
+      for (const rawLang of browserLangs) {
+        if (!rawLang) continue;
+        const code = rawLang.toLowerCase().split("-")[0];
+        if (code && translations[code]) {
+          return code;
+        }
+      }
     }
     return DEFAULT_LANGUAGE;
   });
@@ -34,14 +44,25 @@ export function LanguageProvider({ children }) {
         if (current && typeof current === "object" && k in current) {
           current = current[k];
         } else {
-          // Fallback to Russian, then English
-          let fallback = translations.ru;
+          // Fallback to English, then Russian
+          let fallback = translations.en;
           for (const fk of keys) {
             if (fallback && typeof fallback === "object" && fk in fallback) {
               fallback = fallback[fk];
             } else {
               fallback = null;
               break;
+            }
+          }
+          if (!fallback) {
+            fallback = translations.ru;
+            for (const fk of keys) {
+              if (fallback && typeof fallback === "object" && fk in fallback) {
+                fallback = fallback[fk];
+              } else {
+                fallback = null;
+                break;
+              }
             }
           }
           current = fallback || keyPath;

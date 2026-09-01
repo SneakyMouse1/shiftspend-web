@@ -9,9 +9,9 @@ export const translations = {
 };
 
 export const LANGUAGES = [
-  { code: "ru", label: "Русский", flag: "🇷🇺" },
-  { code: "es", label: "Español", flag: "🇪🇸" },
   { code: "en", label: "English", flag: "🇬🇧" },
+  { code: "es", label: "Español", flag: "🇪🇸" },
+  { code: "ru", label: "Русский", flag: "🇷🇺" },
 ];
 
-export const DEFAULT_LANGUAGE = "ru";
+export const DEFAULT_LANGUAGE = "en";

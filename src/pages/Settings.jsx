@@ -49,7 +49,6 @@ export default function Settings() {
     setCurrency(user?.settings?.currency || "EUR");
   }
 
-  // INITIAL STATE FOR PASSWORD CHANGE IN MODAL
   const [passwordForm, setPasswordForm] = useState({
     current_password: "",
     password: "",
@@ -61,7 +60,6 @@ export default function Settings() {
     setPasswordForm({ current_password: "", password: "", password_confirmation: "" });
   };
 
-  // CHANGE PASSWORD
   const handleChangePasswordSubmit = (e) => {
     e.preventDefault();
     if (!passwordForm.current_password || !passwordForm.password || !passwordForm.password_confirmation) return;
@@ -78,7 +76,6 @@ export default function Settings() {
     });
   };
 
-  // DELETE ACCOUNT
   const handleCloseDelete = () => {
     setIsDeleteOpen(false);
     setDeleteForm({ current_password: "" });
@@ -98,7 +95,6 @@ export default function Settings() {
     );
   };
 
-  // SUBMIT CHANGES
   const handleSave = (e) => {
     e?.preventDefault();
     if (!name.trim()) return;
