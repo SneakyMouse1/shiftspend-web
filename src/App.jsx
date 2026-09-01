@@ -2,10 +2,13 @@ import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-
 import { useState, useEffect } from "react";
 import { Sidebar } from "./components/shared/Sidebar";
 import { MobileNav } from "./components/shared/MobileNav";
+import { MobileHeader } from "./components/shared/MobileHeader";
+import { CommandPalette } from "./components/shared/CommandPalette";
 import { ProtectedRoute } from "./components/shared/ProtectedRoute";
 import { GuestRoute } from "./components/shared/GuestRoute";
 import { DashboardLoader } from "./components/shared/DashboardLoader";
 import { Toaster } from "@/components/ui/sonner";
+import { PrivacyProvider } from "@/contexts/PrivacyContext";
 import Dashboard from "./pages/Dashboard";
 import Accounts from "./pages/Accounts";
 import Transactions from "./pages/Transactions";
@@ -48,7 +51,9 @@ function AuthenticatedLayout({ theme, toggleTheme }) {
         <DashboardLoader onComplete={handleLoaderComplete} />
       )}
       <Sidebar theme={theme} toggleTheme={toggleTheme} />
+      <MobileHeader />
       <MobileNav theme={theme} toggleTheme={toggleTheme} />
+      <CommandPalette theme={theme} toggleTheme={toggleTheme} />
 
       <div className="md:pl-64 flex flex-col flex-1 min-h-screen">
         <main className="flex-1 p-4 md:p-8 max-w-[1400px] w-full mx-auto space-y-6 pb-24 md:pb-8">
@@ -85,7 +90,7 @@ export default function App() {
   const toggleTheme = () => setTheme((prev) => (prev === "dark" ? "light" : "dark"));
 
   return (
-    <>
+    <PrivacyProvider>
       <Routes>
         <Route path="/login"
           element={
@@ -111,7 +116,7 @@ export default function App() {
         />
       </Routes>
       <Toaster position="top-center" />
-    </>
+    </PrivacyProvider>
   );
 }
 

@@ -12,7 +12,9 @@ import {
   Settings,
   Sun,
   Moon,
-  LogOut
+  LogOut,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import {
   Dialog,
@@ -22,12 +24,14 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
+import { usePrivacy } from "@/hooks/usePrivacy";
 
 export function MobileNav({ theme, toggleTheme }) {
   const [showMoreSheet, setShowMoreSheet] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { isPrivate, togglePrivacy } = usePrivacy();
 
   const handleLogout = async () => {
     setShowMoreSheet(false);
@@ -42,14 +46,13 @@ export function MobileNav({ theme, toggleTheme }) {
     { to: "/budgets", label: "Budgets", icon: TrendingUp },
   ];
 
-  // Check if current path matches any item inside More sheet
   const moreSubPaths = ["/goals", "/categories", "/reports", "/settings"];
   const isMoreActive = moreSubPaths.includes(location.pathname);
 
   return (
     <>
       {/* FIXED BOTTOM NAVBAR (MOBILE ONLY) */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-[#0D0D0F]/95 backdrop-blur-xl border-t border-[rgba(255,255,255,0.08)] px-2 py-2 safe-area-pb">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-card/90 backdrop-blur-xl border-t border-border/60 px-2 py-2 safe-area-pb shadow-lg">
         <div className="grid grid-cols-5 items-center justify-items-center">
           {mainNavItems.map((item) => {
             const Icon = item.icon;
@@ -60,8 +63,8 @@ export function MobileNav({ theme, toggleTheme }) {
                 className={({ isActive }) =>
                   `flex flex-col items-center gap-1 py-1.5 px-3 rounded-xl transition-all duration-200 ${
                     isActive
-                      ? "text-emerald-400 font-semibold scale-105"
-                      : "text-gray-400 hover:text-gray-200"
+                      ? "text-emerald-500 dark:text-emerald-400 font-semibold scale-105"
+                      : "text-muted-foreground hover:text-foreground"
                   }`
                 }
               >
@@ -77,8 +80,8 @@ export function MobileNav({ theme, toggleTheme }) {
             onClick={() => setShowMoreSheet(true)}
             className={`flex flex-col items-center gap-1 py-1.5 px-3 rounded-xl transition-all duration-200 cursor-pointer ${
               isMoreActive || showMoreSheet
-                ? "text-emerald-400 font-semibold scale-105"
-                : "text-gray-400 hover:text-gray-200"
+                ? "text-emerald-500 dark:text-emerald-400 font-semibold scale-105"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <MoreHorizontal size={20} />
@@ -95,131 +98,150 @@ export function MobileNav({ theme, toggleTheme }) {
             <DialogDescription className="hidden">Extended features and system preferences</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-          <div>
-            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-2 px-1">
-              Extended Features
-            </p>
+            <div>
+              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider block mb-2 px-1">
+                Extended Features
+              </p>
 
-            <div className="space-y-2">
-              {/* Savings Goals */}
+              <div className="space-y-2">
+                {/* Savings Goals */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigate("/goals");
+                    setShowMoreSheet(false);
+                  }}
+                  className={`w-full flex items-center justify-between p-3.5 rounded-2xl border transition-all cursor-pointer ${
+                    location.pathname === "/goals"
+                      ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-500 dark:text-cyan-400"
+                      : "bg-secondary/40 border-border/40 text-foreground hover:bg-secondary/80"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Trophy size={18} className="text-cyan-500 dark:text-cyan-400" />
+                    <span className="text-xs font-semibold">Savings Goals</span>
+                  </div>
+                  <span className="text-[12px] text-muted-foreground">→</span>
+                </button>
+
+                {/* Category Mapping */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigate("/categories");
+                    setShowMoreSheet(false);
+                  }}
+                  className={`w-full flex items-center justify-between p-3.5 rounded-2xl border transition-all cursor-pointer ${
+                    location.pathname === "/categories"
+                      ? "bg-purple-500/10 border-purple-500/30 text-purple-500 dark:text-purple-400"
+                      : "bg-secondary/40 border-border/40 text-foreground hover:bg-secondary/80"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Tag size={18} className="text-purple-500 dark:text-purple-400" />
+                    <span className="text-xs font-semibold">Categories</span>
+                  </div>
+                  <span className="text-[12px] text-muted-foreground">→</span>
+                </button>
+
+                {/* Reports */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigate("/reports");
+                    setShowMoreSheet(false);
+                  }}
+                  className={`w-full flex items-center justify-between p-3.5 rounded-2xl border transition-all cursor-pointer ${
+                    location.pathname === "/reports"
+                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500 dark:text-emerald-400"
+                      : "bg-secondary/40 border-border/40 text-foreground hover:bg-secondary/80"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <BarChart3 size={18} className="text-emerald-500 dark:text-emerald-400" />
+                    <span className="text-xs font-semibold">Reports & Analytics</span>
+                  </div>
+                  <span className="text-[12px] text-muted-foreground">→</span>
+                </button>
+
+                {/* System Preferences */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigate("/settings");
+                    setShowMoreSheet(false);
+                  }}
+                  className={`w-full flex items-center justify-between p-3.5 rounded-2xl border transition-all cursor-pointer ${
+                    location.pathname === "/settings"
+                      ? "bg-amber-500/10 border-amber-500/30 text-amber-500 dark:text-amber-400"
+                      : "bg-secondary/40 border-border/40 text-foreground hover:bg-secondary/80"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Settings size={18} className="text-amber-500 dark:text-amber-400" />
+                    <span className="text-xs font-semibold">System Settings</span>
+                  </div>
+                  <span className="text-[12px] text-muted-foreground">→</span>
+                </button>
+              </div>
+            </div>
+
+            {/* PREFERENCES & ACCOUNT */}
+            <div className="pt-2 border-t border-border/40 space-y-2">
+              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider block mb-2 px-1">
+                Preferences & Account
+              </p>
+
+              {/* Privacy Mode Toggle */}
               <button
                 type="button"
-                onClick={() => {
-                  navigate("/goals");
-                  setShowMoreSheet(false);
-                }}
-                className={`w-full flex items-center justify-between p-3.5 rounded-xl border transition-all cursor-pointer ${
-                  location.pathname === "/goals"
-                    ? "bg-cyan-500/10 border-cyan-500/30 text-cyan-400"
-                    : "bg-[#1C1C1F] border-transparent text-gray-300 hover:bg-[#252529] hover:text-white"
-                }`}
+                onClick={togglePrivacy}
+                className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-secondary/40 border border-border/40 text-foreground hover:bg-secondary/80 transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  <Trophy size={18} className="text-cyan-400" />
-                  <span className="text-xs font-semibold">Savings Goals</span>
+                  {isPrivate ? (
+                    <EyeOff size={18} className="text-amber-500" />
+                  ) : (
+                    <Eye size={18} className="text-muted-foreground" />
+                  )}
+                  <span className="text-xs font-semibold">Privacy Mode (Hide Balances)</span>
                 </div>
-                <span className="text-[12px] text-gray-500">→</span>
+                <span className={`text-[11px] font-mono font-bold ${isPrivate ? "text-amber-500" : "text-muted-foreground"}`}>
+                  {isPrivate ? "ON" : "OFF"}
+                </span>
               </button>
 
-              {/* Category Mapping */}
+              {/* Theme Toggle */}
               <button
                 type="button"
-                onClick={() => {
-                  navigate("/categories");
-                  setShowMoreSheet(false);
-                }}
-                className={`w-full flex items-center justify-between p-3.5 rounded-xl border transition-all cursor-pointer ${
-                  location.pathname === "/categories"
-                    ? "bg-purple-500/10 border-purple-500/30 text-purple-400"
-                    : "bg-[#1C1C1F] border-transparent text-gray-300 hover:bg-[#252529] hover:text-white"
-                }`}
+                onClick={toggleTheme}
+                className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-secondary/40 border border-border/40 text-foreground hover:bg-secondary/80 transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  <Tag size={18} className="text-purple-400" />
-                  <span className="text-xs font-semibold">Category Mapping</span>
+                  {theme === "dark" ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-indigo-400" />}
+                  <span className="text-xs font-semibold">
+                    Theme: {theme === "dark" ? "Dark Mode" : "Light Mode"}
+                  </span>
                 </div>
-                <span className="text-[12px] text-gray-500">→</span>
+                <span className="text-[11px] text-muted-foreground capitalize">{theme}</span>
               </button>
 
-              {/* Reports */}
+              {/* Logout */}
               <button
                 type="button"
-                onClick={() => {
-                  navigate("/reports");
-                  setShowMoreSheet(false);
-                }}
-                className={`w-full flex items-center justify-between p-3.5 rounded-xl border transition-all cursor-pointer ${
-                  location.pathname === "/reports"
-                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-                    : "bg-[#1C1C1F] border-transparent text-gray-300 hover:bg-[#252529] hover:text-white"
-                }`}
+                onClick={handleLogout}
+                className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 dark:text-rose-400 hover:bg-rose-500/20 transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  <BarChart3 size={18} className="text-emerald-400" />
-                  <span className="text-xs font-semibold">Reports & Analytics</span>
+                  <LogOut size={18} />
+                  <span className="text-xs font-semibold">Log out</span>
                 </div>
-                <span className="text-[12px] text-gray-500">→</span>
-              </button>
-
-              {/* System Preferences */}
-              <button
-                type="button"
-                onClick={() => {
-                  navigate("/settings");
-                  setShowMoreSheet(false);
-                }}
-                className={`w-full flex items-center justify-between p-3.5 rounded-xl border transition-all cursor-pointer ${
-                  location.pathname === "/settings"
-                    ? "bg-amber-500/10 border-amber-500/30 text-amber-400"
-                    : "bg-[#1C1C1F] border-transparent text-gray-300 hover:bg-[#252529] hover:text-white"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Settings size={18} className="text-amber-400" />
-                  <span className="text-xs font-semibold">System preferences</span>
-                </div>
-                <span className="text-[12px] text-gray-500">→</span>
               </button>
             </div>
           </div>
-
-          {/* PREFERENCES & ACCOUNT */}
-          <div className="pt-2 border-t border-[rgba(255,255,255,0.06)] space-y-2">
-            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-2 px-1">
-              Preferences & Account
-            </p>
-
-            {/* Theme Toggle */}
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="w-full flex items-center justify-between p-3.5 rounded-xl bg-[#1C1C1F] border border-transparent text-gray-300 hover:bg-[#252529] hover:text-white transition-all cursor-pointer"
-            >
-              <div className="flex items-center gap-3">
-                {theme === "dark" ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-indigo-400" />}
-                <span className="text-xs font-semibold">
-                  Theme: {theme === "dark" ? "Dark Mode" : "Light Mode"}
-                </span>
-              </div>
-              <span className="text-[11px] text-gray-500 capitalize">{theme}</span>
-            </button>
-
-            {/* Logout */}
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="w-full flex items-center justify-between p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 transition-all cursor-pointer"
-            >
-              <div className="flex items-center gap-3">
-                <LogOut size={18} />
-                <span className="text-xs font-semibold">Log out</span>
-              </div>
-            </button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  </>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

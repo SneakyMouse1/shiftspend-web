@@ -119,6 +119,27 @@ export function TransactionDialog({
     onSubmit(payload);
   };
 
+  const addPresetAmount = (delta) => {
+    const current = parseFloat(formAmount) || 0;
+    const next = Math.max(0, current + delta);
+    setFormAmount(String(next % 1 === 0 ? next : next.toFixed(2)));
+  };
+
+  const handleAmountBlur = () => {
+    if (!formAmount) return;
+    try {
+      const clean = formAmount.replace(/,/g, ".").trim();
+      if (/^[\d+\-*/.\s()]+$/.test(clean)) {
+        const result = Function(`"use strict"; return (${clean})`)();
+        if (typeof result === "number" && !isNaN(result) && isFinite(result) && result >= 0) {
+          setFormAmount(String(result % 1 === 0 ? result : result.toFixed(2)));
+        }
+      }
+    } catch {
+      // keep current string
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="modal-theme md:max-w-lg">
@@ -167,27 +188,57 @@ export function TransactionDialog({
             </div>
           </div>
 
-          {/* Amount input */}
-          <div className="bg-[#131316]/50 border border-border/20 rounded-2xl p-5 flex flex-col items-center justify-center relative">
-            <span className="text-[10px] font-bold tracking-wider text-muted-foreground/50 mb-2">TRANSACTION AMOUNT</span>
+          {/* Amount input + Quick Presets */}
+          <div className="bg-secondary/30 border border-border/40 rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-center relative space-y-3">
+            <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">Transaction Amount</span>
             <div className="flex items-center justify-center font-mono">
-              <span className="text-muted-foreground/35 text-3xl font-semibold select-none mr-2">
+              <span className="text-muted-foreground/50 text-3xl font-semibold select-none mr-2">
                 {getCurrencySymbol(activeCurrencySymbol)}
               </span>
               <input
-                type="number"
-                step="0.01"
+                type="text"
+                inputMode="decimal"
                 placeholder="0.00"
                 value={formAmount}
                 onChange={(e) => setFormAmount(e.target.value)}
-                className={`bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-44 text-4xl font-extrabold text-center transition-all ${
+                onBlur={handleAmountBlur}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAmountBlur();
+                  }
+                }}
+                className={`bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-48 text-4xl font-extrabold text-center transition-all ${
                   formType === "expense"
-                    ? "text-expense drop-shadow-[0_0_15px_rgba(251,146,60,0.35)] font-extrabold"
+                    ? "text-expense font-extrabold"
                     : formType === "income"
-                      ? "text-income drop-shadow-[0_0_15px_rgba(74,222,128,0.35)] font-extrabold"
-                      : "text-foreground drop-shadow-[0_0_15px_rgba(255,255,255,0.15)] font-extrabold"
+                      ? "text-income font-extrabold"
+                      : "text-foreground font-extrabold"
                 }`}
               />
+            </div>
+
+            {/* Quick preset chips */}
+            <div className="flex flex-wrap items-center justify-center gap-1.5 pt-1">
+              {[5, 10, 20, 50, 100].map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => addPresetAmount(preset)}
+                  className="px-2.5 py-1 text-xs font-mono font-bold rounded-lg bg-secondary/80 hover:bg-secondary border border-border/40 text-foreground transition-all active:scale-95 cursor-pointer"
+                >
+                  +{preset}
+                </button>
+              ))}
+              {formAmount && formAmount !== "0" && (
+                <button
+                  type="button"
+                  onClick={() => setFormAmount("")}
+                  className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all active:scale-95 cursor-pointer"
+                >
+                  Clear
+                </button>
+              )}
             </div>
           </div>
 
