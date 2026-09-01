@@ -154,7 +154,6 @@ export default function Budgets() {
   const expenseCategories = categories.filter((cat) => cat.type === "expense");
 
 
-  // Creation of budget
   const handleCreateSubmit = (e) => {
     e.preventDefault();
     if (!newBudget.amount || !newBudget.category_id) return;
@@ -171,15 +170,12 @@ export default function Budgets() {
     });
   };
 
-
   const getExhaustedPercentage = (spent, limit) => {
     if (!limit || limit <= 0) return 0;
     const percent = (spent / limit) * 100;
     return Math.min(Math.round(percent), 100);
   };
 
-
-  // to control text/color of the status
   const getBudgetStatus = (percent) => {
     if (percent >= 100) {
       return {

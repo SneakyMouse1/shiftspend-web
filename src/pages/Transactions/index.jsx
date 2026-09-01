@@ -90,12 +90,7 @@ export default function Transactions() {
   const updateMutation = useUpdateTransaction();
   const deleteMutation = useDeleteTransaction();
 
-  // useMemo used for reference stability & performance optimization
-  // How it works: Caches the calculated value of activeFilters between renders.
-  // It only runs the calculation again if any of the dependencies in the array change.
-  // React compares objects by reference. If we created a new object on every render,
-  // TanStack Query would see it as a different key, triggering infinite render/refetch loops.
-  // Memoization keeps the queryKey reference stable.
+  // Stable query params for TanStack Query
   const activeFilters = useMemo(() => {
     const f = { page, per_page: perPage, sort: "-date" };
     if (search.trim()) f.search = search.trim();

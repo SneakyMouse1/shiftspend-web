@@ -9,7 +9,6 @@ import { getIconComponent, AVAILABLE_ICONS } from "@/config/categoryIcons";
 import { useTranslation } from "@/hooks/useLanguage";
 
 
-// colors to pick in modal
 const COLOR_SWATCHES = [
   { hex: "#ef4444", bgClass: "bg-red-500" },
   { hex: "#f97316", bgClass: "bg-orange-500" },
@@ -21,7 +20,6 @@ const COLOR_SWATCHES = [
   { hex: "#f59e0b", bgClass: "bg-amber-500" },
 ];
 
-// initial info en modal for creating category
 const INITIAL_CREATE_STATE = {
   name: "",
   type: "expense",
@@ -29,8 +27,6 @@ const INITIAL_CREATE_STATE = {
   color: "#ef4444",
 };
 
-// Renders the correct lucide icon for a category — declared at module level
-// so React treats it as a stable component, not something created on each render
 function CategoryPreviewIcon({ iconName, className }) {
   return createElement(getIconComponent(iconName), { className });
 }
@@ -39,7 +35,6 @@ export default function Categories() {
   const { t } = useTranslation();
   const { data: categories = [], isLoading } = useCategories();
 
-  // to initialize mutation
   const createMutation = useCreateCategory();
   const updateMutation = useUpdateCategory();
   const deleteMutation = useDeleteCategory();
@@ -56,13 +51,10 @@ export default function Categories() {
     setNewCategory(INITIAL_CREATE_STATE);
   };
 
-  // info to update category
   const handleNameChange = (e) => setSelectedCategory((prev) => ({ ...prev, name: e.target.value }));
   const handleIconChange = (iconName) => setSelectedCategory((prev) => ({ ...prev, icon: iconName }));
   const handleColorChange = (hexColor) => setSelectedCategory((prev) => ({ ...prev, color: hexColor }));
 
-
-  // creation of category
   const handleCreateSubmit = (e) => {
     e.preventDefault();
     if (!newCategory.name.trim()) return;
@@ -74,7 +66,6 @@ export default function Categories() {
     });
   };
 
-  // to update category
   const handleSaveChanges = (e) => {
     e.preventDefault();
     if (!selectedCategory) return;
@@ -90,8 +81,6 @@ export default function Categories() {
     );
   };
 
-
-  // to delete category
   const handleConfirmDelete = () => {
     if (!categoryToDeleteId) return;
 
@@ -103,8 +92,6 @@ export default function Categories() {
     });
   };
 
-
-  // Get categories for expense or income
   const expenseCategories = categories.filter((cat) => cat.type === "expense");
   const incomeCategories = categories.filter((cat) => cat.type === "income");
 
