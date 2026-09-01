@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 export function LanguageSwitcher({ className = "", variant = "default" }) {
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   const currentLang = LANGUAGES.find((l) => l.code === language) || LANGUAGES[0];
 
   return (
@@ -43,7 +43,7 @@ export function LanguageSwitcher({ className = "", variant = "default" }) {
       >
         <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70 flex items-center gap-1.5">
           <Globe className="h-3 w-3" />
-          <span>Language</span>
+          <span>{t ? t("settings.displayLanguage") : "Language"}</span>
         </div>
         {LANGUAGES.map((lang) => {
           const isSelected = lang.code === language;

@@ -100,8 +100,8 @@ export function Sidebar({ theme, toggleTheme }) {
             className={`h-9 w-9 rounded-xl border border-border/20 transition-all duration-300 cursor-pointer ${
               isPrivate ? "bg-amber-500/15 text-amber-500 hover:bg-amber-500/25" : "bg-secondary/50 text-muted-foreground hover:text-foreground hover:bg-secondary"
             }`}
-            title={isPrivate ? "Disable privacy mode" : "Enable privacy mode (hide balances)"}
-            aria-label="Toggle privacy mode"
+            title={isPrivate ? t("privacy.disable") : t("privacy.enable")}
+            aria-label={t("privacy.title")}
           >
             {isPrivate ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </Button>
@@ -111,7 +111,8 @@ export function Sidebar({ theme, toggleTheme }) {
             size="icon"
             onClick={toggleTheme}
             className="h-9 w-9 rounded-xl border border-border/20 bg-secondary/50 hover:bg-accent hover:text-accent-foreground text-foreground transition-all duration-300 overflow-hidden cursor-pointer"
-            aria-label="Toggle theme"
+            aria-label={theme === "dark" ? t("theme.switchToLight") : t("theme.switchToDark")}
+            title={theme === "dark" ? t("theme.switchToLight") : t("theme.switchToDark")}
           >
             <div className="relative h-full w-full flex items-center justify-center">
               <Sun
@@ -134,7 +135,8 @@ export function Sidebar({ theme, toggleTheme }) {
             size="icon"
             onClick={handleLogout}
             className="h-9 w-9 rounded-xl border border-border/20 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all duration-300 cursor-pointer"
-            aria-label="Log out"
+            aria-label={t("nav.logout")}
+            title={t("nav.logout")}
           >
             <LogOut className="h-[1.2rem] w-[1.2rem]" />
           </Button>
