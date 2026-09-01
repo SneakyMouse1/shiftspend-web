@@ -4,6 +4,7 @@ import { Sun, Moon, Menu, X, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { navItems } from "@/lib/navigation";
 import { Logo } from "@/components/shared/Logo";
+import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 
 import { useAuth } from "@/hooks/useAuth";
 
@@ -30,7 +31,10 @@ export function Header({ theme, toggleTheme }) {
         </NavLink>
 
         {/* Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Language Switcher */}
+          <LanguageSwitcher variant="compact" />
+
           {/* Theme switcher */}
           <Button
             variant="ghost"

@@ -1,8 +1,14 @@
 import { Link } from "react-router-dom";
+import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 
 export function AuthLayout({ title, subtitle, children }) {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Top right language switcher */}
+      <div className="absolute top-5 right-5 z-20">
+        <LanguageSwitcher variant="compact" />
+      </div>
+
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[280px] rounded-full opacity-20 blur-3xl pointer-events-none"
         style={{ background: "var(--income)" }}
