@@ -3,6 +3,7 @@ import Chart from "react-apexcharts";
 import { format, parseISO } from "date-fns";
 import { useIsDarkMode } from "@/hooks/useIsDarkMode";
 import { formatCurrency, formatCompact } from "@/config/currencies";
+import { useTranslation } from "@/hooks/useLanguage";
 
 export default function SpendingHabitsTab({
   dayOfWeekData,
@@ -11,10 +12,11 @@ export default function SpendingHabitsTab({
   formattedDateRange,
 }) {
   const isDark = useIsDarkMode();
+  const { t } = useTranslation();
 
   const series = useMemo(() => [
-    { name: "Spending", data: dayOfWeekData.map((d) => d.amount) },
-  ], [dayOfWeekData]);
+    { name: t("dashboard.outflow"), data: dayOfWeekData.map((d) => d.amount) },
+  ], [dayOfWeekData, t]);
 
   const options = useMemo(() => ({
     chart: {
@@ -83,9 +85,9 @@ export default function SpendingHabitsTab({
       {/* Day of Week Spending Bar Chart */}
       <div className="lg:col-span-2 rounded-3xl border border-border/40 bg-card p-4 sm:p-6 shadow-sm space-y-4">
         <div>
-          <h3 className="text-base sm:text-lg font-bold">Spending by Day of Week</h3>
+          <h3 className="text-base sm:text-lg font-bold">{t("reports.spendingByDay")}</h3>
           <p className="text-xs text-muted-foreground">
-            Distribution of expenses {formattedDateRange ? `(${formattedDateRange})` : "across weekdays"}
+            {t("reports.tabs.spendingHabits")} {formattedDateRange ? `(${formattedDateRange})` : ""}
           </p>
         </div>
 
@@ -97,14 +99,14 @@ export default function SpendingHabitsTab({
       {/* Top Expense Transactions */}
       <div className="lg:col-span-1 rounded-3xl border border-border/40 bg-card p-4 sm:p-6 shadow-sm space-y-4">
         <div>
-          <h3 className="text-base sm:text-lg font-bold">Largest Expenses</h3>
+          <h3 className="text-base sm:text-lg font-bold">{t("reports.largestExpenses")}</h3>
           <p className="text-xs text-muted-foreground">
-            Top expense items {formattedDateRange ? `(${formattedDateRange})` : ""}
+            {t("reports.tabs.spendingHabits")} {formattedDateRange ? `(${formattedDateRange})` : ""}
           </p>
         </div>
 
         {topExpenseTransactions.length === 0 ? (
-          <p className="text-xs text-muted-foreground py-12 text-center">No expense transactions found</p>
+          <p className="text-xs text-muted-foreground py-12 text-center">{t("common.noData")}</p>
         ) : (
           <div className="space-y-3">
             {topExpenseTransactions.map((tx) => (
@@ -113,9 +115,9 @@ export default function SpendingHabitsTab({
                 className="flex items-center justify-between p-3 rounded-2xl bg-secondary/30 border border-border/30"
               >
                 <div className="min-w-0 space-y-0.5">
-                  <p className="text-xs font-bold truncate">{tx.comment || tx.category?.name || "Expense"}</p>
+                  <p className="text-xs font-bold truncate">{tx.comment || tx.category?.name || t("transactions.types.expense")}</p>
                   <p className="text-[10px] text-muted-foreground">
-                    {tx.date ? format(parseISO(tx.date), "MMM d, yyyy") : ""} · {tx.category?.name || "Uncategorized"}
+                    {tx.date ? format(parseISO(tx.date), "MMM d, yyyy") : ""} · {tx.category?.name || t("common.category")}
                   </p>
                 </div>
                 <span className="font-mono font-bold text-xs text-expense shrink-0 ml-2">

@@ -1,5 +1,6 @@
 import { ArrowUpRight, ArrowDownRight, PiggyBank, Zap, TrendingUp, TrendingDown } from "lucide-react";
 import { formatCurrency } from "@/config/currencies";
+import { useTranslation } from "@/hooks/useLanguage";
 
 function DeltaBadge({ delta, invertColor = false }) {
   if (!delta || !delta.percent) {
@@ -7,7 +8,6 @@ function DeltaBadge({ delta, invertColor = false }) {
   }
 
   const isUp = delta.trend === "up";
-  // For expenses/daily spend, up is bad (red) and down is good (green)
   const isPositive = invertColor ? !isUp : isUp;
 
   return (
@@ -26,12 +26,14 @@ function DeltaBadge({ delta, invertColor = false }) {
 }
 
 export default function ReportKpis({ metrics, primaryCurrency, formattedDateRange, deltas }) {
+  const { t } = useTranslation();
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Total Income */}
       <div className="rounded-3xl border border-border/40 bg-card p-5 shadow-sm space-y-3 relative overflow-hidden">
         <div className="flex justify-between items-center">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Total Income</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t("reports.kpis.totalIncome")}</span>
           <div className="h-8 w-8 rounded-xl bg-income/10 flex items-center justify-center text-income">
             <ArrowUpRight className="h-4 w-4" />
           </div>
@@ -44,7 +46,7 @@ export default function ReportKpis({ metrics, primaryCurrency, formattedDateRang
             {deltas?.income && <DeltaBadge delta={deltas.income} />}
           </div>
           <p className="text-[11px] text-muted-foreground truncate">
-            {formattedDateRange || "Inflow total"}
+            {formattedDateRange || t("dashboard.inflow")}
           </p>
         </div>
         <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
@@ -55,7 +57,7 @@ export default function ReportKpis({ metrics, primaryCurrency, formattedDateRang
       {/* Total Expenses */}
       <div className="rounded-3xl border border-border/40 bg-card p-5 shadow-sm space-y-3 relative overflow-hidden">
         <div className="flex justify-between items-center">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Total Expenses</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t("reports.kpis.totalExpenses")}</span>
           <div className="h-8 w-8 rounded-xl bg-expense/10 flex items-center justify-center text-expense">
             <ArrowDownRight className="h-4 w-4" />
           </div>
@@ -68,7 +70,7 @@ export default function ReportKpis({ metrics, primaryCurrency, formattedDateRang
             {deltas?.expenses && <DeltaBadge delta={deltas.expenses} invertColor={true} />}
           </div>
           <p className="text-[11px] text-muted-foreground truncate">
-            {formattedDateRange || "Outflow total"}
+            {formattedDateRange || t("dashboard.outflow")}
           </p>
         </div>
         <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
@@ -79,7 +81,7 @@ export default function ReportKpis({ metrics, primaryCurrency, formattedDateRang
       {/* Net Savings & Savings Rate */}
       <div className="rounded-3xl border border-border/40 bg-card p-5 shadow-sm space-y-3 relative overflow-hidden">
         <div className="flex justify-between items-center">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Net Savings</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t("reports.kpis.netSavings")}</span>
           <div className="h-8 w-8 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400">
             <PiggyBank className="h-4 w-4" />
           </div>
@@ -92,7 +94,7 @@ export default function ReportKpis({ metrics, primaryCurrency, formattedDateRang
             {deltas?.netSavings && <DeltaBadge delta={deltas.netSavings} />}
           </div>
           <p className="text-[11px] text-muted-foreground flex items-center gap-1">
-            <span>Rate: <strong className="text-foreground font-mono">{metrics.savingsRate}%</strong></span>
+            <span>{t("reports.kpis.savingsRate")}: <strong className="text-foreground font-mono">{metrics.savingsRate}%</strong></span>
             {formattedDateRange && <span>· {formattedDateRange}</span>}
           </p>
         </div>
@@ -107,7 +109,7 @@ export default function ReportKpis({ metrics, primaryCurrency, formattedDateRang
       {/* Daily Average Spend */}
       <div className="rounded-3xl border border-border/40 bg-card p-5 shadow-sm space-y-3 relative overflow-hidden">
         <div className="flex justify-between items-center">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Daily Avg Spend</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t("reports.kpis.dailyAvgSpend")}</span>
           <div className="h-8 w-8 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400">
             <Zap className="h-4 w-4" />
           </div>
@@ -120,7 +122,7 @@ export default function ReportKpis({ metrics, primaryCurrency, formattedDateRang
             {deltas?.dailyAverageSpend && <DeltaBadge delta={deltas.dailyAverageSpend} invertColor={true} />}
           </div>
           <p className="text-[11px] text-muted-foreground truncate">
-            {formattedDateRange || "Estimated daily spend"}
+            {formattedDateRange || t("reports.kpis.dailyAvgSpend")}
           </p>
         </div>
         <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">

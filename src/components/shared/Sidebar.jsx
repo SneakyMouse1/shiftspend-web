@@ -5,10 +5,12 @@ import { navItems } from "@/lib/navigation";
 import { Logo } from "@/components/shared/Logo";
 import { useAuth } from "@/hooks/useAuth";
 import { usePrivacy } from "@/hooks/usePrivacy";
+import { useTranslation } from "@/hooks/useLanguage";
 
 export function Sidebar({ theme, toggleTheme }) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
 
   const userName = user?.name || "User";
   const avatarLetter = userName.charAt(0).toUpperCase();
@@ -37,7 +39,7 @@ export function Sidebar({ theme, toggleTheme }) {
       >
         <div className="flex items-center gap-2">
           <Search className="h-3.5 w-3.5" />
-          <span>Quick actions...</span>
+          <span>{t("common.quickActions")}</span>
         </div>
         <kbd className="px-1.5 py-0.5 font-mono text-[10px] font-bold bg-card border border-border/50 rounded-md">
           ⌘K
@@ -60,7 +62,7 @@ export function Sidebar({ theme, toggleTheme }) {
               }
             >
               <Icon className="h-4 w-4 shrink-0" />
-              <span>{item.label}</span>
+              <span>{item.translationKey ? t(item.translationKey) : item.label}</span>
             </NavLink>
           );
         })}

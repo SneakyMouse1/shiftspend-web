@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCreateTag } from "@/hooks/useTags";
+import { useTranslation } from "@/hooks/useLanguage";
 import { getIconComponent } from "@/config/categoryIcons";
 import { getCurrencySymbol } from "@/config/currencies";
 
@@ -42,6 +43,7 @@ export function TransactionDialog({
   onSubmit,
   isPending,
 }) {
+  const { t } = useTranslation();
   const [formType, setFormType] = useState(() => editingTransaction?.type || "expense");
   const [formAmount, setFormAmount] = useState(() => editingTransaction ? String(editingTransaction.amount) : "");
   const [formAccountId, setFormAccountId] = useState(() => editingTransaction?.account?.id ? String(editingTransaction.account.id) : (accounts[0]?.id ? String(accounts[0].id) : ""));
@@ -145,9 +147,9 @@ export function TransactionDialog({
       <DialogContent className="modal-theme md:max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold tracking-tight">
-            {editingTransaction ? "Edit Ledger Transaction" : "Record Ledger Transaction"}
+            {editingTransaction ? t("transactions.editTransaction") : t("transactions.newTransaction")}
           </DialogTitle>
-          <DialogDescription className="hidden">Transaction record details</DialogDescription>
+          <DialogDescription className="hidden">Transaction details</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleFormSubmit} className="space-y-4">
@@ -155,9 +157,9 @@ export function TransactionDialog({
           <div className="space-y-1.5">
             <div className="grid grid-cols-3 gap-1.5 p-1 bg-secondary/30 border border-border/40 rounded-xl">
               {[
-                { id: "expense", label: "Expense", icon: ArrowDownLeft },
-                { id: "income", label: "Income", icon: ArrowUpRight },
-                { id: "transfer", label: "Transfer", icon: ArrowLeftRight }
+                { id: "expense", label: t("transactions.types.expense"), icon: ArrowDownLeft },
+                { id: "income", label: t("transactions.types.income"), icon: ArrowUpRight },
+                { id: "transfer", label: t("transactions.types.transfer"), icon: ArrowLeftRight }
               ].map(({ id, label, icon: TabIcon }) => {
                 const isActive = formType === id;
                 return (
@@ -190,7 +192,7 @@ export function TransactionDialog({
 
           {/* Amount input + Quick Presets */}
           <div className="bg-secondary/30 border border-border/40 rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-center relative space-y-3">
-            <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">Transaction Amount</span>
+            <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">{t("common.amount")}</span>
             <div className="flex items-center justify-center font-mono">
               <span className="text-muted-foreground/50 text-3xl font-semibold select-none mr-2">
                 {getCurrencySymbol(activeCurrencySymbol)}
@@ -198,7 +200,7 @@ export function TransactionDialog({
               <input
                 type="text"
                 inputMode="decimal"
-                placeholder="0.00"
+                placeholder={t("transactions.amountPlaceholder")}
                 value={formAmount}
                 onChange={(e) => setFormAmount(e.target.value)}
                 onBlur={handleAmountBlur}
@@ -236,7 +238,7 @@ export function TransactionDialog({
                   onClick={() => setFormAmount("")}
                   className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all active:scale-95 cursor-pointer"
                 >
-                  Clear
+                  {t("common.clear")}
                 </button>
               )}
             </div>
@@ -246,11 +248,11 @@ export function TransactionDialog({
           <div className="space-y-1.5">
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <FileText className="h-3.5 w-3.5 text-muted-foreground/80" />
-              <span>Description / Vendor</span>
+              <span>{t("common.description")}</span>
             </label>
             <input
               type="text"
-              placeholder="e.g. Whole Foods, Monthly Salary, Rent..."
+              placeholder={t("transactions.descriptionPlaceholder")}
               value={formComment}
               onChange={(e) => setFormComment(e.target.value)}
               className={`w-full px-4 py-3 bg-secondary/30 border border-border/40 text-foreground text-sm rounded-xl focus:outline-none transition-colors duration-200 ${
@@ -267,7 +269,7 @@ export function TransactionDialog({
           <div className="space-y-1.5">
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <Calendar className="h-3.5 w-3.5 text-muted-foreground/80" />
-              <span>Date</span>
+              <span>{t("common.date")}</span>
             </label>
             <Input
               type="date"
@@ -289,12 +291,12 @@ export function TransactionDialog({
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                   <Wallet className="h-3.5 w-3.5 text-muted-foreground/80" />
-                  <span>From Account</span>
+                  <span>{t("transactions.sourceAccount")}</span>
                 </label>
                 <Select value={effectiveAccountId} onValueChange={setFormAccountId}>
                   <SelectTrigger className="w-full bg-secondary/30 border-border/40 rounded-xl h-11">
-                    <SelectValue placeholder="Source Account">
-                      {accounts.find((acc) => String(acc.id) === String(effectiveAccountId))?.name || "Source Account"}
+                    <SelectValue placeholder={t("transactions.sourceAccount")}>
+                      {accounts.find((acc) => String(acc.id) === String(effectiveAccountId))?.name || t("transactions.sourceAccount")}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="max-h-56">
@@ -312,12 +314,12 @@ export function TransactionDialog({
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                   <Wallet className="h-3.5 w-3.5 text-muted-foreground/80" />
-                  <span>To Account</span>
+                  <span>{t("transactions.destinationAccount")}</span>
                 </label>
                 <Select value={formToAccountId} onValueChange={setFormToAccountId}>
                   <SelectTrigger className="w-full bg-secondary/30 border-border/40 rounded-xl h-11">
-                    <SelectValue placeholder="Destination Account">
-                      {accounts.find((acc) => String(acc.id) === String(formToAccountId))?.name || "Destination Account"}
+                    <SelectValue placeholder={t("transactions.destinationAccount")}>
+                      {accounts.find((acc) => String(acc.id) === String(formToAccountId))?.name || t("transactions.destinationAccount")}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="max-h-56">
@@ -336,12 +338,12 @@ export function TransactionDialog({
             <div className="space-y-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <Wallet className="h-3.5 w-3.5 text-muted-foreground/80" />
-                <span>Account</span>
+                <span>{t("common.account")}</span>
               </label>
               <Select value={effectiveAccountId} onValueChange={setFormAccountId}>
                 <SelectTrigger className="w-full bg-secondary/30 border-border/40 rounded-xl h-11">
-                  <SelectValue placeholder="Select Account">
-                    {accounts.find((acc) => String(acc.id) === String(effectiveAccountId))?.name || "Select Account"}
+                  <SelectValue placeholder={t("transactions.selectAccount")}>
+                    {accounts.find((acc) => String(acc.id) === String(effectiveAccountId))?.name || t("transactions.selectAccount")}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="max-h-56">
@@ -360,7 +362,7 @@ export function TransactionDialog({
             <div className="space-y-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <FolderOpen className="h-3.5 w-3.5 text-muted-foreground/80" />
-                <span>Select Category</span>
+                <span>{t("transactions.selectCategory")}</span>
               </label>
               <div className="bg-secondary/20 border border-border/30 rounded-2xl p-3">
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 max-h-48 overflow-y-auto pr-1">
@@ -398,14 +400,14 @@ export function TransactionDialog({
           <div className="space-y-2">
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center">
               <TagIcon className="h-3.5 w-3.5 mr-1" />
-              <span>Tags</span>
+              <span>{t("transactions.allTags")}</span>
             </label>
 
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
                 <input
                   type="text"
-                  placeholder="Type tag and press enter..."
+                  placeholder="#tag..."
                   value={newTagName}
                   onChange={(e) => setNewTagName(e.target.value)}
                   onKeyDown={(e) => {
@@ -466,7 +468,7 @@ export function TransactionDialog({
               disabled={
                 isPending ||
                 !formAmount ||
-                !formAccountId ||
+                !effectiveAccountId ||
                 !formDate ||
                 (formType === "transfer" && !formToAccountId)
               }
@@ -481,7 +483,7 @@ export function TransactionDialog({
               {isPending ? (
                 <Loader2 className="h-5 w-5 animate-spin mx-auto" />
               ) : (
-                <span>{editingTransaction ? "Save Changes" : "Record Transaction"}</span>
+                <span>{editingTransaction ? t("common.saveChanges") : t("transactions.addTransaction")}</span>
               )}
             </Button>
           </div>

@@ -2,14 +2,16 @@ import { useMemo } from "react";
 import Chart from "react-apexcharts";
 import { useIsDarkMode } from "@/hooks/useIsDarkMode";
 import { formatCurrency, formatCompact } from "@/config/currencies";
+import { useTranslation } from "@/hooks/useLanguage";
 
 export default function CashFlowTab({ timelineData, metrics, primaryCurrency, formattedDateRange }) {
   const isDark = useIsDarkMode();
+  const { t } = useTranslation();
 
   const series = useMemo(() => [
-    { name: "Income", data: timelineData.map((d) => d.income) },
-    { name: "Expense", data: timelineData.map((d) => d.expense) },
-  ], [timelineData]);
+    { name: t("dashboard.inflow"), data: timelineData.map((d) => d.income) },
+    { name: t("dashboard.outflow"), data: timelineData.map((d) => d.expense) },
+  ], [timelineData, t]);
 
   const options = useMemo(() => ({
     chart: {
@@ -93,26 +95,26 @@ export default function CashFlowTab({ timelineData, metrics, primaryCurrency, fo
       <div className="rounded-3xl border border-border/40 bg-card p-4 sm:p-6 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h3 className="text-base sm:text-lg font-bold">Cash Flow Timeline</h3>
+            <h3 className="text-base sm:text-lg font-bold">{t("reports.cashFlowTimeline")}</h3>
             <p className="text-xs text-muted-foreground">
-              Inflow vs Outflow {formattedDateRange ? `(${formattedDateRange})` : "over time"}
+              {t("reports.cashFlowTimelineSubtitle")} {formattedDateRange ? `(${formattedDateRange})` : ""}
             </p>
           </div>
           <div className="flex items-center gap-4 text-xs font-semibold">
             <div className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-income" />
-              <span>Income</span>
+              <span>{t("dashboard.inflow")}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-expense" />
-              <span>Expense</span>
+              <span>{t("dashboard.outflow")}</span>
             </div>
           </div>
         </div>
 
         {timelineData.length === 0 ? (
           <div className="h-72 flex items-center justify-center text-xs text-muted-foreground">
-            No transaction data available for the selected filters.
+            {t("common.noData")}
           </div>
         ) : (
           <div className="h-64 sm:h-72 w-full pt-2">
@@ -124,27 +126,27 @@ export default function CashFlowTab({ timelineData, metrics, primaryCurrency, fo
       {/* Cash Flow Highlights & Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="rounded-3xl border border-border/40 bg-card p-5 space-y-2 shadow-xs">
-          <p className="text-xs font-bold text-muted-foreground uppercase">Total Inflow</p>
+          <p className="text-xs font-bold text-muted-foreground uppercase">{t("reports.totalInflow")}</p>
           <p className="text-xl font-extrabold font-mono text-income">
             {formatCurrency(metrics.income, primaryCurrency)}
           </p>
-          <p className="text-[11px] text-muted-foreground">Total money earned</p>
+          <p className="text-[11px] text-muted-foreground">{t("reports.earnedMoney")}</p>
         </div>
 
         <div className="rounded-3xl border border-border/40 bg-card p-5 space-y-2 shadow-xs">
-          <p className="text-xs font-bold text-muted-foreground uppercase">Total Outflow</p>
+          <p className="text-xs font-bold text-muted-foreground uppercase">{t("reports.totalOutflow")}</p>
           <p className="text-xl font-extrabold font-mono text-expense">
             {formatCurrency(metrics.expenses, primaryCurrency)}
           </p>
-          <p className="text-[11px] text-muted-foreground">Total money spent</p>
+          <p className="text-[11px] text-muted-foreground">{t("reports.spentMoney")}</p>
         </div>
 
         <div className="rounded-3xl border border-border/40 bg-card p-5 space-y-2 shadow-xs">
-          <p className="text-xs font-bold text-muted-foreground uppercase">Net Difference</p>
+          <p className="text-xs font-bold text-muted-foreground uppercase">{t("reports.netDifference")}</p>
           <p className={`text-xl font-extrabold font-mono ${metrics.netSavings >= 0 ? "text-income" : "text-expense"}`}>
             {formatCurrency(metrics.netSavings, primaryCurrency)}
           </p>
-          <p className="text-[11px] text-muted-foreground">Overall Period Balance</p>
+          <p className="text-[11px] text-muted-foreground">{t("reports.periodBalance")}</p>
         </div>
       </div>
     </div>

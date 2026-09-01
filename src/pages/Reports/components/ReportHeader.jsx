@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Loader2, FileText, FileSpreadsheet, Download } from "lucide-react";
+import { useTranslation } from "@/hooks/useLanguage";
 
 export default function ReportHeader({
   isFetchingReport,
@@ -7,15 +8,17 @@ export default function ReportHeader({
   exportingFormat,
   handleExport,
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
         <div className="flex items-center gap-2">
-          <h1 className="text-3xl font-extrabold tracking-tight">Reports</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight">{t("reports.title")}</h1>
           {isFetchingReport && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
         </div>
         <p className="text-muted-foreground text-sm mt-0.5">
-          Financial insights, cash flow trends, and category spending breakdown
+          {t("reports.subtitle")}
         </p>
       </div>
 
@@ -32,7 +35,7 @@ export default function ReportHeader({
           ) : (
             <FileText className="h-3.5 w-3.5 text-rose-400" />
           )}
-          <span>Export PDF</span>
+          <span>{t("reports.exportPdf")}</span>
         </Button>
 
         <Button
@@ -46,7 +49,7 @@ export default function ReportHeader({
           ) : (
             <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-400" />
           )}
-          <span>Export Excel</span>
+          <span>{t("reports.exportExcel")}</span>
         </Button>
 
         <Button
@@ -60,7 +63,7 @@ export default function ReportHeader({
           ) : (
             <Download className="h-3.5 w-3.5 text-cyan-400" />
           )}
-          <span>Export CSV</span>
+          <span>{t("reports.exportCsv")}</span>
         </Button>
       </div>
     </div>

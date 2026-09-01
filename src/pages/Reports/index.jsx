@@ -7,6 +7,7 @@ import { downloadExportFileApi } from "@/api/reports";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useCategories } from "@/hooks/useCategories";
 import { useAccounts } from "@/hooks/useAccounts";
+import { useTranslation } from "@/hooks/useLanguage";
 import { toast } from "sonner";
 
 import ReportsSkeleton from "./components/ReportsSkeleton";
@@ -21,6 +22,7 @@ import SpendingHabitsTab from "./components/SpendingHabitsTab";
 const DAYS_OF_WEEK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export default function Reports() {
+  const { t } = useTranslation();
   const [period, setPeriod] = useState("last_month");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -497,7 +499,7 @@ export default function Reports() {
           }`}
         >
           <TrendingUp className="h-3.5 w-3.5" />
-          <span>Cash Flow Timeline</span>
+          <span>{t("reports.tabs.timeline")}</span>
         </button>
 
         <button
@@ -509,7 +511,7 @@ export default function Reports() {
           }`}
         >
           <PieIcon className="h-3.5 w-3.5" />
-          <span>Category Shares</span>
+          <span>{t("reports.tabs.categoryShares")}</span>
         </button>
 
         <button
@@ -521,7 +523,7 @@ export default function Reports() {
           }`}
         >
           <TrendingUp className="h-3.5 w-3.5" />
-          <span>Spending Habits</span>
+          <span>{t("reports.tabs.spendingHabits")}</span>
         </button>
       </div>
 

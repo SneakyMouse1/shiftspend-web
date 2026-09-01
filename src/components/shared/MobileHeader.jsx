@@ -3,10 +3,12 @@ import { Eye, EyeOff } from "lucide-react";
 import { Logo } from "@/components/shared/Logo";
 import { usePrivacy } from "@/hooks/usePrivacy";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/hooks/useLanguage";
 
 export function MobileHeader() {
   const { isPrivate, togglePrivacy } = usePrivacy();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const userName = user?.name || "User";
   const avatarLetter = userName.charAt(0).toUpperCase();
 
@@ -25,8 +27,8 @@ export function MobileHeader() {
               ? "bg-amber-500/15 border-amber-500/30 text-amber-500"
               : "bg-secondary/60 border-border/40 text-muted-foreground hover:text-foreground"
           }`}
-          aria-label="Toggle privacy mode"
-          title={isPrivate ? "Disable privacy mode" : "Enable privacy mode (hide balances)"}
+          aria-label={t("privacy.title")}
+          title={isPrivate ? t("privacy.disable") : t("privacy.enable")}
         >
           {isPrivate ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useAccounts } from "@/hooks/useAccounts";
 import { useIsDarkMode } from "@/hooks/useIsDarkMode";
+import { useTranslation } from "@/hooks/useLanguage";
 import { getAccountType } from "@/config/accountTypes";
 import { formatCurrency, formatCompact } from "@/config/currencies";
 
@@ -114,6 +115,7 @@ const getTransactionPrefix = (type) => {
 };
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const isDark = useIsDarkMode();
   const { data, isLoading, isError, refetch } = useDashboard();
   const { data: accounts = [] } = useAccounts();
@@ -175,9 +177,9 @@ export default function Dashboard() {
 
   // ApexCharts Configs
   const areaSeries = useMemo(() => [
-    { name: "Income", data: chartData.map((d) => d.income) },
-    { name: "Expense", data: chartData.map((d) => d.expense) },
-  ], [chartData]);
+    { name: t("dashboard.inflow"), data: chartData.map((d) => d.income) },
+    { name: t("dashboard.outflow"), data: chartData.map((d) => d.expense) },
+  ], [chartData, t]);
 
   const areaOptions = useMemo(() => ({
     chart: {
@@ -279,7 +281,7 @@ export default function Dashboard() {
             show: true,
             total: {
               show: true,
-              label: "Total",
+              label: t("common.total"),
               fontSize: "11px",
               fontWeight: 600,
               color: isDark ? "#9CA3AF" : "#64748B",
@@ -301,12 +303,12 @@ export default function Dashboard() {
         formatter: (val) => formatCurrency(val, primaryCurrency),
       },
     },
-  }), [isDark, allocationData, totalBalance, primaryCurrency]);
+  }), [isDark, allocationData, totalBalance, primaryCurrency, t]);
 
   const weeklySeries = useMemo(() => [
-    { name: "Spent", data: weeklyData.map((d) => d.expense) },
-    { name: "Earned", data: weeklyData.map((d) => d.income) },
-  ], [weeklyData]);
+    { name: t("dashboard.outflow"), data: weeklyData.map((d) => d.expense) },
+    { name: t("dashboard.inflow"), data: weeklyData.map((d) => d.income) },
+  ], [weeklyData, t]);
 
   const weeklyOptions = useMemo(() => ({
     chart: {
@@ -368,11 +370,11 @@ export default function Dashboard() {
         <div className="h-14 w-14 rounded-2xl bg-destructive/10 flex items-center justify-center">
           <AlertCircle className="h-7 w-7 text-destructive" />
         </div>
-        <p className="text-lg font-bold">Failed to load dashboard</p>
-        <p className="text-sm text-muted-foreground">Could not reach the server. Check your connection.</p>
+        <p className="text-lg font-bold">{t("common.error")}</p>
+        <p className="text-sm text-muted-foreground">{t("dashboard.subtitle")}</p>
         <Button variant="outline" onClick={() => refetch()} className="rounded-xl gap-2">
           <RefreshCcw className="h-4 w-4" />
-          Retry
+          {t("common.retry")}
         </Button>
       </div>
     );
@@ -382,8 +384,8 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Financial Overview</h1>
-        <p className="text-xs sm:text-sm text-muted-foreground">Your real-time wealth metrics & activity</p>
+        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{t("dashboard.title")}</h1>
+        <p className="text-xs sm:text-sm text-muted-foreground">{t("dashboard.subtitle")}</p>
       </div>
 
       {/* Bento Grid — Row 1: 3 Balanced KPI Cards */}
@@ -391,13 +393,13 @@ export default function Dashboard() {
         {/* Net Worth */}
         <section className="rounded-3xl border border-border/40 bg-card p-5 sm:p-6 shadow-sm flex flex-col justify-between space-y-4">
           <div className="space-y-1">
-            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Total Net Worth</span>
+            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{t("dashboard.netWorth")}</span>
             <div className="text-2xl sm:text-3xl font-extrabold tracking-tight font-mono text-foreground">
               {formatCurrency(totalBalance, primaryCurrency)}
             </div>
           </div>
           <div className="border-t border-border/30 pt-3 flex items-center justify-between text-xs text-muted-foreground">
-            <span>Primary Currency</span>
+            <span>{t("settings.defaultCurrency")}</span>
             <span className="font-bold text-foreground font-mono bg-secondary/60 px-2 py-0.5 rounded-md">
               {primaryCurrency}
             </span>
@@ -407,27 +409,27 @@ export default function Dashboard() {
         {/* Monthly Flow KPI */}
         <section className="rounded-3xl border border-border/40 bg-card p-5 sm:p-6 shadow-sm flex flex-col justify-between space-y-4">
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">This Month Flow</span>
-            <div className="text-xs text-muted-foreground mt-0.5">Summary of all registered activity</div>
+            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{t("dashboard.thisMonthFlow")}</span>
+            <div className="text-xs text-muted-foreground mt-0.5">{t("dashboard.cashFlowTrend")}</div>
           </div>
 
           <div className="grid grid-cols-3 gap-1 pt-3 border-t border-border/30">
             <div className="flex flex-col items-center space-y-0.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Income</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("dashboard.inflow")}</span>
               <div className="text-income font-bold text-sm sm:text-base flex items-center gap-0.5 font-mono">
                 <ArrowUpRight className="h-4 w-4 shrink-0" />
                 {formatCompact(monthIncome, primaryCurrency)}
               </div>
             </div>
             <div className="flex flex-col items-center space-y-0.5 border-x border-border/30">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Expenses</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("dashboard.outflow")}</span>
               <div className="text-expense font-bold text-sm sm:text-base flex items-center gap-0.5 font-mono">
                 <ArrowDownRight className="h-4 w-4 shrink-0" />
                 {formatCompact(monthExpense, primaryCurrency)}
               </div>
             </div>
             <div className="flex flex-col items-center space-y-0.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Saved</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{t("dashboard.netSavings")}</span>
               <div className="text-chart-3 font-bold text-sm sm:text-base flex items-center gap-0.5 font-mono">
                 <PiggyBank className="h-4 w-4 shrink-0" />
                 {formatCompact(monthSavings, primaryCurrency)}
@@ -439,9 +441,9 @@ export default function Dashboard() {
         {/* Accounts list */}
         <section className="rounded-3xl border border-border/40 bg-card p-5 shadow-sm flex flex-col justify-between gap-3">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Accounts</span>
+            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{t("nav.accounts")}</span>
             <Link to="/accounts" className="text-xs text-muted-foreground hover:text-foreground font-semibold flex items-center gap-0.5">
-              <span>View all</span>
+              <span>{t("dashboard.viewAll")}</span>
               <ChevronRight className="h-3 w-3" />
             </Link>
           </div>
@@ -466,24 +468,24 @@ export default function Dashboard() {
         </section>
       </div>
 
-      {/* Row 2: Recent Activity (Full Width with 3 Columns, No Scrollbar) */}
+      {/* Row 2: Recent Activity */}
       <section className="rounded-3xl border border-border/40 bg-card p-5 sm:p-6 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base sm:text-lg font-bold">Recent Activity</h2>
-            <p className="text-xs text-muted-foreground">Latest registered transactions</p>
+            <h2 className="text-base sm:text-lg font-bold">{t("dashboard.recentActivity")}</h2>
+            <p className="text-xs text-muted-foreground">{t("dashboard.recentActivity")}</p>
           </div>
           <Link
             to="/transactions"
             className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1 bg-secondary/50 hover:bg-secondary px-3 py-1.5 rounded-xl border border-border/30 transition-all"
           >
-            <span>All Transactions</span>
+            <span>{t("dashboard.viewAll")}</span>
             <ChevronRight className="h-3.5 w-3.5" />
           </Link>
         </div>
 
         {recentTx.length === 0 ? (
-          <p className="text-xs text-muted-foreground py-6 text-center">No recent transactions found</p>
+          <p className="text-xs text-muted-foreground py-6 text-center">{t("dashboard.noRecentTransactions")}</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {recentTx.slice(0, 9).map((tx) => (
@@ -511,10 +513,10 @@ export default function Dashboard() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs sm:text-sm font-semibold truncate text-foreground">
-                      {tx.comment || tx.category || (tx.type === "transfer" ? "Transfer" : "—")}
+                      {tx.comment || tx.category || (tx.type === "transfer" ? t("transactions.types.transfer") : "—")}
                     </p>
                     <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
-                      {tx.date ? format(parseISO(tx.date), "MMM d") : ""} · {tx.account || "Account"}
+                      {tx.date ? format(parseISO(tx.date), "MMM d") : ""} · {tx.account || t("common.account")}
                     </p>
                   </div>
                 </div>
@@ -527,21 +529,21 @@ export default function Dashboard() {
         )}
       </section>
 
-      {/* Row 3: Area Chart (Income vs Expenses) */}
+      {/* Row 3: Area Chart */}
       <section className="rounded-3xl border border-border/40 bg-card p-4 sm:p-6 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base sm:text-lg font-bold">Income vs Expenses</h2>
-            <p className="text-xs text-muted-foreground">Daily activity — last 30 days</p>
+            <h2 className="text-base sm:text-lg font-bold">{t("dashboard.cashFlowTrend")}</h2>
+            <p className="text-xs text-muted-foreground">{t("dashboard.thisMonthFlow")}</p>
           </div>
           <div className="flex items-center gap-4 text-xs font-semibold">
             <span className="flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-income" />
-              Income
+              {t("dashboard.inflow")}
             </span>
             <span className="flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-expense" />
-              Expenses
+              {t("dashboard.outflow")}
             </span>
           </div>
         </div>
@@ -549,7 +551,7 @@ export default function Dashboard() {
         <div className="h-64 sm:h-72 w-full">
           {chartData.length === 0 ? (
             <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-              No chart data for this period
+              {t("common.noData")}
             </div>
           ) : (
             <Chart options={areaOptions} series={areaSeries} type="area" height="100%" />
@@ -558,14 +560,14 @@ export default function Dashboard() {
 
         <div className="border-t border-border/30 pt-3 grid grid-cols-2 gap-4">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Total Inflow</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">{t("dashboard.inflow")}</span>
             <span className="text-income font-bold text-base sm:text-lg font-mono flex items-center gap-0.5">
               <ArrowUpRight className="h-4 w-4 shrink-0" />
               {formatCurrency(monthIncome, primaryCurrency)}
             </span>
           </div>
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Total Outflow</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">{t("dashboard.outflow")}</span>
             <span className="text-expense font-bold text-base sm:text-lg font-mono flex items-center gap-0.5">
               <ArrowDownRight className="h-4 w-4 shrink-0" />
               {formatCurrency(monthExpense, primaryCurrency)}
@@ -579,12 +581,12 @@ export default function Dashboard() {
         {/* Top Categories */}
         <section className="rounded-3xl border border-border/40 bg-card p-6 shadow-sm space-y-4">
           <div>
-            <h2 className="text-lg font-bold">Top Categories</h2>
-            <p className="text-xs text-muted-foreground">Biggest expenses this month</p>
+            <h2 className="text-lg font-bold">{t("dashboard.topCategories")}</h2>
+            <p className="text-xs text-muted-foreground">{t("dashboard.topCategoriesSubtitle")}</p>
           </div>
 
           {topCategories.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">No expense data this month</p>
+            <p className="text-sm text-muted-foreground py-8 text-center">{t("dashboard.noExpenseData")}</p>
           ) : (
             <div className="space-y-4">
               {topCategories.map((cat, i) => {
@@ -594,7 +596,7 @@ export default function Dashboard() {
                 return (
                   <div key={cat.category ?? i} className="space-y-1.5">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="font-semibold truncate max-w-35">{cat.category ?? "Uncategorized"}</span>
+                      <span className="font-semibold truncate max-w-35">{cat.category ?? t("common.all")}</span>
                       <div className="flex items-center gap-2 shrink-0">
                         <span className="text-xs text-muted-foreground font-mono">{pct}%</span>
                         <span className="font-mono font-bold">{formatCompact(cat.total, primaryCurrency)}</span>
@@ -616,12 +618,12 @@ export default function Dashboard() {
         {/* Asset Allocation */}
         <section className="rounded-3xl border border-border/40 bg-card p-6 shadow-sm space-y-4">
           <div>
-            <h2 className="text-lg font-bold">Asset Allocation</h2>
-            <p className="text-xs text-muted-foreground">Portfolio distribution by account type</p>
+            <h2 className="text-lg font-bold">{t("dashboard.assetAllocation")}</h2>
+            <p className="text-xs text-muted-foreground">{t("dashboard.assetAllocationSubtitle")}</p>
           </div>
 
           {allocationData.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-8 text-center">No accounts with balance</p>
+            <p className="text-sm text-muted-foreground py-8 text-center">{t("dashboard.noAccountsWithBalance")}</p>
           ) : (
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <div className="relative h-44 w-44 shrink-0 mx-auto">
@@ -664,8 +666,8 @@ export default function Dashboard() {
         {/* Weekly Pulse */}
         <section className="rounded-3xl border border-border/40 bg-card p-6 shadow-sm space-y-4">
           <div>
-            <h2 className="text-lg font-bold">Weekly Pulse</h2>
-            <p className="text-xs text-muted-foreground">Spending & income — last 7 days</p>
+            <h2 className="text-lg font-bold">{t("dashboard.weeklyPulse")}</h2>
+            <p className="text-xs text-muted-foreground">{t("dashboard.weeklyPulseSubtitle")}</p>
           </div>
 
           <div className="h-40 w-full">
@@ -676,11 +678,11 @@ export default function Dashboard() {
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-expense" />
-                <span className="text-muted-foreground">Spent</span>
+                <span className="text-muted-foreground">{t("dashboard.outflow")}</span>
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-income opacity-50" />
-                <span className="text-muted-foreground">Earned</span>
+                <span className="text-muted-foreground">{t("dashboard.inflow")}</span>
               </span>
             </div>
             <span className="text-muted-foreground font-mono">

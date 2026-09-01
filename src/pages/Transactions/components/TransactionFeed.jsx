@@ -1,6 +1,7 @@
 import { format, isToday, parseISO } from "date-fns";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/hooks/useLanguage";
 import { TransactionRow } from "./TransactionRow";
 
 const formatGroupDate = (dateStr) => {
@@ -25,16 +26,18 @@ export function TransactionFeed({
   onDelete,
   onTagClick,
 }) {
+  const { t } = useTranslation();
+
   if (groupedTransactions.length === 0) {
     return (
       <div className="text-center py-24 border border-dashed border-border/40 rounded-3xl bg-card/20 space-y-3">
-        <p className="text-muted-foreground text-sm font-medium">No transactions matched your query.</p>
+        <p className="text-muted-foreground text-sm font-medium">{t("transactions.noTransactionsMatched")}</p>
         <Button
           variant="outline"
-          className="rounded-xl text-xs"
+          className="rounded-xl text-xs cursor-pointer"
           onClick={onClearFilters}
         >
-          Reset Filters
+          {t("transactions.clearFilters")}
         </Button>
       </div>
     );
@@ -69,7 +72,11 @@ export function TransactionFeed({
       {meta.last_page > 1 && (
         <div className="flex items-center justify-between border-t border-border/40 pt-4">
           <span className="text-xs text-muted-foreground">
-            Showing Page {meta.current_page} of {meta.last_page} ({meta.total} records)
+            {t("transactions.showingPage", {
+              page: meta.current_page,
+              lastPage: meta.last_page,
+              total: meta.total,
+            })}
           </span>
 
           <div className="flex items-center gap-2">

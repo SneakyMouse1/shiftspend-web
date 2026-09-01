@@ -2,9 +2,11 @@ import { useMemo } from "react";
 import Chart from "react-apexcharts";
 import { useIsDarkMode } from "@/hooks/useIsDarkMode";
 import { formatCurrency, formatCompact } from "@/config/currencies";
+import { useTranslation } from "@/hooks/useLanguage";
 
 export default function CategorySharesTab({ categoryBreakdown, primaryCurrency, formattedDateRange }) {
   const isDark = useIsDarkMode();
+  const { t } = useTranslation();
 
   const totalExpense = useMemo(
     () => categoryBreakdown.reduce((sum, item) => sum + (Number(item.total) || Number(item.value) || 0), 0),
@@ -49,7 +51,7 @@ export default function CategorySharesTab({ categoryBreakdown, primaryCurrency, 
             show: true,
             total: {
               show: true,
-              label: "Total Spent",
+              label: t("common.total"),
               fontSize: "11px",
               fontWeight: 600,
               color: isDark ? "#9CA3AF" : "#64748B",
@@ -71,22 +73,22 @@ export default function CategorySharesTab({ categoryBreakdown, primaryCurrency, 
         formatter: (val) => formatCurrency(val, primaryCurrency),
       },
     },
-  }), [isDark, labels, colors, totalExpense, primaryCurrency]);
+  }), [isDark, labels, colors, totalExpense, primaryCurrency, t]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
       {/* Category Pie Chart (Sticky on Desktop) */}
       <div className="lg:col-span-1 lg:sticky lg:top-24 self-start rounded-3xl border border-border/40 bg-card p-4 sm:p-6 shadow-sm flex flex-col justify-between space-y-4">
         <div>
-          <h3 className="text-base sm:text-lg font-bold">Category Distribution</h3>
+          <h3 className="text-base sm:text-lg font-bold">{t("reports.categoryDistribution")}</h3>
           <p className="text-xs text-muted-foreground">
-            {formattedDateRange || "Expense allocation across categories"}
+            {formattedDateRange || t("categories.subtitle")}
           </p>
         </div>
 
         {categoryBreakdown.length === 0 ? (
           <div className="h-64 flex items-center justify-center text-xs text-muted-foreground">
-            No category expense data available.
+            {t("common.noData")}
           </div>
         ) : (
           <div className="h-64 w-full relative flex items-center justify-center">
@@ -96,7 +98,7 @@ export default function CategorySharesTab({ categoryBreakdown, primaryCurrency, 
 
         <div className="text-center pt-2 border-t border-border/30">
           <p className="text-xs text-muted-foreground">
-            Active Categories: <span className="font-mono font-bold text-foreground">{categoryBreakdown.length}</span>
+            {t("reports.activeCategories")}: <span className="font-mono font-bold text-foreground">{categoryBreakdown.length}</span>
           </p>
         </div>
       </div>
@@ -104,14 +106,14 @@ export default function CategorySharesTab({ categoryBreakdown, primaryCurrency, 
       {/* Category Breakdown Progress Cards (Scrollable if long) */}
       <div className="lg:col-span-2 rounded-3xl border border-border/40 bg-card p-4 sm:p-6 shadow-sm space-y-4">
         <div>
-          <h3 className="text-base sm:text-lg font-bold">Category Spending Breakdown</h3>
+          <h3 className="text-base sm:text-lg font-bold">{t("reports.categorySpendingBreakdown")}</h3>
           <p className="text-xs text-muted-foreground">
-            Detailed metrics by category {formattedDateRange ? `(${formattedDateRange})` : ""}
+            {t("categories.subtitle")} {formattedDateRange ? `(${formattedDateRange})` : ""}
           </p>
         </div>
 
         {categoryBreakdown.length === 0 ? (
-          <div className="py-12 text-center text-xs text-muted-foreground">No category data to display</div>
+          <div className="py-12 text-center text-xs text-muted-foreground">{t("common.noData")}</div>
         ) : (
           <div className="space-y-3.5 max-h-[520px] overflow-y-auto pr-1">
             {categoryBreakdown.map((cat) => (

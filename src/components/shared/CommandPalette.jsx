@@ -17,8 +17,10 @@ import {
   Plus,
   Command,
   X,
+  Languages,
 } from "lucide-react";
 import { usePrivacy } from "@/hooks/usePrivacy";
+import { useTranslation } from "@/hooks/useLanguage";
 
 export function CommandPalette({ theme, toggleTheme }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -28,6 +30,7 @@ export function CommandPalette({ theme, toggleTheme }) {
   const inputRef = useRef(null);
 
   const { isPrivate, togglePrivacy } = usePrivacy();
+  const { t, language, setLanguage } = useTranslation();
 
   const closePalette = () => {
     setIsOpen(false);
@@ -68,96 +71,120 @@ export function CommandPalette({ theme, toggleTheme }) {
   const allItems = useMemo(() => [
     // Navigation items
     {
-      group: "Navigation",
+      group: t("commandPalette.navigationGroup"),
       id: "nav-dashboard",
-      label: "Dashboard",
-      description: "Financial overview & recent activity",
+      label: t("nav.dashboard"),
+      description: t("dashboard.subtitle"),
       icon: LayoutGrid,
       action: () => navigate("/dashboard"),
     },
     {
-      group: "Navigation",
+      group: t("commandPalette.navigationGroup"),
       id: "nav-accounts",
-      label: "Accounts",
-      description: "Manage bank accounts, cards, & crypto wallets",
+      label: t("nav.accounts"),
+      description: t("accounts.subtitle"),
       icon: Wallet,
       action: () => navigate("/accounts"),
     },
     {
-      group: "Navigation",
+      group: t("commandPalette.navigationGroup"),
       id: "nav-transactions",
-      label: "Transactions",
-      description: "Audit money flow, search & filter entries",
+      label: t("nav.transactions"),
+      description: t("transactions.subtitle"),
       icon: ArrowLeftRight,
       action: () => navigate("/transactions"),
     },
     {
-      group: "Navigation",
+      group: t("commandPalette.navigationGroup"),
       id: "nav-budgets",
-      label: "Budgets",
-      description: "Track monthly spending limits",
+      label: t("nav.budgets"),
+      description: t("budgets.subtitle"),
       icon: TrendingUp,
       action: () => navigate("/budgets"),
     },
     {
-      group: "Navigation",
+      group: t("commandPalette.navigationGroup"),
       id: "nav-goals",
-      label: "Savings Goals",
-      description: "Monitor savings targets & milestones",
+      label: t("nav.goals"),
+      description: t("goals.subtitle"),
       icon: Trophy,
       action: () => navigate("/goals"),
     },
     {
-      group: "Navigation",
+      group: t("commandPalette.navigationGroup"),
       id: "nav-categories",
-      label: "Categories",
-      description: "Income & expense classification",
+      label: t("nav.categories"),
+      description: t("categories.subtitle"),
       icon: Tag,
       action: () => navigate("/categories"),
     },
     {
-      group: "Navigation",
+      group: t("commandPalette.navigationGroup"),
       id: "nav-reports",
-      label: "Reports & Analytics",
-      description: "Cash flow timelines & distribution charts",
+      label: t("nav.reports"),
+      description: t("reports.subtitle"),
       icon: BarChart3,
       action: () => navigate("/reports"),
     },
     {
-      group: "Navigation",
+      group: t("commandPalette.navigationGroup"),
       id: "nav-settings",
-      label: "System Settings",
-      description: "Profile, currency, & security preferences",
+      label: t("nav.settings"),
+      description: t("settings.subtitle"),
       icon: Settings,
       action: () => navigate("/settings"),
     },
 
     // Quick Actions
     {
-      group: "Actions",
+      group: t("commandPalette.actionsGroup"),
       id: "act-add-tx",
-      label: "Add New Transaction",
-      description: "Record an expense, income, or transfer",
+      label: t("transactions.newTransaction"),
+      description: t("transactions.addTransaction"),
       icon: Plus,
       action: () => navigate("/transactions"),
     },
     {
-      group: "Actions",
+      group: t("commandPalette.actionsGroup"),
       id: "act-privacy",
-      label: isPrivate ? "Disable Privacy Mode" : "Enable Privacy Mode",
-      description: isPrivate ? "Reveal all hidden balances" : "Blur all financial numbers on screen",
+      label: isPrivate ? t("privacy.disable") : t("privacy.enable"),
+      description: t("privacy.description"),
       icon: isPrivate ? EyeOff : Eye,
       action: () => togglePrivacy(),
     },
     {
-      group: "Actions",
+      group: t("commandPalette.actionsGroup"),
       id: "act-theme",
-      label: theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode",
-      description: "Toggle UI appearance theme",
+      label: theme === "dark" ? t("theme.switchToLight") : t("theme.switchToDark"),
+      description: "Toggle theme",
       icon: theme === "dark" ? Sun : Moon,
       action: () => toggleTheme(),
     },
-  ], [navigate, isPrivate, togglePrivacy, theme, toggleTheme]);
+    {
+      group: t("commandPalette.actionsGroup"),
+      id: "act-lang-ru",
+      label: "Язык: Русский (RU)",
+      description: language === "ru" ? "Активный язык" : "Переключить интерфейс на русский",
+      icon: Languages,
+      action: () => setLanguage("ru"),
+    },
+    {
+      group: t("commandPalette.actionsGroup"),
+      id: "act-lang-es",
+      label: "Idioma: Español (ES)",
+      description: language === "es" ? "Idioma activo" : "Cambiar la interfaz a español",
+      icon: Languages,
+      action: () => setLanguage("es"),
+    },
+    {
+      group: t("commandPalette.actionsGroup"),
+      id: "act-lang-en",
+      label: "Language: English (EN)",
+      description: language === "en" ? "Active language" : "Switch interface to English",
+      icon: Languages,
+      action: () => setLanguage("en"),
+    },
+  ], [navigate, isPrivate, togglePrivacy, theme, toggleTheme, t, language, setLanguage]);
 
   const filteredItems = useMemo(() => {
     if (!query.trim()) return allItems;
@@ -204,7 +231,7 @@ export function CommandPalette({ theme, toggleTheme }) {
           <input
             ref={inputRef}
             type="text"
-            placeholder="Type a command or search page..."
+            placeholder={t("commandPalette.placeholder")}
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -229,7 +256,7 @@ export function CommandPalette({ theme, toggleTheme }) {
         <div className="max-h-[380px] overflow-y-auto p-2 space-y-1">
           {filteredItems.length === 0 ? (
             <div className="py-12 text-center text-xs text-muted-foreground">
-              No matching commands or pages found.
+              {t("commandPalette.noResults")}
             </div>
           ) : (
             filteredItems.map((item, index) => {
@@ -280,10 +307,10 @@ export function CommandPalette({ theme, toggleTheme }) {
         <div className="px-4 py-2.5 bg-secondary/20 border-t border-border/30 flex items-center justify-between text-[11px] text-muted-foreground">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 font-mono bg-secondary/60 border border-border/40 rounded text-[9px]">↑↓</kbd> Navigate
+              <kbd className="px-1.5 py-0.5 font-mono bg-secondary/60 border border-border/40 rounded text-[9px]">↑↓</kbd> {t("commandPalette.shortcutsHelper.navigate")}
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 font-mono bg-secondary/60 border border-border/40 rounded text-[9px]">↵</kbd> Select
+              <kbd className="px-1.5 py-0.5 font-mono bg-secondary/60 border border-border/40 rounded text-[9px]">↵</kbd> {t("commandPalette.shortcutsHelper.select")}
             </span>
           </div>
           <span className="flex items-center gap-1">

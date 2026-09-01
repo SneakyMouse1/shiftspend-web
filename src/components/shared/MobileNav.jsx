@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { usePrivacy } from "@/hooks/usePrivacy";
+import { useTranslation } from "@/hooks/useLanguage";
 
 export function MobileNav({ theme, toggleTheme }) {
   const [showMoreSheet, setShowMoreSheet] = useState(false);
@@ -32,6 +33,7 @@ export function MobileNav({ theme, toggleTheme }) {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { isPrivate, togglePrivacy } = usePrivacy();
+  const { t } = useTranslation();
 
   const handleLogout = async () => {
     setShowMoreSheet(false);
@@ -40,10 +42,10 @@ export function MobileNav({ theme, toggleTheme }) {
   };
 
   const mainNavItems = [
-    { to: "/dashboard", label: "Dashboard", icon: LayoutGrid },
-    { to: "/accounts", label: "Accounts", icon: Wallet },
-    { to: "/transactions", label: "Transactions", icon: ArrowLeftRight },
-    { to: "/budgets", label: "Budgets", icon: TrendingUp },
+    { to: "/dashboard", label: t("nav.dashboard"), icon: LayoutGrid },
+    { to: "/accounts", label: t("nav.accounts"), icon: Wallet },
+    { to: "/transactions", label: t("nav.transactions"), icon: ArrowLeftRight },
+    { to: "/budgets", label: t("nav.budgets"), icon: TrendingUp },
   ];
 
   const moreSubPaths = ["/goals", "/categories", "/reports", "/settings"];
@@ -85,7 +87,7 @@ export function MobileNav({ theme, toggleTheme }) {
             }`}
           >
             <MoreHorizontal size={20} />
-            <span className="text-[10px] tracking-tight">More</span>
+            <span className="text-[10px] tracking-tight">{t("nav.more")}</span>
           </button>
         </div>
       </nav>
@@ -94,13 +96,13 @@ export function MobileNav({ theme, toggleTheme }) {
       <Dialog open={showMoreSheet} onOpenChange={setShowMoreSheet}>
         <DialogContent className="modal-theme md:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold tracking-tight">More Operations</DialogTitle>
-            <DialogDescription className="hidden">Extended features and system preferences</DialogDescription>
+            <DialogTitle className="text-xl font-bold tracking-tight">{t("nav.more")}</DialogTitle>
+            <DialogDescription className="hidden">Extended features</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
               <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider block mb-2 px-1">
-                Extended Features
+                {t("commandPalette.navigationGroup")}
               </p>
 
               <div className="space-y-2">
@@ -119,7 +121,7 @@ export function MobileNav({ theme, toggleTheme }) {
                 >
                   <div className="flex items-center gap-3">
                     <Trophy size={18} className="text-cyan-500 dark:text-cyan-400" />
-                    <span className="text-xs font-semibold">Savings Goals</span>
+                    <span className="text-xs font-semibold">{t("nav.goals")}</span>
                   </div>
                   <span className="text-[12px] text-muted-foreground">→</span>
                 </button>
@@ -139,7 +141,7 @@ export function MobileNav({ theme, toggleTheme }) {
                 >
                   <div className="flex items-center gap-3">
                     <Tag size={18} className="text-purple-500 dark:text-purple-400" />
-                    <span className="text-xs font-semibold">Categories</span>
+                    <span className="text-xs font-semibold">{t("nav.categories")}</span>
                   </div>
                   <span className="text-[12px] text-muted-foreground">→</span>
                 </button>
@@ -159,7 +161,7 @@ export function MobileNav({ theme, toggleTheme }) {
                 >
                   <div className="flex items-center gap-3">
                     <BarChart3 size={18} className="text-emerald-500 dark:text-emerald-400" />
-                    <span className="text-xs font-semibold">Reports & Analytics</span>
+                    <span className="text-xs font-semibold">{t("nav.reports")}</span>
                   </div>
                   <span className="text-[12px] text-muted-foreground">→</span>
                 </button>
@@ -179,7 +181,7 @@ export function MobileNav({ theme, toggleTheme }) {
                 >
                   <div className="flex items-center gap-3">
                     <Settings size={18} className="text-amber-500 dark:text-amber-400" />
-                    <span className="text-xs font-semibold">System Settings</span>
+                    <span className="text-xs font-semibold">{t("nav.settings")}</span>
                   </div>
                   <span className="text-[12px] text-muted-foreground">→</span>
                 </button>
@@ -189,7 +191,7 @@ export function MobileNav({ theme, toggleTheme }) {
             {/* PREFERENCES & ACCOUNT */}
             <div className="pt-2 border-t border-border/40 space-y-2">
               <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider block mb-2 px-1">
-                Preferences & Account
+                {t("commandPalette.actionsGroup")}
               </p>
 
               {/* Privacy Mode Toggle */}
@@ -204,10 +206,10 @@ export function MobileNav({ theme, toggleTheme }) {
                   ) : (
                     <Eye size={18} className="text-muted-foreground" />
                   )}
-                  <span className="text-xs font-semibold">Privacy Mode (Hide Balances)</span>
+                  <span className="text-xs font-semibold">{t("privacy.title")}</span>
                 </div>
                 <span className={`text-[11px] font-mono font-bold ${isPrivate ? "text-amber-500" : "text-muted-foreground"}`}>
-                  {isPrivate ? "ON" : "OFF"}
+                  {isPrivate ? t("common.yes") : t("common.no")}
                 </span>
               </button>
 
@@ -218,24 +220,31 @@ export function MobileNav({ theme, toggleTheme }) {
                 className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-secondary/40 border border-border/40 text-foreground hover:bg-secondary/80 transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  {theme === "dark" ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-indigo-400" />}
+                  {theme === "dark" ? (
+                    <Sun size={18} className="text-amber-400" />
+                  ) : (
+                    <Moon size={18} className="text-muted-foreground" />
+                  )}
                   <span className="text-xs font-semibold">
-                    Theme: {theme === "dark" ? "Dark Mode" : "Light Mode"}
+                    {theme === "dark" ? t("theme.switchToLight") : t("theme.switchToDark")}
                   </span>
                 </div>
-                <span className="text-[11px] text-muted-foreground capitalize">{theme}</span>
+                <span className="text-[11px] font-mono font-bold text-muted-foreground uppercase">
+                  {theme}
+                </span>
               </button>
 
               {/* Logout */}
               <button
                 type="button"
                 onClick={handleLogout}
-                className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 dark:text-rose-400 hover:bg-rose-500/20 transition-all cursor-pointer"
+                className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive hover:bg-destructive/20 transition-all cursor-pointer"
               >
                 <div className="flex items-center gap-3">
                   <LogOut size={18} />
-                  <span className="text-xs font-semibold">Log out</span>
+                  <span className="text-xs font-semibold">{t("nav.logout")}</span>
                 </div>
+                <span className="text-[12px] text-destructive/80">→</span>
               </button>
             </div>
           </div>

@@ -9,6 +9,7 @@ import { GuestRoute } from "./components/shared/GuestRoute";
 import { DashboardLoader } from "./components/shared/DashboardLoader";
 import { Toaster } from "@/components/ui/sonner";
 import { PrivacyProvider } from "@/contexts/PrivacyContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import Dashboard from "./pages/Dashboard";
 import Accounts from "./pages/Accounts";
 import Transactions from "./pages/Transactions";
@@ -90,33 +91,34 @@ export default function App() {
   const toggleTheme = () => setTheme((prev) => (prev === "dark" ? "light" : "dark"));
 
   return (
-    <PrivacyProvider>
-      <Routes>
-        <Route path="/login"
-          element={
-            <GuestRoute>
-              <Login />
-            </GuestRoute>
-          }
-        />
-        <Route path="/register"
-          element={
-            <GuestRoute>
-              <Register />
-            </GuestRoute>
-          }
-        />
+    <LanguageProvider>
+      <PrivacyProvider>
+        <Routes>
+          <Route path="/login"
+            element={
+              <GuestRoute>
+                <Login />
+              </GuestRoute>
+            }
+          />
+          <Route path="/register"
+            element={
+              <GuestRoute>
+                <Register />
+              </GuestRoute>
+            }
+          />
 
-        <Route path="/*"
-          element={
-            <ProtectedRoute>
-              <AuthenticatedLayout theme={theme} toggleTheme={toggleTheme} />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
-      <Toaster position="top-center" />
-    </PrivacyProvider>
+          <Route path="/*"
+            element={
+              <ProtectedRoute>
+                <AuthenticatedLayout theme={theme} toggleTheme={toggleTheme} />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+        <Toaster position="top-center" />
+      </PrivacyProvider>
+    </LanguageProvider>
   );
 }
-

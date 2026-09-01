@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { ACCOUNT_TYPES, getAccountType } from "@/config/accountTypes";
 import { CURRENCIES, getCurrencySymbol } from "@/config/currencies";
+import { useTranslation } from "@/hooks/useLanguage";
 
 
 const ACCENT_COLORS = [
@@ -46,6 +47,7 @@ const ACCENT_COLORS = [
 ];
 
 export default function Accounts() {
+  const { t } = useTranslation();
   const { data: accounts = [], isLoading, isError, refetch } = useAccounts();
 
   const createMutation = useCreateAccount();
@@ -69,7 +71,11 @@ export default function Accounts() {
 
   // Helpers
   const getIconForType = (type) => getAccountType(type).icon;
-  const getLabelForType = (type) => getAccountType(type).label;
+  const getLabelForType = (type) => {
+    const key = `accounts.types.${type}`;
+    const translated = t(key);
+    return translated !== key ? translated : getAccountType(type).label;
+  };
 
   const handleOpenCreate = () => {
     setIsEditMode(false);
@@ -122,15 +128,15 @@ export default function Accounts() {
   const handleConfirmDelete = async () => {
     if (activeAccount) {
       await deleteMutation.mutateAsync(activeAccount.id);
+      setDeleteAlertOpen(false);
       setActiveAccount(null);
     }
-    setDeleteAlertOpen(false);
   };
 
   // Rendering logic
   if (isError) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 border border-border/40 bg-card rounded-3xl min-h-75 text-center space-y-4">
+      <div className="flex flex-col items-center justify-center p-8 border border-dashed border-destructive/50 rounded-3xl min-h-75 text-center space-y-4">
         <AlertCircle className="h-12 w-12 text-destructive" />
         <div className="space-y-1">
           <h3 className="text-lg font-bold">Failed to load accounts</h3>
@@ -148,15 +154,15 @@ export default function Accounts() {
       {/* Top Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Financial Accounts</h2>
-          <p className="text-muted-foreground text-xs">Manage checking, cash, savings, and investments</p>
+          <h2 className="text-2xl font-bold tracking-tight">{t("accounts.title")}</h2>
+          <p className="text-muted-foreground text-xs">{t("accounts.subtitle")}</p>
         </div>
         <Button
           onClick={handleOpenCreate}
-          className="rounded-xl bg-secondary hover:bg-accent border border-border/40 text-foreground hidden md:flex items-center gap-1.5 text-xs font-semibold px-4 py-2 transition-colors duration-200"
+          className="rounded-xl bg-secondary hover:bg-accent border border-border/40 text-foreground hidden md:flex items-center gap-1.5 text-xs font-semibold px-4 py-2 transition-colors duration-200 cursor-pointer"
         >
           <Plus className="h-4 w-4" />
-          Add Account
+          {t("accounts.newAccount")}
         </Button>
       </div>
 
@@ -188,11 +194,11 @@ export default function Accounts() {
             <Wallet className="h-6 w-6" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-md font-bold">No accounts found</h3>
-            <p className="text-xs text-muted-foreground">Add your checking cards, cash, or deposits to get started.</p>
+            <h3 className="text-md font-bold">{t("common.noData")}</h3>
+            <p className="text-xs text-muted-foreground">{t("accounts.subtitle")}</p>
           </div>
           <Button onClick={handleOpenCreate} variant="secondary" className="rounded-xl text-xs font-semibold">
-            Create First Account
+            {t("accounts.newAccount")}
           </Button>
         </div>
       ) : (
@@ -227,7 +233,7 @@ export default function Accounts() {
                 </div>
                 <div className="space-y-0.5">
                   <span className="text-[9px] text-muted-foreground uppercase font-bold tracking-wider block">
-                    Available Balance
+                    {t("accounts.currentBalance")}
                   </span>
                   <div className="text-xl font-bold tracking-tight font-mono">
                     {symbol}
@@ -248,7 +254,7 @@ export default function Accounts() {
         <DialogContent className="md:max-w-105 p-6 rounded-3xl bg-card border border-border/40 shadow-2xl">
           <DialogHeader className="flex flex-row items-center justify-between">
             <DialogTitle className="text-lg font-bold">
-              {isEditMode ? "Modify Financial Account" : "Setup New Account"}
+              {isEditMode ? t("accounts.editAccount") : t("accounts.createAccount")}
             </DialogTitle>
           </DialogHeader>
 
@@ -256,7 +262,7 @@ export default function Accounts() {
             {/* Account Balance Box */}
             <div className="bg-secondary/20 rounded-2xl p-4 flex flex-col items-center justify-center border border-border/20">
               <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider mb-1">
-                Account Balance
+                {isEditMode ? t("accounts.currentBalance") : t("accounts.initialBalance")}
               </span>
               <div className="flex items-center justify-center gap-1.5 w-full">
                 <span className="text-2xl font-semibold text-muted-foreground">
@@ -268,13 +274,11 @@ export default function Accounts() {
                   value={formBalance}
                   onChange={(e) => {
                     const val = e.target.value;
-                    // Allow only digits and optional decimal dot
                     if (/^\d*\.?\d*$/.test(val)) {
                       setFormBalance(val);
                     }
                   }}
                   onBlur={() => {
-                    // Normalize float on blur
                     const parsed = parseFloat(formBalance);
                     setFormBalance(isNaN(parsed) ? "0.00" : parsed.toFixed(2));
                   }}
@@ -286,12 +290,12 @@ export default function Accounts() {
             {/* Display Name */}
             <div className="space-y-1.5">
               <label className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">
-                Account Display Name
+                {t("accounts.accountName")}
               </label>
               <Input
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
-                placeholder="e.g. Chase Premium checking, Cash, cold wallet..."
+                placeholder={t("accounts.accountNamePlaceholder")}
                 className="rounded-xl border-border/40 bg-card h-11 text-sm placeholder:text-muted-foreground/60 focus-visible:ring-emerald-500/20"
                 required
               />
@@ -300,7 +304,7 @@ export default function Accounts() {
             {/* Account Type selectable cards */}
             <div className="space-y-1.5">
               <label className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">
-                Account Type
+                {t("accounts.accountType")}
               </label>
               <div className="grid grid-cols-2 gap-2 mt-1.5">
                 {ACCOUNT_TYPES.map((type) => {
@@ -318,7 +322,7 @@ export default function Accounts() {
                       }`}
                     >
                       <TypeIcon className={`h-4 w-4 shrink-0 ${isSelected ? "text-emerald-500" : ""}`} />
-                      <span className="truncate">{type.label}</span>
+                      <span className="truncate">{getLabelForType(type.value)}</span>
                     </button>
                   );
                 })}
@@ -330,11 +334,13 @@ export default function Accounts() {
               {/* Currency Selector */}
               <div className="space-y-1.5">
                 <label className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">
-                  Currency
+                  {t("common.currency")}
                 </label>
                 <Select value={formCurrency} onValueChange={setFormCurrency}>
                   <SelectTrigger className="w-full h-11 bg-card border-border/40 rounded-xl text-sm">
-                    <SelectValue placeholder="Select Currency" />
+                    <SelectValue placeholder={t("common.currency")}>
+                      {CURRENCIES.find((c) => c.code === formCurrency)?.label || formCurrency}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {CURRENCIES.map((currency) => (
@@ -349,7 +355,7 @@ export default function Accounts() {
               {/* Accent Color picker */}
               <div className="space-y-1.5">
                 <label className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider block">
-                  Theme Accent
+                  {t("accounts.color")}
                 </label>
                 <div className="flex flex-wrap items-center gap-2 h-11">
                   {ACCENT_COLORS.map((color) => {
@@ -382,7 +388,7 @@ export default function Accounts() {
                 {(createMutation.isPending || updateMutation.isPending) && (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 )}
-                {isEditMode ? "Save Changes" : "Create Account"}
+                {isEditMode ? t("common.saveChanges") : t("accounts.createAccount")}
               </Button>
 
               {isEditMode && (
@@ -391,7 +397,7 @@ export default function Accounts() {
                   onClick={handleDeleteClick}
                   className="w-full text-center text-rose-500 hover:text-rose-600 font-semibold cursor-pointer text-sm py-2 mt-2 hover:underline transition-all block"
                 >
-                  Delete This Account
+                  {t("accounts.deleteAccount")}
                 </button>
               )}
             </div>
@@ -403,14 +409,13 @@ export default function Accounts() {
       <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
         <AlertDialogContent className="md:max-w-100">
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t("accounts.deleteAccount")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the financial account
-              <strong className="text-foreground"> "{activeAccount?.name}"</strong> and all its associated transaction data from our servers.
+              {t("accounts.deleteWarning")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-xl">{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
@@ -418,7 +423,7 @@ export default function Accounts() {
               {deleteMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                "Delete Account"
+                t("common.delete")
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -429,7 +434,7 @@ export default function Accounts() {
         type="button"
         onClick={handleOpenCreate}
         className="fixed bottom-20 right-5 z-40 md:hidden bg-income text-primary-foreground hover:bg-income/90 p-4 rounded-full shadow-xl glow-income flex items-center justify-center cursor-pointer transition-all duration-300 active:scale-95"
-        aria-label="Add Account"
+        aria-label={t("accounts.newAccount")}
       >
         <Plus className="h-6 w-6 stroke-[2.5]" />
       </button>

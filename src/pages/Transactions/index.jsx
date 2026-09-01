@@ -4,6 +4,7 @@ import { useTransactions, useCreateTransaction, useUpdateTransaction, useDeleteT
 import { useAccounts } from "@/hooks/useAccounts";
 import { useCategories } from "@/hooks/useCategories";
 import { useTags } from "@/hooks/useTags";
+import { useTranslation } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 
 import { TransactionFilters } from "./components/TransactionFilters";
@@ -60,6 +61,7 @@ const processAndGroupTransactions = (rawList) => {
 };
 
 export default function Transactions() {
+  const { t } = useTranslation();
   const { data: accounts = [] } = useAccounts();
   const { data: categories = [] } = useCategories();
   const { data: tags = [] } = useTags();
@@ -100,28 +102,22 @@ export default function Transactions() {
     if (selectedType !== "all") f.type = selectedType;
     if (selectedAccount !== "all") f.account_id = selectedAccount;
     if (selectedCategory !== "all") f.category_id = selectedCategory;
-    if (selectedTag !== "all") f.tag = selectedTag;
+    if (selectedTag !== "all") f.tag_id = selectedTag;
     if (dateFrom) f.date_from = dateFrom;
     if (dateTo) f.date_to = dateTo;
     return f;
   }, [page, perPage, search, selectedType, selectedAccount, selectedCategory, selectedTag, dateFrom, dateTo]);
 
-  const { data: transactionsData, isLoading, isError } = useTransactions(activeFilters);
+  const { data: responseData, isLoading, isError } = useTransactions(activeFilters);
 
-  // Memoized transactions feed array reference
-  const transactions = useMemo(() => transactionsData?.data ?? [], [transactionsData]);
-  const meta = transactionsData?.meta ?? {};
+  const rawList = responseData?.data || [];
+  const meta = responseData?.meta || {};
 
-  const groupedTransactions = useMemo(
-    () => processAndGroupTransactions(transactions),
-    [transactions]
-  );
+  const groupedTransactions = useMemo(() => {
+    return processAndGroupTransactions(rawList);
+  }, [rawList]);
 
-  const resetCreateForm = () => {
-    setEditingTransaction(null);
-  };
-
-  const handleClearFilters = () => {
+  const handleClearFilters = useCallback(() => {
     setSearch("");
     setSelectedType("all");
     setSelectedAccount("all");
@@ -130,65 +126,55 @@ export default function Transactions() {
     setDateFrom("");
     setDateTo("");
     setPage(1);
-    if (window.innerWidth < 768) {
-      setIsFiltersOpen(false);
-    }
-  };
-
-  const handleStartEdit = useCallback((transaction) => {
-    setEditingTransaction(transaction);
-    setIsCreateOpen(true);
   }, []);
 
-  const handleCreateSubmit = (payload) => {
-    if (editingTransaction) {
-      updateMutation.mutate(
-        { id: editingTransaction.id, payload },
-        {
-          onSuccess: () => {
-            setIsCreateOpen(false);
-            resetCreateForm();
-          },
-        }
-      );
-    } else {
-      createMutation.mutate(payload, {
-        onSuccess: () => {
-          setIsCreateOpen(false);
-          resetCreateForm();
-          setPage(1);
-        },
-      });
-    }
-  };
-
-  const handleDeleteConfirm = () => {
-    if (!deleteConfirmId) return;
-    deleteMutation.mutate(deleteConfirmId, {
-      onSuccess: () => {
-        setDeleteConfirmId(null);
-      },
-    });
-  };
-
-  // Callback that resets the pagination page to 1 whenever any filter changes.
-  const handleFilterChange = useCallback((setter, val) => {
+  const handleFilterChange = useCallback((setter) => (val) => {
     setter(val);
     setPage(1);
   }, []);
 
-  const handleTagClick = useCallback((tagName) => {
-    handleFilterChange(setSelectedTag, tagName);
-  }, [handleFilterChange]);
+  const handleTagClick = useCallback((tagId) => {
+    setSelectedTag(String(tagId));
+    setPage(1);
+  }, []);
+
+  const resetCreateForm = useCallback(() => {
+    setEditingTransaction(null);
+  }, []);
+
+  const handleStartEdit = useCallback((tx) => {
+    setEditingTransaction(tx);
+    setIsCreateOpen(true);
+  }, []);
+
+  const handleCreateSubmit = useCallback(async (payload) => {
+    if (editingTransaction) {
+      await updateMutation.mutateAsync({
+        id: editingTransaction.id,
+        payload,
+      });
+    } else {
+      await createMutation.mutateAsync(payload);
+    }
+    setIsCreateOpen(false);
+    resetCreateForm();
+  }, [editingTransaction, updateMutation, createMutation, resetCreateForm]);
+
+  const handleDeleteConfirm = useCallback(async () => {
+    if (deleteConfirmId) {
+      await deleteMutation.mutateAsync(deleteConfirmId);
+      setDeleteConfirmId(null);
+    }
+  }, [deleteConfirmId, deleteMutation]);
 
   return (
-    <div className="space-y-6 relative pb-20 md:pb-0">
-      {/* Page Header: Title and main action buttons */}
-      <div className="flex items-center justify-between gap-4">
+    <div className="space-y-6">
+      {/* Top Header Controls (Title + Filter Toggle + Add Button) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Ledger Transactions</h1>
-          <p className="text-muted-foreground text-sm">
-            Search, filter, and audit your money flow
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{t("transactions.title")}</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+            {t("transactions.subtitle")}
           </p>
         </div>
 
@@ -196,12 +182,12 @@ export default function Transactions() {
           <Button
             variant="outline"
             onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-            className={`border-border/40 hover:bg-secondary/40 text-foreground cursor-pointer rounded-xl h-11 px-4 ${
+            className={`rounded-xl border-border/40 text-foreground font-semibold h-11 px-4 cursor-pointer transition-all ${
               isFiltersOpen ? "bg-secondary" : "bg-card/50"
             }`}
           >
             <SlidersHorizontal className="h-4 w-4 mr-2" />
-            <span>Filters</span>
+            <span>{t("reports.filters")}</span>
           </Button>
 
           <Button
@@ -212,7 +198,7 @@ export default function Transactions() {
             className="bg-income text-primary-foreground hover:bg-income/90 font-semibold shadow-md glow-income rounded-xl h-11 px-4 hidden md:flex cursor-pointer transition-all duration-300"
           >
             <Plus className="h-4 w-4 mr-2" />
-            <span>Add Transaction</span>
+            <span>{t("transactions.newTransaction")}</span>
           </Button>
         </div>
       </div>
