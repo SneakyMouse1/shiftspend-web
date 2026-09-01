@@ -34,6 +34,7 @@ function AuthenticatedLayout({ theme, toggleTheme }) {
     if (location.state?.showLoader) {
       navigate(location.pathname, { replace: true, state: {} });
     }
+    window.scrollTo(0, 0);
   }, [location.state, location.pathname, navigate]);
 
   const handleLoaderComplete = () => {
