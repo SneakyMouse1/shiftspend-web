@@ -1,16 +1,23 @@
-import { format, isToday, parseISO } from "date-fns";
+import { isToday, parseISO } from "date-fns";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useTranslation } from "@/hooks/useLanguage";
+import { useLanguage } from "@/hooks/useLanguage";
 import { TransactionRow } from "./TransactionRow";
 
-const formatGroupDate = (dateStr) => {
+const formatGroupDate = (dateStr, t, language = "en") => {
   try {
     const date = parseISO(dateStr);
     if (isToday(date)) {
-      return `TODAY, ${format(date, "MMMM d").toUpperCase()}`;
+      const formatted = new Intl.DateTimeFormat(language, { month: "long", day: "numeric" }).format(date);
+      const todayLabel = t("transactions.today") || "Today";
+      return `${todayLabel.toUpperCase()}, ${formatted.toUpperCase()}`;
     }
-    return format(date, "EEE, MMM d, yyyy").toUpperCase();
+    return new Intl.DateTimeFormat(language, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }).format(date).toUpperCase();
   } catch {
     return dateStr.toUpperCase();
   }
@@ -26,7 +33,7 @@ export function TransactionFeed({
   onDelete,
   onTagClick,
 }) {
-  const { t } = useTranslation();
+  const { t, language } = useLanguage();
 
   if (groupedTransactions.length === 0) {
     return (
@@ -50,7 +57,7 @@ export function TransactionFeed({
         <div key={group.date} className="space-y-3">
           <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground tracking-wider select-none">
             <Calendar className="h-4.5 w-4.5" />
-            <span>{formatGroupDate(group.date)}</span>
+            <span>{formatGroupDate(group.date, t, language)}</span>
           </div>
 
           <div className="space-y-3">

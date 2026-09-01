@@ -21,6 +21,13 @@ export default function ReportFilters({
 }) {
   const { t } = useTranslation();
 
+  const getCategoryName = (name) => {
+    if (!name) return "—";
+    const key = `categories.names.${name}`;
+    const translated = t(key);
+    return translated && translated !== key ? translated : name;
+  };
+
   return (
     <div className="bg-card/40 border border-border/40 p-4 rounded-3xl shadow-sm space-y-3">
       <div className="flex items-center justify-between flex-wrap gap-2">
@@ -90,7 +97,7 @@ export default function ReportFilters({
               <option value="all" className="bg-card text-foreground">{t("transactions.allCategories")}</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id} className="bg-card text-foreground">
-                  {cat.name}
+                  {getCategoryName(cat.name)}
                 </option>
               ))}
             </select>
@@ -99,7 +106,7 @@ export default function ReportFilters({
 
         {/* Type Filter */}
         <div className="space-y-1">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase">{t("transactions.types.expense")}</label>
+          <label className="text-[10px] font-bold text-muted-foreground uppercase">{t("transactions.type")}</label>
           <div className="flex items-center gap-1.5 bg-secondary/50 px-3 py-2 rounded-2xl border border-border/30">
             <Layers className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
             <select

@@ -29,6 +29,13 @@ export const TransactionRow = React.memo(function TransactionRow({
   const catColor = transaction.category?.color || "#9ca3af";
   const Icon = isTransfer ? ArrowLeftRight : getIconComponent(transaction.category?.icon);
 
+  const getCategoryName = (name) => {
+    if (!name) return "—";
+    const key = `categories.names.${name}`;
+    const translated = t(key);
+    return translated && translated !== key ? translated : name;
+  };
+
   return (
     <div className="group flex items-center justify-between p-4 rounded-2xl bg-card border border-border/30 hover:border-border/60 hover:shadow-sm transition-all duration-300">
       <div className="flex items-center gap-4 min-w-0">
@@ -44,7 +51,7 @@ export const TransactionRow = React.memo(function TransactionRow({
 
         <div className="min-w-0">
           <h4 className="font-semibold text-foreground truncate max-w-50 sm:max-w-xs md:max-w-md">
-            {transaction.comment || (isTransfer ? t("transactions.types.transfer") : transaction.category?.name || "—")}
+            {transaction.comment || (isTransfer ? t("transactions.types.transfer") : getCategoryName(transaction.category?.name))}
           </h4>
           <p className="text-xs text-muted-foreground mt-0.5 truncate">
             {isTransfer ? (
@@ -57,7 +64,7 @@ export const TransactionRow = React.memo(function TransactionRow({
               </span>
             ) : (
               <span>
-                {transaction.category?.name || t("common.category")} • {transaction.account?.name || t("common.account")}
+                {getCategoryName(transaction.category?.name) || t("common.category")} • {transaction.account?.name || t("common.account")}
               </span>
             )}
           </p>

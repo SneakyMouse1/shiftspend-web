@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { navItems } from "@/lib/navigation";
 import { Logo } from "@/components/shared/Logo";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
-
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/hooks/useLanguage";
 
 export function Header({ theme, toggleTheme }) {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { t } = useTranslation();
 
   const handleLogout = async () => {
     await logout();
@@ -40,8 +41,9 @@ export function Header({ theme, toggleTheme }) {
             variant="ghost"
             size="icon"
             onClick={toggleTheme}
-            className="h-9 w-9 rounded-xl border border-border/20 bg-secondary/50 hover:bg-accent hover:text-accent-foreground text-foreground transition-all duration-300 overflow-hidden"
-            aria-label="Toggle theme"
+            className="h-9 w-9 rounded-xl border border-border/20 bg-secondary/50 hover:bg-accent hover:text-accent-foreground text-foreground transition-all duration-300 overflow-hidden cursor-pointer"
+            aria-label={theme === "dark" ? t("theme.switchToLight") : t("theme.switchToDark")}
+            title={theme === "dark" ? t("theme.switchToLight") : t("theme.switchToDark")}
           >
             <div className="relative h-full w-full flex items-center justify-center">
               <Sun
@@ -66,8 +68,9 @@ export function Header({ theme, toggleTheme }) {
             variant="ghost"
             size="icon"
             onClick={handleLogout}
-            className="h-9 w-9 rounded-xl border border-border/20 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all duration-300"
-            aria-label="Log out"
+            className="h-9 w-9 rounded-xl border border-border/20 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all duration-300 cursor-pointer"
+            aria-label={t("nav.logout")}
+            title={t("nav.logout")}
           >
             <LogOut className="h-[1.1rem] w-[1.1rem]" />
           </Button>
@@ -77,7 +80,7 @@ export function Header({ theme, toggleTheme }) {
             variant="ghost"
             size="icon"
             onClick={() => setIsOpen(!isOpen)}
-            className="h-9 w-9 rounded-xl border border-border/20 bg-secondary/50 hover:bg-accent hover:text-accent-foreground text-foreground"
+            className="h-9 w-9 rounded-xl border border-border/20 bg-secondary/50 hover:bg-accent hover:text-accent-foreground text-foreground cursor-pointer"
             aria-label="Toggle menu"
           >
             {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -105,7 +108,7 @@ export function Header({ theme, toggleTheme }) {
                   }
                 >
                   <Icon className="h-4 w-4 shrink-0" />
-                  <span>{item.label}</span>
+                  <span>{item.translationKey ? t(item.translationKey) : item.label}</span>
                 </NavLink>
               );
             })}

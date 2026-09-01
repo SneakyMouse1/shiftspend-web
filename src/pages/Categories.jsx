@@ -46,6 +46,13 @@ export default function Categories() {
   const [activeTab, setActiveTab] = useState("expense");
 
   const handleClose = () => setSelectedCategory(null);
+  const handleOpenCreate = () => {
+    setNewCategory({
+      ...INITIAL_CREATE_STATE,
+      type: activeTab,
+    });
+    setIsCreateOpen(true);
+  };
   const handleCloseCreate = () => {
     setIsCreateOpen(false);
     setNewCategory(INITIAL_CREATE_STATE);
@@ -95,30 +102,38 @@ export default function Categories() {
   const expenseCategories = categories.filter((cat) => cat.type === "expense");
   const incomeCategories = categories.filter((cat) => cat.type === "income");
 
+  const getCategoryName = (name) => {
+    if (!name) return "—";
+    const key = `categories.names.${name}`;
+    const translated = t(key);
+    return translated && translated !== key ? translated : name;
+  };
+
 
   return (
     <div className="space-y-6">
       {/* Headline */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{t("categories.title")}</h1>
-          <p className="text-muted-foreground text-sm">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{t("categories.title")}</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
             {t("categories.subtitle")}
           </p>
         </div>
 
         <Button
-          onClick={() => setIsCreateOpen(true)}
-          className="bg-income text-primary-foreground hover:bg-income/90 font-semibold shadow-md glow-income rounded-xl transition-all duration-300 cursor-pointer hidden md:flex items-center"
+          onClick={handleOpenCreate}
+          className="bg-income text-primary-foreground hover:bg-income/90 font-semibold shadow-md glow-income rounded-xl h-11 px-4 cursor-pointer transition-all duration-300"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-4 w-4 mr-2" />
           <span>{t("categories.newCategory")}</span>
         </Button>
       </div>
 
+      {/* Loading state */}
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-20 space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-income" />
+        <div className="flex flex-col items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-income mb-4" />
           <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
         </div>
       ) : (
@@ -126,17 +141,24 @@ export default function Categories() {
         <>
 
           {/* Switch Expenses/Income - Modern Segmented Control */}
-          <div className="flex sm:inline-flex p-1 rounded-2xl bg-secondary/80 border border-border/80 w-full sm:w-auto shadow-inner">
+          <div className="flex items-center gap-2 p-1 bg-secondary/50 rounded-2xl border border-border/40 w-full sm:w-fit">
             <button
               type="button"
               onClick={() => setActiveTab("expense")}
-              className={`flex-1 sm:flex-initial py-2 px-5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 ${activeTab === "expense"
-                ? "bg-card text-orange-600 dark:text-orange-400 font-bold shadow-xs border border-orange-500/30"
-                : "text-muted-foreground hover:text-foreground border border-transparent"
-                }`}
+              className={`flex-1 sm:flex-initial py-2 px-5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 ${
+                activeTab === "expense"
+                  ? "bg-card text-expense font-bold shadow-xs border border-expense/30"
+                  : "text-muted-foreground hover:text-foreground border border-transparent"
+              }`}
             >
               <span>{t("categories.expenseCategories")}</span>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${activeTab === "expense" ? "bg-orange-500/15 text-orange-600 dark:text-orange-400" : "bg-secondary text-muted-foreground"}`}>
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full font-bold transition-colors ${
+                  activeTab === "expense"
+                    ? "bg-expense/15 text-expense"
+                    : "bg-secondary text-muted-foreground"
+                }`}
+              >
                 {expenseCategories.length}
               </span>
             </button>
@@ -144,13 +166,20 @@ export default function Categories() {
             <button
               type="button"
               onClick={() => setActiveTab("income")}
-              className={`flex-1 sm:flex-initial py-2 px-5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 ${activeTab === "income"
-                ? "bg-card text-emerald-600 dark:text-emerald-400 font-bold shadow-xs border border-emerald-500/30"
-                : "text-muted-foreground hover:text-foreground border border-transparent"
-                }`}
+              className={`flex-1 sm:flex-initial py-2 px-5 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 ${
+                activeTab === "income"
+                  ? "bg-card text-income font-bold shadow-xs border border-income/30"
+                  : "text-muted-foreground hover:text-foreground border border-transparent"
+              }`}
             >
               <span>{t("categories.incomeCategories")}</span>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${activeTab === "income" ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" : "bg-secondary text-muted-foreground"}`}>
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full font-bold transition-colors ${
+                  activeTab === "income"
+                    ? "bg-income/15 text-income"
+                    : "bg-secondary text-muted-foreground"
+                }`}
+              >
                 {incomeCategories.length}
               </span>
             </button>
@@ -161,6 +190,7 @@ export default function Categories() {
             {(activeTab === "expense" ? expenseCategories : incomeCategories).map((category) => {
               const IconComponent = getIconComponent(category.icon);
               const isExpense = activeTab === "expense";
+              const displayName = getCategoryName(category.name);
 
               return (
                 <div
@@ -183,7 +213,7 @@ export default function Categories() {
                           : "border-income/40 text-income bg-income/10"
                           }`}
                       >
-                        Custom
+                        {t("categories.custom") || t("common.custom")}
                       </span>
                     ) : (
                       <div className="p-1 sm:p-1.5 rounded-lg bg-secondary/80 text-muted-foreground shrink-0">
@@ -193,11 +223,11 @@ export default function Categories() {
                   </div>
 
                   <div className="min-w-0">
-                    <h3 className="text-xs sm:text-sm font-semibold text-foreground truncate" title={category.name}>
-                      {category.name}
+                    <h3 className="text-xs sm:text-sm font-semibold text-foreground truncate" title={displayName}>
+                      {displayName}
                     </h3>
                     <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 truncate">
-                      {!category.is_default ? "Custom" : "Protected"}
+                      {isExpense ? t("transactions.types.expense") : t("transactions.types.income")}
                     </p>
                   </div>
                 </div>
@@ -239,21 +269,23 @@ export default function Categories() {
                 <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-secondary/80 border border-border/80 shadow-inner">
                   <button
                     type="button"
-                    onClick={() => setNewCategory(prev => ({ ...prev, type: "expense" }))}
-                    className={`py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5 ${newCategory.type === "expense"
-                      ? "bg-card text-orange-600 dark:text-orange-400 font-bold shadow-xs border border-orange-500/30"
-                      : "text-muted-foreground hover:text-foreground border border-transparent"
-                      }`}
+                    onClick={() => setNewCategory((prev) => ({ ...prev, type: "expense" }))}
+                    className={`py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5 ${
+                      newCategory.type === "expense"
+                        ? "bg-card text-expense font-bold shadow-xs border border-expense/30"
+                        : "text-muted-foreground hover:text-foreground border border-transparent"
+                    }`}
                   >
                     {t("transactions.types.expense")}
                   </button>
                   <button
                     type="button"
-                    onClick={() => setNewCategory(prev => ({ ...prev, type: "income" }))}
-                    className={`py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5 ${newCategory.type === "income"
-                      ? "bg-card text-emerald-600 dark:text-emerald-400 font-bold shadow-xs border border-emerald-500/30"
-                      : "text-muted-foreground hover:text-foreground border border-transparent"
-                      }`}
+                    onClick={() => setNewCategory((prev) => ({ ...prev, type: "income" }))}
+                    className={`py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5 ${
+                      newCategory.type === "income"
+                        ? "bg-card text-income font-bold shadow-xs border border-income/30"
+                        : "text-muted-foreground hover:text-foreground border border-transparent"
+                    }`}
                   >
                     {t("transactions.types.income")}
                   </button>
@@ -373,7 +405,7 @@ export default function Categories() {
                   })()}
                 </div>
                 <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">{t("categories.visualPreview")}</span>
-                <span className="text-2xl font-bold text-foreground mt-1">{selectedCategory.name}</span>
+                <span className="text-2xl font-bold text-foreground mt-1">{getCategoryName(selectedCategory.name)}</span>
               </div>
 
               {/* Warning */}
@@ -394,7 +426,7 @@ export default function Categories() {
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("categories.categoryName")}</label>
                 <input
                   type="text"
-                  value={selectedCategory.name}
+                  value={selectedCategory.is_default ? getCategoryName(selectedCategory.name) : selectedCategory.name}
                   onChange={handleNameChange}
                   disabled={selectedCategory.is_default}
                   className={`w-full px-4 py-3 rounded-xl bg-secondary/30 border text-foreground text-sm focus:outline-none disabled:opacity-50 ${!selectedCategory.is_default
