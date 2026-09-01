@@ -327,7 +327,7 @@ export default function Budgets() {
                 return (
                   <div
                     key={budget.id}
-                    className="rounded-xl border border-secondary bg-secondary/40 p-5 flex flex-col justify-between space-y-6 transition-all duration-200 hover:border-muted"
+                    className="rounded-2xl border border-border/60 bg-card p-5 flex flex-col justify-between space-y-6 transition-all duration-200 hover:border-border hover:shadow-md shadow-xs"
                   >
                     <div>
                       {/* Header: Icon, Info and Dropdown Action */}
@@ -566,13 +566,13 @@ export default function Budgets() {
                   <DialogDescription className="hidden">Manage budget limits and expenses</DialogDescription>
 
                   {/* CUSTOM TAB SWITCH */}
-                  <div className="grid grid-cols-2 gap-2 p-1.5 rounded-xl bg-secondary/30 border border-border/40 w-full mt-3">
+                  <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-secondary/80 border border-border/80 w-full mt-3 shadow-inner">
                     <button
                       type="button"
                       onClick={() => setActiveTab("edit")}
-                      className={`py-2 text-sm font-semibold rounded-lg transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5 ${activeTab === "edit"
-                          ? "bg-card border-income/30 text-income glow-income drop-shadow-[0_0_10px_rgba(74,222,128,0.15)]"
-                          : "text-muted-foreground hover:text-foreground"
+                      className={`py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5 ${activeTab === "edit"
+                          ? "bg-card text-emerald-600 dark:text-emerald-400 font-bold shadow-xs border border-emerald-500/30"
+                          : "text-muted-foreground hover:text-foreground border border-transparent"
                         }`}
                     >
                       <span>Edit Limit</span>
@@ -581,9 +581,9 @@ export default function Budgets() {
                     <button
                       type="button"
                       onClick={() => setActiveTab("expense")}
-                      className={`py-2 text-sm font-semibold rounded-lg transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5 ${activeTab === "expense"
-                          ? "bg-card border-expense/30 text-expense glow-expense drop-shadow-[0_0_10px_rgba(251,146,60,0.15)]"
-                          : "text-muted-foreground hover:text-foreground"
+                      className={`py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5 ${activeTab === "expense"
+                          ? "bg-card text-orange-600 dark:text-orange-400 font-bold shadow-xs border border-orange-500/30"
+                          : "text-muted-foreground hover:text-foreground border border-transparent"
                         }`}
                     >
                       <span>Add Expense</span>

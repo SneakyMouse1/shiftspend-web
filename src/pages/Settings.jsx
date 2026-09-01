@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { User, Save, KeyRound, Loader2, Camera, AlertTriangle, Trash2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { User, Save, KeyRound, Loader2, AlertTriangle, Trash2, ShieldCheck, Mail, Globe } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth, useUpdateProfile, useChangePassword, useDeleteAccount } from "@/hooks/useAuth";
@@ -9,17 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
-const DEFAULT_AVATAR = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
-
-
 export default function Settings() {
   const { user } = useAuth();
   const { mutate: updateProfile, isPending } = useUpdateProfile();
 
   const [name, setName] = useState(user?.name || "");
   const [currency, setCurrency] = useState(user?.settings?.currency || "EUR");
-  const [avatarFile, setAvatarFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(user?.avatar || "");
+
   const changePasswordMutation = useChangePassword();
   const [isPasswordOpen, setIsPasswordOpen] = useState(false);
 
@@ -27,31 +23,16 @@ export default function Settings() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [deleteForm, setDeleteForm] = useState({ current_password: "" });
 
-
-  const fileInputRef = useRef(null);
-
   useEffect(() => {
     if (user) {
       setName(user.name || "");
-      setPreviewUrl(user.avatar || "");
       if (user.settings?.currency) {
         setCurrency(user.settings.currency);
       }
     }
   }, [user]);
 
-
-  // CHANGE AVATAR
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setAvatarFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
-  };
-
-
-  // INITIAL STATE FRO PASSWORD CHANGE IN MODAL
+  // INITIAL STATE FOR PASSWORD CHANGE IN MODAL
   const [passwordForm, setPasswordForm] = useState({
     current_password: "",
     password: "",
@@ -62,7 +43,6 @@ export default function Settings() {
     setIsPasswordOpen(false);
     setPasswordForm({ current_password: "", password: "", password_confirmation: "" });
   };
-
 
   // CHANGE PASSWORD
   const handleChangePasswordSubmit = (e) => {
@@ -77,7 +57,6 @@ export default function Settings() {
       onSuccess: () => handleClosePassword(),
     });
   };
-
 
   // DELETE ACCOUNT
   const handleCloseDelete = () => {
@@ -99,40 +78,39 @@ export default function Settings() {
     );
   };
 
-
   // SUBMIT CHANGES
   const handleSave = (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     if (!name.trim()) return;
 
     updateProfile({
       name: name.trim(),
-      avatar: avatarFile || undefined,
       settings: { currency },
     });
   };
 
+  const avatarLetter = (name.trim() || user?.name || "U").charAt(0).toUpperCase();
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-12">
+    <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8 pb-16">
       {/* HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Settings</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage your account preferences and personal profile settings.
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Settings</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+            Manage your personal profile, currency preferences, and security settings.
           </p>
         </div>
 
         <Button
           onClick={handleSave}
           disabled={isPending || !name.trim()}
-          className="w-40 px-5 h-12 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-bold shadow-md glow-income disabled:opacity-50 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
+          className="w-full sm:w-auto px-6 h-11 sm:h-12 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-bold shadow-md glow-income disabled:opacity-50 disabled:pointer-events-none transition-all duration-300 cursor-pointer shrink-0"
         >
           {isPending ? (
-            <Loader2 className="h-5 w-5 animate-spin mx-auto" />
+            <Loader2 className="h-4 w-4 animate-spin mx-auto" />
           ) : (
-            <span className="flex items-center gap-2">
+            <span className="flex items-center justify-center gap-2">
               <Save className="h-4 w-4" />
               Save Changes
             </span>
@@ -140,140 +118,135 @@ export default function Settings() {
         </Button>
       </div>
 
-      {/* CONTENT */}
+      {/* MAIN SETTINGS CONTENT */}
       <div className="space-y-6">
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-          {/* AVATAR CARD */}
-          <div className="bg-card border border-border/20 rounded-2xl p-6 flex flex-col items-center justify-center text-center space-y-4">
-            <div className="relative group">
-              <img
-                src={previewUrl || DEFAULT_AVATAR}
-                alt="Avatar"
-                className="w-24 h-24 rounded-full object-cover border-2 border-income/40 shadow-lg"
-              />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="absolute inset-0 bg-black/60 rounded-full flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs font-semibold text-white cursor-pointer"
-              >
-                <Camera className="h-5 w-5 mb-1" />
-                Change
-              </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept="image/*"
-                className="hidden"
-              />
+        {/* SECTION 1: PERSONAL INFO & PREFERENCES */}
+        <div className="bg-card border border-border/30 rounded-2xl p-4 sm:p-6 space-y-6 shadow-sm">
+          {/* User Identity Preview */}
+          <div className="flex items-center gap-3.5 sm:gap-4 p-3.5 sm:p-4 rounded-xl bg-secondary/30 border border-border/30">
+            <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-income/10 border border-income/30 text-income font-black text-lg sm:text-xl flex items-center justify-center shrink-0 shadow-inner">
+              {avatarLetter}
             </div>
-            <div>
-              <h3 className="text-2xl font-bold text-foreground">{name || "No Name"}</h3>
-              <p className="text-xs text-muted-foreground">{user?.email}</p>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-base sm:text-lg font-bold text-foreground truncate">{name || "Unnamed User"}</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">{user?.email || "No email"}</p>
             </div>
           </div>
 
-          {/* FORM CARD */}
-          <div className="md:col-span-2 bg-card border border-border/20 rounded-2xl p-6 space-y-5">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground/70 flex items-center gap-2">
-              <User className="h-4 w-4 text-income" /> Personal Info
+          <div className="space-y-4 pt-1">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 flex items-center gap-2">
+              <User className="h-4 w-4 text-income" /> Personal Information
             </h2>
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Full Name</label>
-              <input
-                type="text"
-                placeholder="e.g. Subscriptions, Freelance..."
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-secondary/30 border border-border/40 text-foreground text-sm focus:outline-none focus:border-income focus:ring-1 focus:ring-income"
-              />
-            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Full Name */}
+              <div className="space-y-1.5 sm:col-span-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. John Doe"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-4 py-2.5 sm:py-3 rounded-xl bg-secondary/30 border border-border/40 text-foreground text-sm focus:outline-none focus:border-income focus:ring-1 focus:ring-income transition-all"
+                />
+              </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Email Address
-              </label>
-              <input
-                type="email"
-                value={user?.email || ""}
-                disabled
-                className="w-full px-4 py-2.5 rounded-xl bg-secondary/10 border border-border/20 text-muted-foreground text-sm cursor-not-allowed opacity-70"
-              />
-            </div>
+              {/* Email Address */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Mail className="h-3 w-3 text-muted-foreground" /> Email Address
+                </label>
+                <input
+                  type="email"
+                  value={user?.email || ""}
+                  disabled
+                  className="w-full px-4 py-2.5 sm:py-3 rounded-xl bg-secondary/10 border border-border/20 text-muted-foreground text-sm cursor-not-allowed opacity-70 select-none"
+                />
+              </div>
 
-            {/* Default Currency */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Default Currency
-              </label>
-              <Select value={currency} onValueChange={(val) => setCurrency(val)}>
-                <SelectTrigger className="w-full bg-secondary/30 border-border/40 rounded-xl data-[size=default]:h-11">
-                  <SelectValue placeholder="Select Currency" />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border-border/40 text-foreground">
-                  {CURRENCIES.map((curr) => (
-                    <SelectItem key={curr.code} value={curr.code}>
-                      {curr.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {/* Default Currency */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Globe className="h-3 w-3 text-muted-foreground" /> Default Currency
+                </label>
+                <Select value={currency} onValueChange={(val) => setCurrency(val)}>
+                  <SelectTrigger className="w-full bg-secondary/30 border-border/40 rounded-xl data-[size=default]:h-10 sm:data-[size=default]:h-11">
+                    <SelectValue placeholder="Select Currency" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border-border/40 text-foreground">
+                    {CURRENCIES.map((curr) => (
+                      <SelectItem key={curr.code} value={curr.code}>
+                        {curr.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
+        {/* SECTION 2: SECURITY SETTINGS */}
+        <div className="bg-card border border-border/30 rounded-2xl p-4 sm:p-6 space-y-4 shadow-sm">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground/80 flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-income" /> Security & Authentication
+          </h2>
 
-          {/* SECURITY & DATA */}
-          <div className="bg-card border border-border/20 rounded-2xl p-6 space-y-4">
-            <h2 className="text-base font-bold text-primary flex items-center gap-2">
-              <KeyRound className="h-4 w-4 text-income" /> Security Settings
-            </h2>
-            <div className="flex flex-col gap-2 sm:flex-row items-center justify-between p-3.5 rounded-xl bg-secondary/10 border border-border/10">
-
-              <h4 className="text-sm font-semibold text-primary">Password</h4>
-
-              <Button
-                onClick={() => setIsPasswordOpen(true)}
-                className="bg-muted text-primary hover:bg-muted/90 font-semibold shadow-md hover-glow-income rounded-xl cursor-pointer"
-              >
-                <KeyRound className="h-4 w-4 mr-1" />
-                <span>Change Password</span>
-              </Button>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-xl bg-secondary/20 border border-border/30">
+            <div className="space-y-0.5">
+              <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <KeyRound className="h-4 w-4 text-income" /> Account Password
+              </h4>
+              <p className="text-xs text-muted-foreground">
+                Update your account password regularly to keep your financial data secure.
+              </p>
             </div>
-          </div>
 
-          {/* DELETE ACCOUNT */}
-          <div className="bg-card border border-destructive/20 rounded-2xl p-6 space-y-4">
-            <h2 className="text-base font-bold text-destructive flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4" /> Danger Zone
-            </h2>
-            <div className="flex items-center justify-between p-3.5 rounded-xl bg-destructive/5 border border-destructive/10">
-              <div>
-                <h4 className="text-sm font-semibold text-primary">Delete Account</h4>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Permanently delete your account and all associated data. This cannot be undone.
+            <Button
+              onClick={() => setIsPasswordOpen(true)}
+              variant="outline"
+              className="w-full sm:w-auto bg-secondary/50 hover:bg-secondary text-foreground border-border/40 font-semibold rounded-xl cursor-pointer shrink-0 transition-all"
+            >
+              <KeyRound className="h-4 w-4 mr-1.5" />
+              <span>Change Password</span>
+            </Button>
+          </div>
+        </div>
+
+        {/* SECTION 3: DANGER ZONE (VISUALLY SEPARATED) */}
+        <div className="pt-4 sm:pt-6">
+          <div className="bg-destructive/[0.03] border border-destructive/25 rounded-2xl p-4 sm:p-6 space-y-4 shadow-sm">
+            <div className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-4 w-4 shrink-0" />
+              <h2 className="text-xs font-bold uppercase tracking-wider">Danger Zone</h2>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3.5 sm:p-4 rounded-xl bg-destructive/[0.06] border border-destructive/15">
+              <div className="space-y-1">
+                <h4 className="text-sm font-semibold text-foreground">Delete Account</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Permanently delete your account and all associated data including accounts, transactions, budgets, and goals. This action cannot be undone.
                 </p>
               </div>
+
               <Button
                 onClick={() => setIsDeleteOpen(true)}
-                className="bg-destructive/10 text-destructive hover:bg-destructive/20 border border-destructive/30 font-semibold rounded-xl cursor-pointer shrink-0 ml-4"
+                variant="destructive"
+                className="w-full sm:w-auto bg-destructive/10 text-destructive hover:bg-destructive hover:text-white border border-destructive/30 font-semibold rounded-xl cursor-pointer shrink-0 transition-all duration-200"
               >
-                <Trash2 className="h-4 w-4 mr-1" />
+                <Trash2 className="h-4 w-4 mr-1.5" />
                 <span>Delete Account</span>
               </Button>
             </div>
           </div>
-
         </div>
 
       </div>
 
-
+      {/* CHANGE PASSWORD DIALOG */}
       <Dialog open={isPasswordOpen} onOpenChange={(open) => !open && handleClosePassword()}>
         <DialogContent className="modal-theme">
           <DialogHeader>
@@ -320,7 +293,7 @@ export default function Settings() {
               <Button
                 type="submit"
                 disabled={changePasswordMutation.isPending}
-                className="w-full h-12 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-bold shadow-md glow-income disabled:opacity-50 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
+                className="w-full h-11 sm:h-12 bg-income hover:bg-income/90 text-primary-foreground rounded-xl font-bold shadow-md glow-income disabled:opacity-50 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
               >
                 {changePasswordMutation.isPending ? (
                   <Loader2 className="h-5 w-5 animate-spin mx-auto" />
@@ -333,8 +306,7 @@ export default function Settings() {
         </DialogContent>
       </Dialog>
 
-
-
+      {/* DELETE ACCOUNT DIALOG */}
       <Dialog open={isDeleteOpen} onOpenChange={(open) => !open && handleCloseDelete()}>
         <DialogContent className="modal-theme">
           <DialogHeader>
@@ -365,8 +337,8 @@ export default function Settings() {
             <div className="pt-2">
               <Button
                 type="submit"
-                disabled={deleteAccountMutation.isPending || !deleteForm.current_password }
-                className="w-full h-12 bg-destructive hover:bg-destructive/90 text-white rounded-xl font-bold shadow-md disabled:opacity-50 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
+                disabled={deleteAccountMutation.isPending || !deleteForm.current_password}
+                className="w-full h-11 sm:h-12 bg-destructive hover:bg-destructive/90 text-white rounded-xl font-bold shadow-md disabled:opacity-50 disabled:pointer-events-none transition-all duration-300 cursor-pointer"
               >
                 {deleteAccountMutation.isPending ? (
                   <Loader2 className="h-5 w-5 animate-spin mx-auto" />
