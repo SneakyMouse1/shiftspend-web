@@ -1,3 +1,6 @@
+## Related repositories
+- Backend (Laravel API): [shiftspend-api](https://github.com/SneakyMouse1/shiftspend-api)
+
 # ShiftSpend Web
 ![ShiftSpend Preview](https://res.cloudinary.com/dnvcl84g0/image/upload/v1788339930/Portfolio/shiftspend-4_lgtgfo.png)
 
