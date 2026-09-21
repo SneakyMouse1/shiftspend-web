@@ -1,4 +1,5 @@
 # ShiftSpend Web
+![ShiftSpend Preview](https://res.cloudinary.com/dnvcl84g0/image/upload/v1788339930/Portfolio/shiftspend-4_lgtgfo.png)
 
 Frontend client for the ShiftSpend personal finance management system.
 
